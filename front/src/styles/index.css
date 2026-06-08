@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #07090c;
+  color: #e5edf5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #07090c;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  background: #080b0f;
+  font-family:
+    Geist,
+    Aptos,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.vision-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0b1117;
+}
+
+.vision-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.vision-scrollbar::-webkit-scrollbar-track {
+  background: #0b1117;
+}
+
+.vision-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 999px;
+}
+
+.range-control {
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #1f2937;
+  outline: none;
+}
+
+.range-control::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #071015;
+  border-radius: 999px;
+  background: #2dd4bf;
+  cursor: pointer;
+}
+
+.range-control::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #071015;
+  border-radius: 999px;
+  background: #2dd4bf;
+  cursor: pointer;
+}
+
+.technical-frame {
+  background:
+    linear-gradient(180deg, rgba(31, 41, 55, 0.62) 0%, rgba(15, 23, 42, 0.82) 42%, rgba(8, 13, 19, 1) 100%);
+}
+
+.road-plane {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(174deg, transparent 0 45%, rgba(255, 255, 255, 0.18) 45.2%, transparent 46.2% 100%),
+    linear-gradient(186deg, transparent 0 49%, rgba(255, 255, 255, 0.16) 49.3%, transparent 50.1% 100%),
+    linear-gradient(168deg, transparent 0 58%, rgba(45, 212, 191, 0.22) 58.2%, transparent 58.8% 100%),
+    linear-gradient(0deg, rgba(2, 6, 23, 0.58), transparent 46%);
+  opacity: 0.58;
+}
+
+.sensor-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.28), transparent 76%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

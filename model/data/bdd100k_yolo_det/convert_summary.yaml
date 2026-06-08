@@ -1,0 +1,61 @@
+source:
+  bdd_root: /home/ubuntu/YOLO/datasets/bdd100k
+  image_root: /home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k
+  label_root: /home/ubuntu/YOLO/datasets/bdd100k/bdd100k_labels_release/bdd100k/labels
+output: /home/ubuntu/YOLO/model/data/bdd100k_yolo_det
+classes:
+- person
+- rider
+- car
+- truck
+- bus
+- train
+- motor
+- bike
+- traffic light
+- traffic sign
+image_mode: symlink
+drop_empty: false
+splits:
+  train:
+    label_items: 69863
+    image_files_indexed: 70000
+    duplicate_image_names: 0
+    images_written: 69863
+    images_missing: 0
+    images_empty: 0
+    labels_written: 1286871
+    boxes_dropped: 0
+    previews_written: 12
+    class_counts:
+      traffic light: 186117
+      traffic sign: 239686
+      car: 713211
+      person: 91349
+      bus: 11672
+      truck: 29971
+      rider: 4517
+      bike: 7210
+      motor: 3002
+      train: 136
+  val:
+    label_items: 10000
+    image_files_indexed: 10000
+    duplicate_image_names: 0
+    images_written: 10000
+    images_missing: 0
+    images_empty: 0
+    labels_written: 185526
+    boxes_dropped: 0
+    previews_written: 12
+    class_counts:
+      traffic sign: 34908
+      traffic light: 26885
+      car: 102506
+      rider: 649
+      motor: 452
+      person: 13262
+      bus: 1597
+      truck: 4245
+      bike: 1007
+      train: 15

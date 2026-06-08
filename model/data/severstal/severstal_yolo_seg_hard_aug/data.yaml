@@ -1,0 +1,11 @@
+path: /home/ubuntu/YOLO/model/data/severstal_yolo_seg_hard_aug
+train: images/train
+val: images/val
+nc: 4
+names:
+  0: defect_1
+  1: defect_2
+  2: defect_3
+  3: defect_4
+task: segment
+test: images/test

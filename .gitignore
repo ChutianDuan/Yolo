@@ -1,0 +1,104 @@
+# Python cache and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Frontend dependencies and build output
+node_modules/
+front/node_modules/
+dist/
+front/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# CMake and native build output
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Tests and generated test reports
+test/
+tests/
+**/test/
+**/tests/
+test_*.py
+*_test.py
+**/test.py
+*.jsonl
+coverage/
+htmlcov/
+
+# Datasets, experiment outputs, and training artifacts
+/data/
+/datasets/
+checkpoints/
+weights/
+runs/
+outputs/
+logs/
+wandb/
+*.cache
+*.parquet
+
+# Generated dataset contents under model/data; keep scripts/configs visible.
+model/data/**/images/
+model/data/**/labels/
+model/data/**/visualizations/
+model/data/**/stats/
+model/data/**/preview/
+model/data/**/*.jpg
+model/data/**/*.jpeg
+model/data/**/*.png
+model/data/**/*.bmp
+model/data/**/*.webp
+model/data/**/*.gif
+model/data/**/*.tif
+model/data/**/*.tiff
+model/data/**/*.heic
+model/data/**/*.heif
+model/data/**/aug_experiments/
+model/data/**/*.csv
+
+# Model weights and exported model binaries
+*.pt
+*.pth
+*.onnx
+*.engine
+*.ckpt
+*.safetensors
+*.weights
+*.tflite
+*.mlmodel
+*.pb
+
+# Large media and archives
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Local editor and OS files
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,66 @@
+source: /home/ubuntu/YOLO/severstal_yolo_seg
+output: /home/ubuntu/YOLO/severstal_yolo_seg_sliced_640x256
+task: segment
+tile_width: 640
+tile_height: 256
+stride_x: 512
+stride_y: 256
+min_visibility: 0.2
+min_box_size: 2.0
+min_segment_area: 4.0
+min_segment_points: 3
+simplify_tolerance: 1.0
+drop_empty: false
+oversample_classes:
+- 1
+oversample_factor: 3
+oversample_splits:
+- train
+oversample_augments:
+- hflip
+- brightness
+splits:
+- train
+- val
+- test
+stats:
+  train:
+    src_images: 10054
+    patch_images: 30648
+    patch_images_with_labels: 10500
+    oversampled_patches: 486
+    labels_before: 16007
+    labels_after: 21149
+    labels_dropped: 787
+  val:
+    src_images: 1256
+    patch_images: 3768
+    patch_images_with_labels: 1243
+    oversampled_patches: 0
+    labels_before: 1973
+    labels_after: 2550
+    labels_dropped: 112
+  test:
+    src_images: 1258
+    patch_images: 3774
+    patch_images_with_labels: 1260
+    oversampled_patches: 0
+    labels_before: 1937
+    labels_after: 2462
+    labels_dropped: 112
+class_distribution:
+  train:
+    0: 2995
+    1: 900
+    2: 15161
+    3: 2093
+  val:
+    0: 399
+    1: 27
+    2: 1917
+    3: 207
+  test:
+    0: 291
+    1: 45
+    2: 1882
+    3: 244
