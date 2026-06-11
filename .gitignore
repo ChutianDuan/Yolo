@@ -35,8 +35,10 @@ compile_commands.json
 # Tests and generated test reports
 test/
 tests/
+test_outputs/
 **/test/
 **/tests/
+**/test_outputs/
 test_*.py
 *_test.py
 **/test.py

@@ -39,6 +39,26 @@ set(YOLO_DEFAULT_CONFIG_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/config.yaml"
     CACHE FILEPATH "Default config file used by yolo_api"
 )
+set(YOLO_REFERENCE_CONFIG_PATH
+    "${CMAKE_CURRENT_SOURCE_DIR}/config.reference.yaml"
+    CACHE FILEPATH "Reference full-frame ONNX config file used by yolo_api"
+)
+set(YOLO_CONFIG_PROFILE
+    "default"
+    CACHE STRING "Default config profile used by yolo_api: default or reference"
+)
+set_property(CACHE YOLO_CONFIG_PROFILE PROPERTY STRINGS default reference)
+
+if(YOLO_CONFIG_PROFILE STREQUAL "reference")
+    set(YOLO_RESOLVED_CONFIG_PATH "${YOLO_REFERENCE_CONFIG_PATH}")
+elseif(YOLO_CONFIG_PROFILE STREQUAL "default")
+    set(YOLO_RESOLVED_CONFIG_PATH "${YOLO_DEFAULT_CONFIG_PATH}")
+else()
+    message(FATAL_ERROR "YOLO_CONFIG_PROFILE must be default or reference, got: ${YOLO_CONFIG_PROFILE}")
+endif()
+
+message(STATUS "YOLO config profile: ${YOLO_CONFIG_PROFILE}")
+message(STATUS "YOLO resolved config path: ${YOLO_RESOLVED_CONFIG_PATH}")
 
 add_executable(yolo_api
     config/app_config.cpp
@@ -56,7 +76,7 @@ target_include_directories(yolo_api PRIVATE
 )
 
 target_compile_definitions(yolo_api PRIVATE
-    YOLO_DEFAULT_CONFIG_PATH="${YOLO_DEFAULT_CONFIG_PATH}"
+    YOLO_DEFAULT_CONFIG_PATH="${YOLO_RESOLVED_CONFIG_PATH}"
 )
 
 target_link_libraries(yolo_api PRIVATE

@@ -5,7 +5,10 @@
 #include <cmath>
 #include <cstddef>
 #include <deque>
-#include <future>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include <unordered_map>
 #include <utility>
 
@@ -86,10 +89,6 @@ struct AsyncInferResult {
     bool ok = false;
 };
 
-struct AsyncInferTask {
-    int64_t frame_index = 0;
-    std::future<AsyncInferResult> future;
-};
 
 double elapsedMs(std::chrono::steady_clock::time_point start) {
     const auto elapsed = std::chrono::steady_clock::now() - start;
@@ -834,36 +833,151 @@ std::string invalidVideoFrameMessage(const AppConfig& config) {
         + std::to_string(config.input_width) + "x" + std::to_string(config.input_height);
 }
 
-std::future<AsyncInferResult> launchAsyncInfer(
+AsyncInferResult runAsyncInfer(
     const std::shared_ptr<YoloEngine>& engine,
-    AppConfig config,
+    const AppConfig& config,
     cv::Mat frame,
     int64_t frame_index
 ) {
-    return std::async(
-        std::launch::async,
-        [engine, config = std::move(config), frame = std::move(frame), frame_index]() mutable {
-            AsyncInferResult async_result;
-            async_result.frame_index = frame_index;
+    AsyncInferResult async_result;
+    async_result.frame_index = frame_index;
 
-            try {
-                const auto input = preprocessImageMat(frame, config);
-                if (!input.has_value()) {
-                    async_result.bad_request = true;
-                    async_result.error_message = invalidVideoFrameMessage(config);
-                    return async_result;
+    try {
+        const auto input = preprocessImageMat(frame, config);
+        if (!input.has_value()) {
+            async_result.bad_request = true;
+            async_result.error_message = invalidVideoFrameMessage(config);
+            return async_result;
+        }
+
+        async_result.result = engine->infer(input.value());
+        async_result.ok = true;
+        return async_result;
+    } catch (const std::exception& e) {
+        async_result.error_message = e.what();
+        return async_result;
+    }
+}
+
+class AsyncInferWorker final {
+public:
+    AsyncInferWorker(std::shared_ptr<YoloEngine> engine, AppConfig config)
+        : engine_(std::move(engine)),
+          config_(std::move(config)),
+          worker_(&AsyncInferWorker::run, this) {}
+
+    ~AsyncInferWorker() {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            stopping_ = true;
+        }
+        request_ready_.notify_all();
+        if (worker_.joinable()) {
+            worker_.join();
+        }
+    }
+
+    AsyncInferWorker(const AsyncInferWorker&) = delete;
+    AsyncInferWorker& operator=(const AsyncInferWorker&) = delete;
+
+    bool submit(cv::Mat frame, int64_t frame_index) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (stopping_ || hasPendingLocked()) {
+            return false;
+        }
+
+        requests_.push_back(Request{frame_index, std::move(frame)});
+        request_ready_.notify_one();
+        return true;
+    }
+
+    bool tryPopResult(AsyncInferResult& result) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (results_.empty()) {
+            return false;
+        }
+
+        result = std::move(results_.front());
+        results_.pop_front();
+        return true;
+    }
+
+    bool waitPopResult(AsyncInferResult& result) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        result_ready_.wait(lock, [this]() {
+            return !results_.empty() || !hasPendingLocked();
+        });
+        if (results_.empty()) {
+            return false;
+        }
+
+        result = std::move(results_.front());
+        results_.pop_front();
+        return true;
+    }
+
+    bool hasPending() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return hasPendingLocked();
+    }
+
+private:
+    struct Request {
+        int64_t frame_index = 0;
+        cv::Mat frame;
+    };
+
+    bool hasPendingLocked() const {
+        return in_flight_ || !requests_.empty() || !results_.empty();
+    }
+
+    void run() {
+        while (true) {
+            Request request;
+            {
+                std::unique_lock<std::mutex> lock(mutex_);
+                request_ready_.wait(lock, [this]() {
+                    return stopping_ || !requests_.empty();
+                });
+                if (requests_.empty()) {
+                    if (stopping_) {
+                        return;
+                    }
+                    continue;
                 }
 
-                async_result.result = engine->infer(input.value());
-                async_result.ok = true;
-                return async_result;
-            } catch (const std::exception& e) {
-                async_result.error_message = e.what();
-                return async_result;
+                request = std::move(requests_.front());
+                requests_.pop_front();
+                in_flight_ = true;
             }
+
+            AsyncInferResult result = runAsyncInfer(
+                engine_,
+                config_,
+                std::move(request.frame),
+                request.frame_index
+            );
+
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                results_.push_back(std::move(result));
+                in_flight_ = false;
+            }
+            result_ready_.notify_all();
         }
-    );
-}
+    }
+
+    std::shared_ptr<YoloEngine> engine_;
+    AppConfig config_;
+    mutable std::mutex mutex_;
+    std::condition_variable request_ready_;
+    std::condition_variable result_ready_;
+    std::deque<Request> requests_;
+    std::deque<AsyncInferResult> results_;
+    std::thread worker_;
+    bool in_flight_ = false;
+    bool stopping_ = false;
+};
 
 double finiteOrZero(double value) {
     return std::isfinite(value) ? value : 0.0;
@@ -1023,7 +1137,10 @@ VideoInferResult inferVideoFile(
 
     VideoInferResult result;
     ByteTracker tracker;
-    std::deque<AsyncInferTask> pending_infers;
+    std::unique_ptr<AsyncInferWorker> async_worker;
+    if (async_enabled) {
+        async_worker = std::make_unique<AsyncInferWorker>(engine, config);
+    }
     std::vector<FrameMotion> frame_motions;
     cv::Mat frame;
     cv::Mat previous_gray;
@@ -1124,23 +1241,27 @@ VideoInferResult inferVideoFile(
     };
 
     auto processReadyInferences = [
-        &pending_infers,
+        &async_worker,
         &applyAsyncInferResult
     ](bool wait_for_all,
       int64_t current_frame_index,
       int current_image_width,
       int current_image_height,
-      VideoFrameTracks* target_frame) {
-        for (auto it = pending_infers.begin(); it != pending_infers.end();) {
-            if (!wait_for_all
-                && it->future.wait_for(std::chrono::seconds(0))
-                    != std::future_status::ready) {
-                ++it;
-                continue;
+      VideoFrameTracks* target_frame,
+      bool* applied_result) {
+        if (async_worker == nullptr) {
+            return true;
+        }
+
+        while (true) {
+            AsyncInferResult async_result;
+            const bool has_result = wait_for_all
+                ? async_worker->waitPopResult(async_result)
+                : async_worker->tryPopResult(async_result);
+            if (!has_result) {
+                return true;
             }
 
-            AsyncInferResult async_result = it->future.get();
-            it = pending_infers.erase(it);
             if (!applyAsyncInferResult(
                     std::move(async_result),
                     current_frame_index,
@@ -1149,14 +1270,14 @@ VideoInferResult inferVideoFile(
                     target_frame)) {
                 return false;
             }
+            if (applied_result != nullptr) {
+                *applied_result = true;
+            }
         }
-        return true;
     };
 
     auto scheduleAsyncDetection = [
-        &engine,
-        &config,
-        &pending_infers,
+        &async_worker,
         &stride_state,
         &async_infer_request_count,
         &forced_detection_count,
@@ -1167,17 +1288,17 @@ VideoInferResult inferVideoFile(
       int64_t source_frame_index,
       bool forced,
       VideoFrameTracks& frame_result) {
-        constexpr size_t kMaxPendingAsyncInferences = 1;
-        if (pending_infers.size() >= kMaxPendingAsyncInferences) {
+        if (async_worker == nullptr || async_worker->hasPending()) {
             ++skipped_detection_count;
             return;
         }
 
         cv::Mat async_frame = source_frame.clone();
-        pending_infers.push_back(AsyncInferTask{
-            source_frame_index,
-            launchAsyncInfer(engine, config, std::move(async_frame), source_frame_index)
-        });
+        if (!async_worker->submit(std::move(async_frame), source_frame_index)) {
+            ++skipped_detection_count;
+            return;
+        }
+
         stride_state.last_detection_frame_index = source_frame_index;
         frame_result.is_detection_frame = true;
         ++async_infer_request_count;
@@ -1280,39 +1401,43 @@ VideoInferResult inferVideoFile(
         ));
         result.optical_flow_ms += elapsedMs(flow_start);
 
-        auto postprocess_start = std::chrono::steady_clock::now();
-        if (!weak_result.tracks.empty()) {
-            frame_result.tracks = tracker.updateTracked(weak_result.tracks);
-            if (!frame_result.tracks.empty()) {
-                frame_result.tracks_source = "weak_tracked";
-            }
-        }
-
-        previous_frame_tracks = frame_result.tracks;
-        const TrackChangeQuality flow_track_change = trackChangeQuality(
-            tracks_before_flow,
-            previous_frame_tracks,
-            track_velocities
-        );
-        if (dynamic_stride_enabled) {
-            applyWeakQualityToStride(stride_state, weak_result.quality);
-            applyTrackChangeToStride(stride_state, flow_track_change);
-        }
-        updateTrackVelocities(
-            tracks_before_flow,
-            previous_frame_tracks,
-            track_velocities
-        );
-        rememberStride();
-        result.tracking_postprocess_ms += elapsedMs(postprocess_start);
-
+        bool async_result_applied = false;
         if (!processReadyInferences(
                 false,
                 frame_index,
                 image_width,
                 image_height,
-                &frame_result)) {
+                &frame_result,
+                &async_result_applied)) {
             throw VideoInferError(async_error_message, async_error_bad_request);
+        }
+
+        if (!async_result_applied) {
+            auto postprocess_start = std::chrono::steady_clock::now();
+            if (!weak_result.tracks.empty()) {
+                frame_result.tracks = tracker.updateTracked(weak_result.tracks);
+                if (!frame_result.tracks.empty()) {
+                    frame_result.tracks_source = "weak_tracked";
+                }
+            }
+
+            previous_frame_tracks = frame_result.tracks;
+            const TrackChangeQuality flow_track_change = trackChangeQuality(
+                tracks_before_flow,
+                previous_frame_tracks,
+                track_velocities
+            );
+            if (dynamic_stride_enabled) {
+                applyWeakQualityToStride(stride_state, weak_result.quality);
+                applyTrackChangeToStride(stride_state, flow_track_change);
+            }
+            updateTrackVelocities(
+                tracks_before_flow,
+                previous_frame_tracks,
+                track_velocities
+            );
+            rememberStride();
+            result.tracking_postprocess_ms += elapsedMs(postprocess_start);
         }
 
         const bool force_detection = dynamic_stride_enabled
@@ -1349,7 +1474,7 @@ VideoInferResult inferVideoFile(
         ++frame_index;
     }
 
-    if (!pending_infers.empty() && readable_frame_count > 0) {
+    if (async_worker != nullptr && async_worker->hasPending() && readable_frame_count > 0) {
         VideoFrameTracks* correction_frame = result.frames.empty()
             ? nullptr
             : &result.frames.back();
@@ -1359,7 +1484,8 @@ VideoInferResult inferVideoFile(
                 current_frame_index,
                 image_width,
                 image_height,
-                correction_frame)) {
+                correction_frame,
+                nullptr)) {
             throw VideoInferError(async_error_message, async_error_bad_request);
         }
     }

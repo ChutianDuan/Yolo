@@ -1,0 +1,24 @@
+model_path: ./deploy/best.onnx
+input_width: 1280
+input_height: 736
+conf_threshold: 0.25
+iou_threshold: 0.45
+num_classes: 10
+class_names:
+  - person
+  - rider
+  - car
+  - truck
+  - bus
+  - train
+  - motor
+  - bike
+  - traffic light
+  - traffic sign
+thread_num: 4
+use_letterbox: true
+# Reference mode: run ONNX on every readable video frame.
+video_detect_fps: 0
+video_stride_mode: dynamic
+video_onnx_async: false
+client_max_body_mb: 256

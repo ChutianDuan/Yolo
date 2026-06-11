@@ -1,5 +1,138 @@
 # yolo 目标识别
 
+预测效果：
+
+<video src="Readme/dynamic_onnx_flow_detections.mp4" controls muted playsinline>
+  浏览器不支持直接播放视频时，可打开 `Readme/dynamic_onnx_flow_detections.mp4` 查看预测效果。
+</video>
+
+## 环境配置
+
+本项目建议把环境拆成两套维护：
+
+- `conda` 训练环境：运行 YOLO 训练、验证、ONNX 导出、INT8 量化和 Python 测试脚本。
+- `CMake + vcpkg` 部署环境：编译并运行 `yolo_onnx_cpp/` 下的 Drogon HTTP 服务，使用 ONNX Runtime CPU 后端推理。
+
+两套环境边界要保持清晰：训练环境可以使用 CUDA/PyTorch；C++ 部署服务默认只依赖 CMake/vcpkg 提供的 OpenCV、Drogon、ONNX Runtime CPU，不依赖 Python 运行时。
+
+### Conda：YOLO 训练与导出环境
+
+用途：
+
+- 运行 `model/train.py` 训练 YOLO 检测模型。
+- 运行 `model/onnx.py` 导出 `best.onnx` / `best_int8.onnx` 到 `yolo_onnx_cpp/deploy/`。
+- 运行 `model/data/` 下的数据转换、切片、评估和对比脚本。
+- 运行 `yolo_onnx_cpp/test/*.py` 做 HTTP 端到端测试和视频对比实验。
+
+推荐创建独立 conda 环境：
+
+```bash
+conda create -n yolo-train python=3.10 -y
+conda activate yolo-train
+```
+
+安装 PyTorch。按机器 CUDA 版本选择对应命令；如果只做 CPU 导出和脚本测试，也可以安装 CPU 版 PyTorch。示例：
+
+```bash
+# CUDA 12.1 示例，按实际驱动和 CUDA 版本调整。
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
+
+安装训练、导出和测试脚本依赖：
+
+```bash
+pip install ultralytics opencv-python pillow pyyaml numpy tqdm
+pip install onnx onnxruntime onnxruntime-tools
+```
+
+如果需要 INT8 量化，`model/onnx.py` 会使用 `onnxruntime.quantization`。确认依赖可用：
+
+```bash
+python -c "import torch, ultralytics, onnx, onnxruntime, cv2; print('ok')"
+```
+
+本机训练默认建议只暴露物理 GPU 4 和 GPU 5：
+
+```bash
+export CUDA_VISIBLE_DEVICES=4,5
+python model/train.py
+```
+
+此时训练脚本里的 `device: 0,1` 对应可见设备 `cuda:0,cuda:1`，也就是物理 GPU 4、5。单卡调试时使用：
+
+```bash
+export CUDA_VISIBLE_DEVICES=4
+python model/train.py
+```
+
+常用命令：
+
+```bash
+# 训练
+python model/train.py
+
+# 导出 FP32 ONNX，并可选生成 INT8 ONNX
+python model/onnx.py --pt model/runs/detect/bdd100k_yolo26s_det_1280x736/weights/best.pt --data model/data/bdd100k_yolo_det/data.yaml
+
+# 只导出 FP32，不做 INT8
+python model/onnx.py --skip-int8
+```
+
+导出后 C++ 服务默认读取：
+
+```text
+yolo_onnx_cpp/deploy/best.onnx
+yolo_onnx_cpp/deploy/classes.json
+```
+
+### CMake：Drogon + ONNX Runtime CPU 部署环境
+
+用途：
+
+- 编译 `yolo_onnx_cpp/` 下的 C++ HTTP 推理服务 `build/yolo_api`。
+- 使用 Drogon 提供 `/infer` 和 `/infer_video` 接口。
+- 使用 ONNX Runtime CPU 加载 `deploy/best.onnx`。
+- 使用 OpenCV 做图片/视频读取、预处理、光流弱跟踪和坐标还原。
+
+当前项目按 vcpkg 管理 C++ 依赖，主要依赖：
+
+```text
+Drogon
+ONNX Runtime CPU
+OpenCV core/imgproc/imgcodecs/video/videoio
+JsonCpp
+```
+
+当前 VSCode/CMake 配置使用 `/root/vcpkg` 下的 GCC15 toolchain 和 vcpkg triplet。命令行配置示例：
+
+```bash
+cmake -S yolo_onnx_cpp -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DYOLO_CONFIG_PROFILE=default -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build build
+```
+
+`YOLO_CONFIG_PROFILE` 控制编译进二进制的默认配置文件：
+
+- `default`：默认使用 `yolo_onnx_cpp/config.yaml`，适合正常服务运行。
+- `reference`：默认使用 `yolo_onnx_cpp/config.reference.yaml`，适合全帧 ONNX reference 测试。
+
+即使编译时选择了默认配置，运行时也可以通过第一个启动参数覆盖配置文件：
+
+```bash
+./build/yolo_api yolo_onnx_cpp/config.yaml
+./build/yolo_api yolo_onnx_cpp/config.reference.yaml
+```
+
+部署服务不需要激活 `yolo-train` conda 环境；只要 `build/yolo_api` 能找到 vcpkg 依赖并且 `model_path` 指向存在的 ONNX 文件即可。
+
+构建完成后建议确认：
+
+```bash
+./build/yolo_api yolo_onnx_cpp/config.yaml
+```
+
+服务启动后监听 `0.0.0.0:8080`。如果 `model_path` 是相对路径，会按配置文件所在目录解析，例如 `./deploy/best.onnx` 会解析到 `yolo_onnx_cpp/deploy/best.onnx`。
+
+
 ## 数据
 
 ## yolo train
