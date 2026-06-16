@@ -100,7 +100,16 @@ yolo_onnx_cpp/deploy/classes.json
 Drogon
 ONNX Runtime CPU
 OpenCV core/imgproc/imgcodecs/video/videoio
+OpenCV ffmpeg feature（用于读取 mp4/mov/qt 等常见视频容器）
 JsonCpp
+```
+
+如果重建 C++ 部署环境，建议确保 OpenCV 带 FFmpeg 后端。当前 vcpkg 环境对应命令示例：
+
+```bash
+/root/vcpkg/vcpkg install 'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon \
+  --triplet x64-linux-gcc15 \
+  --overlay-triplets=/root/vcpkg/custom-triplets
 ```
 
 当前 VSCode/CMake 配置使用 `/root/vcpkg` 下的 GCC15 toolchain 和 vcpkg triplet。命令行配置示例：
@@ -150,6 +159,7 @@ cmake --build build
 
 - `drogon/api_server.cpp`：只处理 HTTP 路由、multipart 上传、临时视频文件和错误响应。
 - `video/video_inference.cpp`：执行视频推理主流程，包括异步 ONNX 强检测、LK 光流弱跟踪、动态抽帧和插值兜底。
+- `video/optical_flow_tracker.cpp` / `video/optical_flow_tracker.h`：封装 LK 光流弱跟踪、帧间运动估计、运动补偿和光流质量判断。
 - `drogon/response_json.cpp`：统一把 `InferResult` / `VideoInferResult` 转成 API JSON 响应。
 - `model/inference_types.h`：定义内部推理结构体，例如 `Detection`、`TrackedDetection` 和 `InferResult`。
 
@@ -326,7 +336,7 @@ C++ OpenCV 读取原始视频每一帧
 
 例如源视频为 24 FPS，`video_detect_fps: 4.0` 时，基础间隔为 6 帧。稳定场景会接近每 6 帧调度一次 YOLO；复杂运动、光流质量下降或轨迹突变时会临时缩短间隔，尽快用 ONNX 校正。这样可以保持最终展示仍为原始 24 FPS，同时避免每帧都跑 ONNX。
 
-光流弱跟踪和异步强检测的加入点在 `video/video_inference.cpp`：
+视频主流程在 `video/video_inference.cpp`，LK 光流弱跟踪细节在 `video/optical_flow_tracker.cpp`：
 
 - `inferVideoFile` 是视频推理入口，返回结构体 `VideoInferResult`。
 - 每帧先调用 `weakTrackWithOpticalFlow(previous_gray, current_gray, previous_frame_tracks, ...)` 尝试快速续轨。
@@ -529,5 +539,5 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 - `model_path` 指向的模型文件需要存在，例如 `yolo_onnx_cpp/deploy/best.onnx`。
 - 如果 `num_classes` 和 `class_names` 同时配置，两者数量必须一致。
 - `/infer_video` 当前会把原始展示帧都放进一次 JSON 响应，即使 ONNX 只处理抽帧点，长视频响应体仍会较大；真实生产服务建议增加帧数上限、分页或异步任务输出。
-- 当前 C++ OpenCV 构建可能无法直接打开部分 `.mov` 容器；测试时可先转码为 OpenCV 能读取的格式，或重新构建带 FFmpeg 视频后端的 OpenCV。
+- `.mov` / `.qt` 视频会优先尝试 OpenCV FFmpeg 后端；如果仍无法打开，先确认 vcpkg 中安装的是 `opencv4[ffmpeg]`，或将输入转码为当前 OpenCV 后端可读的 mp4/avi。
 - LK 光流弱跟踪适合短间隔跳过帧。若 `video_detect_fps` 过低、目标快速形变、严重遮挡或相机剧烈运动，仍可能出现漂移；此时应提高强检测帧率或只对 `car/truck/bus/person/rider/motor/bike` 等动态类别做跟踪。

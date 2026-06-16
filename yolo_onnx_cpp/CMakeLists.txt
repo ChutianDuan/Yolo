@@ -68,6 +68,7 @@ add_executable(yolo_api
     main.cpp
     model/yolo_engine.cpp
     tracking/byte_tracker.cpp
+    video/optical_flow_tracker.cpp
     video/video_inference.cpp
 )
 
