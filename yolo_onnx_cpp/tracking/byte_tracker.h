@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <vector>
 
@@ -17,34 +18,56 @@ public:
     );
 
 private:
+    enum class TrackState {
+        Tracked,
+        Lost,
+        Removed,
+    };
+
     struct Track {
         int id = -1;
         Detection detection;
-        Detection predicted;
-        float vx1 = 0.0F;
-        float vy1 = 0.0F;
-        float vx2 = 0.0F;
-        float vy2 = 0.0F;
-        int lost_frames = 0;
+        std::array<float, 8> mean{};
+        std::array<std::array<float, 8>, 8> covariance{};
+        TrackState state = TrackState::Tracked;
+        bool activated = false;
         bool matched = false;
+        int frame_id = 0;
+        int start_frame = 0;
+        int tracklet_len = 0;
     };
 
     struct Match {
         size_t track_index = 0;
         size_t detection_index = 0;
-        float iou = 0.0F;
+        float cost = 0.0F;
     };
 
     static float boxIou(const Detection& a, const Detection& b);
-    Detection predictDetection(const Track& track) const;
+    static Detection stateToDetection(
+        const std::array<float, 8>& mean,
+        int class_id,
+        float score
+    );
+    static std::array<float, 4> detectionToMeasurement(const Detection& detection);
+
+    Track createTrack(const Detection& detection);
+    void predictTrack(Track& track) const;
     void updateTrack(Track& track, const Detection& detection);
-    std::vector<Match> greedyMatch(
+    void markLost(Track& track);
+    void markRemoved(Track& track);
+
+    std::vector<Match> assignDetections(
         const std::vector<size_t>& track_indices,
         const std::vector<Detection>& detections,
-        const std::vector<size_t>& detection_indices,
-        float iou_threshold
+        float match_threshold,
+        bool fuse_score
     ) const;
+    std::vector<TrackedDetection> currentTrackedDetections() const;
+    void removeDuplicateTracks();
+    void pruneTracks();
 
+    int frame_id_ = 0;
     int next_track_id_ = 1;
     int track_buffer_ = 30;
     std::vector<Track> tracks_;

@@ -1,10 +1,16 @@
 #pragma once
 
+#include <filesystem>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
 #include <opencv2/core.hpp>
+
+namespace cv {
+class VideoCapture;
+}
 
 #include "config/app_config.h"
 #include "model/inference_types.h"
@@ -35,5 +41,12 @@ std::optional<TensorInput> preprocessImageContent(
     std::string_view content,
     const AppConfig& config
 );
+
+bool openVideoCapture(
+    cv::VideoCapture& capture,
+    const std::filesystem::path& video_path
+);
+
+std::string videoOpenFailureMessage(const std::filesystem::path& video_path);
 
 }  // namespace yolo

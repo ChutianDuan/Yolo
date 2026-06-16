@@ -1119,9 +1119,9 @@ VideoInferResult inferVideoFile(
     const std::filesystem::path& video_path
 ) {
     const auto total_start = std::chrono::steady_clock::now();
-    cv::VideoCapture capture(video_path.string());
-    if (!capture.isOpened()) {
-        throw VideoInferError("Failed to open video", true);
+    cv::VideoCapture capture;
+    if (!openVideoCapture(capture, video_path)) {
+        throw VideoInferError(videoOpenFailureMessage(video_path), true);
     }
     // 读取帧数信息，并初始化默认抽帧间隔 stride_state
     const double source_fps = finiteOrZero(capture.get(cv::CAP_PROP_FPS));

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import {
   Pause,
   Play,
@@ -7,10 +8,17 @@ import {
 import type { FrameResult, MediaKind, VisionTaskStatus } from "../types/vision";
 import { DetectionOverlay } from "./DetectionOverlay";
 
+interface MediaDimensions {
+  width: number;
+  height: number;
+}
+
 interface VisionCanvasProps {
   frame: FrameResult;
   frameResults: FrameResult[];
   frameCount: number;
+  mediaUrl?: string;
+  mediaDimensions?: MediaDimensions;
   mediaName: string;
   mediaKind: MediaKind;
   selectedTrackId: number;
@@ -31,6 +39,8 @@ export function VisionCanvas({
   frame,
   frameResults,
   frameCount,
+  mediaUrl,
+  mediaDimensions,
   mediaName,
   mediaKind,
   selectedTrackId,
@@ -40,26 +50,97 @@ export function VisionCanvas({
   onFrameChange,
   onTogglePlayback,
 }: VisionCanvasProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const selectedTrack = frame.tracks.find((track) => track.trackId === selectedTrackId);
   const isProcessing = status === "detecting" || status === "tracking";
   const isComplete = status === "completed";
   const maxObjects = Math.max(...frameResults.map((item) => item.objectCount), 1);
+  const frameMax = Math.max(frameCount - 1, 0);
+  const frameStyle = mediaDimensions
+    ? { aspectRatio: mediaDimensions.width + " / " + mediaDimensions.height }
+    : undefined;
+
+  useEffect(() => {
+    if (mediaKind !== "video") {
+      return undefined;
+    }
+
+    const video = videoRef.current;
+    if (!video) {
+      return undefined;
+    }
+
+    const nextTime = Math.max(frame.timestampMs / 1000, 0);
+    const syncTime = () => {
+      if (!Number.isFinite(nextTime)) {
+        return;
+      }
+      if (Math.abs(video.currentTime - nextTime) > 0.08) {
+        video.currentTime = nextTime;
+      }
+    };
+
+    syncTime();
+    video.addEventListener("loadedmetadata", syncTime);
+    return () => video.removeEventListener("loadedmetadata", syncTime);
+  }, [frame.timestampMs, mediaKind, mediaUrl]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (mediaKind !== "video" || !video) {
+      return;
+    }
+
+    if (isPlaying) {
+      void video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  }, [isPlaying, mediaKind, mediaUrl]);
 
   return (
     <section className="flex min-h-0 flex-1 flex-col bg-[#080d13]">
       <div className="flex min-h-0 flex-1 items-center justify-center p-2">
         <div className="w-full max-w-[1280px]">
-          <div className="technical-frame relative aspect-video overflow-hidden rounded-md border border-slate-700 shadow-panel">
-            <div className="absolute left-0 top-0 h-[42%] w-full bg-gradient-to-b from-slate-700/20 to-transparent" />
-            <div className="absolute left-[8%] top-[18%] h-[18%] w-[34%] rounded-sm bg-slate-950/35" />
-            <div className="absolute right-[13%] top-[16%] h-[22%] w-[16%] rounded-sm bg-slate-900/50" />
-            <div className="road-plane" />
-            <div className="sensor-grid" />
+          <div
+            className="technical-frame relative aspect-video overflow-hidden rounded-md border border-slate-700 shadow-panel"
+            style={frameStyle}
+          >
+            {mediaUrl ? (
+              mediaKind === "image" ? (
+                <img
+                  src={mediaUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-fill"
+                  draggable={false}
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  className="absolute inset-0 h-full w-full object-fill"
+                  muted
+                  playsInline
+                  preload="metadata"
+                />
+              )
+            ) : (
+              <>
+                <div className="absolute left-0 top-0 h-[42%] w-full bg-gradient-to-b from-slate-700/20 to-transparent" />
+                <div className="absolute left-[8%] top-[18%] h-[18%] w-[34%] rounded-sm bg-slate-950/35" />
+                <div className="absolute right-[13%] top-[16%] h-[22%] w-[16%] rounded-sm bg-slate-900/50" />
+                <div className="road-plane" />
+                <div className="sensor-grid" />
+              </>
+            )}
+            {mediaUrl && (
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-950/10 via-transparent to-slate-950/20" />
+            )}
 
             <div className="absolute left-2 top-2 rounded border border-slate-700 bg-slate-950/95 px-2 py-1 font-mono text-[10px] text-slate-300">
               {mediaKind === "video" ? "video" : "image"} · frame {frame.frameIndex.toString().padStart(3, "0")} · {frame.objectCount} boxes
             </div>
-            <div className="absolute right-2 top-2 rounded border border-slate-700 bg-slate-950/95 px-2 py-1 font-mono text-[10px] text-slate-400">
+            <div className="absolute right-2 top-2 max-w-[60%] truncate rounded border border-slate-700 bg-slate-950/95 px-2 py-1 font-mono text-[10px] text-slate-400">
               {mediaName}
             </div>
 
@@ -139,7 +220,7 @@ export function VisionCanvas({
           <button
             type="button"
             className={controlButton}
-            onClick={() => onFrameChange(Math.min(frame.frameIndex + 1, frameCount - 1))}
+            onClick={() => onFrameChange(Math.min(frame.frameIndex + 1, frameMax))}
             aria-label="Next frame"
           >
             <SkipForward size={13} weight="bold" />
@@ -161,8 +242,8 @@ export function VisionCanvas({
             <input
               type="range"
               min={0}
-              max={frameCount - 1}
-              value={frame.frameIndex}
+              max={frameMax}
+              value={Math.min(frame.frameIndex, frameMax)}
               onChange={(event) => onFrameChange(Number(event.target.value))}
               className="range-control relative z-10"
               aria-label="Current frame"
@@ -170,7 +251,7 @@ export function VisionCanvas({
           </div>
 
           <span className="w-20 text-right font-mono text-[11px] text-slate-400">
-            {frame.frameIndex.toString().padStart(3, "0")} / {frameCount - 1}
+            {frame.frameIndex.toString().padStart(3, "0")} / {frameMax}
           </span>
         </div>
       </div>

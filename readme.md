@@ -418,10 +418,11 @@ C++ OpenCV 读取原始视频每一帧
 
 ### 全帧 ONNX 与 ONNX + 光流对比实验
 
-对比实验入口为 `yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py`。脚本会对同一个视频连续跑两次 `/infer_video`：
+对比实验入口为 `yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py`。脚本会对同一个视频连续跑三次 `/infer_video`：
 
 - `full_onnx`：临时配置 `video_detect_fps: 0`，每一帧都跑 ONNX，结果作为伪标签。
-- `onnx_flow`：临时配置 `video_detect_fps: --flow-detect-fps`，强检测帧跑 ONNX，跳过帧使用 LK 光流弱跟踪。
+- `dynamic_onnx_flow`：临时配置 `video_detect_fps: --flow-detect-fps`、`video_stride_mode: dynamic`，强检测帧跑 ONNX，跳过帧使用 LK 光流弱跟踪，并允许运行时调整 stride。
+- `fixed_onnx_flow`：临时配置 `video_detect_fps: --fixed-flow-detect-fps`、`video_stride_mode: fixed`，用固定 stride 跑 ONNX + 光流；未显式传入时复用 `--flow-detect-fps`。
 - 对比方式：按帧、按类别做贪心 IoU 匹配，输出 precision、recall、F1、mean matched IoU、FP/FN，并按 `tracks_source` 和类别拆分统计。
 
 示例命令：
@@ -435,25 +436,50 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 
 注意：如果输入视频本身 FPS 不高，且 `source_fps <= --flow-detect-fps`，服务端会得到 `frame_stride=1`，此时 ONNX+光流实际不会跳帧，无法体现光流方案的性能收益。24 FPS 视频配 `--flow-detect-fps 4` 时会每 6 帧跑一次 ONNX，其余帧走光流弱跟踪。
 
-脚本默认输出到 `yolo_onnx_cpp/test_outputs/video_compare/<video_stem>_full_onnx_vs_flow_<timestamp>/`，主要产物包括：
+脚本默认输出到 `yolo_onnx_cpp/test_outputs/video_compare/<video_stem>_full_dynamic_fixed_onnx_flow_<timestamp>/`，主要产物包括：
 
 - `full_onnx_infer_video_response.json`：全帧 ONNX 原始响应。
 - `full_onnx_pseudo_labels.jsonl`：由全帧 ONNX 生成的逐帧伪标签，便于后续复用。
-- `onnx_flow_infer_video_response.json`：ONNX+光流原始响应。
+- `dynamic_onnx_flow_infer_video_response.json`：动态 stride ONNX+光流原始响应。
+- `fixed_onnx_flow_infer_video_response.json`：固定 stride ONNX+光流原始响应。
 - `comparison.json`：机器可读的效果和性能指标。
 - `comparison.md`：便于阅读的实验摘要。
-- `full_onnx_config.yaml` / `onnx_flow_config.yaml`：本次实验实际使用的临时配置。
+- `full_onnx_config.yaml` / `dynamic_onnx_flow_config.yaml` / `fixed_onnx_flow_config.yaml`：本次实验实际使用的临时配置。
+- `full_onnx_detections.mp4` / `dynamic_onnx_flow_detections.mp4` / `fixed_onnx_flow_detections.mp4`：逐帧画框和 track id 的可视化视频；传入 `--no-save-videos` 时不会自动生成，但可用已保存响应补渲染。
 
 `comparison.json` 中需要重点看：
 
-- `performance.elapsed_speedup_full_over_flow`：全帧 ONNX 耗时 / ONNX+光流耗时，大于 1 表示 ONNX+光流更快。
-- `performance.onnx_frame_reduction_ratio`：少跑 ONNX 的帧比例。
-- `performance.full_onnx_display_fps` / `performance.onnx_flow_display_fps`：端到端展示帧吞吐，包含上传、服务端处理和 JSON 响应读取。
-- `quality_vs_full_onnx_labels[].overall`：以全帧 ONNX 为伪标签的总体 precision、recall、F1 和 IoU。
-- `quality_vs_full_onnx_labels[].by_flow_frame_source`：分别查看强检测帧、光流帧、插值帧的匹配质量。
-- `quality_vs_full_onnx_labels[].by_class`：按类别查看误差来源。
+- `runs.<run>.unique_track_count`：该 run 内出现过的唯一 track id 数量，便于观察 ID 碎片化是否下降。
+- `performance_vs_full_onnx.<run>.elapsed_speedup_full_over_run`：全帧 ONNX 耗时 / 指定 ONNX+光流 run 耗时，大于 1 表示该 run 更快。
+- `performance_vs_full_onnx.<run>.onnx_frame_reduction_ratio`：指定 run 少跑 ONNX 的帧比例。
+- `performance_vs_full_onnx.<run>.full_onnx_display_fps` / `run_display_fps`：端到端展示帧吞吐，包含上传、服务端处理和 JSON 响应读取。
+- `quality_vs_full_onnx_labels.<run>[].overall`：以全帧 ONNX 为伪标签的总体 precision、recall、F1 和 IoU。
+- `quality_vs_full_onnx_labels.<run>[].by_flow_frame_source`：分别查看强检测帧、光流帧、插值帧的匹配质量。
+- `quality_vs_full_onnx_labels.<run>[].by_class`：按类别查看误差来源。
 
 这里的全帧 ONNX 只是伪标签，不等价于人工标注真值；该实验用于衡量“少跑 ONNX + 光流补帧”相对全帧 ONNX 的一致性和端到端性能收益。
+
+#### 2026-06-15 ByteTrack 升级验证
+
+使用 `yolo_onnx_cpp/test_outputs/video_inputs/02a46296-f95ec53f_full_mjpeg.avi` 重新跑 `compare_full_onnx_vs_flow.py --flow-detect-fps 4 --iou-thresholds 0.3,0.5,0.7 --no-save-videos`，输出目录为：
+
+`yolo_onnx_cpp/test_outputs/video_compare/02a46296-f95ec53f_full_mjpeg_full_dynamic_fixed_onnx_flow_20260615_083955/`
+
+本次推理阶段使用了 `--no-save-videos`，随后用已保存的 `*_infer_video_response.json` 补渲染了可视化视频，并回填到 `comparison.json` / `comparison.md`：
+
+- `full_onnx_detections.mp4`
+- `dynamic_onnx_flow_detections.mp4`
+- `fixed_onnx_flow_detections.mp4`
+
+与 `20260608_121415` 的旧结果相比，唯一 track id 数量明显下降：
+
+| run | 旧 unique track ids | 新 unique track ids | 变化 |
+| --- | ---: | ---: | ---: |
+| `full_onnx` | 774 | 395 | -379 (-48.97%) |
+| `dynamic_onnx_flow` | 517 | 286 | -231 (-44.68%) |
+| `fixed_onnx_flow` | 420 | 272 | -148 (-35.24%) |
+
+这说明完整 ByteTrack 匹配逻辑后，ID 碎片化有明显改善。需要注意的是，质量指标仍以当前 `full_onnx` 作为伪标签，因此跨版本比较 precision/recall 时要同时看伪标签本身是否变化。
 
 ### 代码流程
 
@@ -488,11 +514,14 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 
 #### tracking / ByteTrack 与光流弱跟踪
 
-- `ByteTracker::update` 维护视频请求内的强检测轨迹状态，先用高置信检测匹配已有轨迹，再用低置信检测补匹配，未匹配检测会创建新 `track_id`。
-- `ByteTracker::updateTracked` 接收已经带有 `track_id` 的弱跟踪框，只更新已有轨迹的位置、速度和丢失计数，不创建新轨迹。它用于跳过帧的光流弱跟踪结果。
+- `ByteTracker::update` 维护视频请求内的强检测轨迹状态，当前已升级为完整 ByteTrack 风格流程：Kalman 状态为 `[cx, cy, a, h, vx, vy, va, vh]`，每帧先预测 `Tracked/Lost` 轨迹，再把检测按高低置信度分段匹配。
+- 第一阶段用 Hungarian 匹配 `Tracked + Lost` 轨迹和高置信检测，并融合检测分数；第二阶段只用仍未匹配的 active 轨迹匹配低置信检测。
+- 未确认轨迹会单独和剩余高置信检测匹配；仍未匹配的高置信检测才创建新 `track_id`。
+- 轨迹生命周期包含 `Tracked`、`Lost`、`Removed`，并通过 `track_buffer` 保留短暂丢失轨迹；同类高 IoU 重复轨迹会按轨迹寿命移除较短的一条。
+- 匹配仍保留类别约束，避免不同类别之间抢占同一个 ID。
+- `ByteTracker::updateTracked` 接收已经带有 `track_id` 的弱跟踪框，只更新已有轨迹的 Kalman 状态和生命周期，不创建新轨迹。它用于跳过帧的光流弱跟踪结果。
 - `weakTrackWithOpticalFlow` 是轻量弱检查逻辑：在上一帧 track 框内选角点，使用 LK 光流追踪到当前帧，对每个目标取角点位移中位数并平移 bbox。
 - 光流弱跟踪的作用是让跳过帧上的框跟随真实图像运动，减少纯线性插值带来的框漂移；强检测帧仍由 YOLO 定期校正。
-- 当前实现使用类别约束、IoU 贪心匹配、简单速度预测和 LK 光流弱跟踪；如果后续要接完整 Kalman/Hungarian 版 ByteTrack，可替换该模块并保持 `/infer_video` 返回字段不变。
 
 ### 注意事项
 

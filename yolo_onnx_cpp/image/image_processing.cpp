@@ -1,13 +1,17 @@
 #include "image_processing.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdint>
+#include <filesystem>
+#include <string>
 #include <vector>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 
 namespace yolo {
 namespace {
@@ -26,6 +30,33 @@ constexpr int64_t kNmsClassIndex = 5;
 cv::Mat decodeImage(std::string_view content) {
     const std::vector<unsigned char> buffer(content.begin(), content.end());
     return cv::imdecode(buffer, cv::IMREAD_COLOR);
+}
+
+std::string lowerExtension(const std::filesystem::path& path) {
+    std::string extension = path.extension().string();
+    std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return extension;
+}
+
+bool isQuickTimeContainer(const std::filesystem::path& path) {
+    const std::string extension = lowerExtension(path);
+    return extension == ".mov" || extension == ".qt";
+}
+
+bool tryOpenVideoCapture(
+    cv::VideoCapture& capture,
+    const std::filesystem::path& video_path,
+    int backend
+) {
+    capture.release();
+    try {
+        return capture.open(video_path.string(), backend) && capture.isOpened();
+    } catch (const cv::Exception&) {
+        capture.release();
+        return false;
+    }
 }
 
 float clipped(float value, float low, float high) {
@@ -284,6 +315,30 @@ std::vector<Detection> decode(
     }
 
     return detections;
+}
+
+bool openVideoCapture(
+    cv::VideoCapture& capture,
+    const std::filesystem::path& video_path
+) {
+    if (isQuickTimeContainer(video_path)) {
+        if (tryOpenVideoCapture(capture, video_path, cv::CAP_FFMPEG)) {
+            return true;
+        }
+        if (tryOpenVideoCapture(capture, video_path, cv::CAP_GSTREAMER)) {
+            return true;
+        }
+    }
+
+    return tryOpenVideoCapture(capture, video_path, cv::CAP_ANY);
+}
+
+std::string videoOpenFailureMessage(const std::filesystem::path& video_path) {
+    if (isQuickTimeContainer(video_path)) {
+        return "Failed to open .mov video. Rebuild OpenCV with FFmpeg or GStreamer "
+            "videoio support, or convert the file to mp4/avi.";
+    }
+    return "Failed to open video";
 }
 
 std::optional<TensorInput> preprocessImageContent(
