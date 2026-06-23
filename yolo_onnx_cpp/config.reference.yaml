@@ -16,6 +16,8 @@ class_names:
   - traffic light
   - traffic sign
 thread_num: 4
+# true keeps the source aspect ratio with padding; false resizes directly.
+# For a static ONNX model, input_width/input_height must match the exported shape.
 use_letterbox: true
 # Reference mode: run ONNX on every readable video frame.
 video_detect_fps: 0

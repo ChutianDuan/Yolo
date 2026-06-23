@@ -345,12 +345,8 @@ void applyTrackChangeToStride(
 }
 
 std::string invalidVideoFrameMessage(const AppConfig& config) {
-    if (config.use_letterbox) {
-        return "Failed to preprocess video frame";
-    }
-
-    return "Failed to preprocess video frame or frame size is not "
-        + std::to_string(config.input_width) + "x" + std::to_string(config.input_height);
+    (void)config;
+    return "Failed to preprocess video frame";
 }
 
 AsyncInferResult runAsyncInfer(

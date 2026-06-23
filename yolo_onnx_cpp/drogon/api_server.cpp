@@ -19,12 +19,8 @@ namespace yolo {
 namespace {
 
 std::string invalidImageMessage(const AppConfig& config) {
-    if (config.use_letterbox) {
-        return "Failed to decode image";
-    }
-
-    return "Failed to decode image or image size is not "
-        + std::to_string(config.input_width) + "x" + std::to_string(config.input_height);
+    (void)config;
+    return "Failed to decode or preprocess image";
 }
 
 std::string videoExtension(const drogon::HttpFile& file) {

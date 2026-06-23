@@ -123,15 +123,20 @@ Detection makeDetection(
     int class_id,
     const TensorInput& input
 ) {
-    const float ratio = input.letterbox.ratio > 0.0F ? input.letterbox.ratio : 1.0F;
+    const float scale_x = input.letterbox.scale_x > 0.0F
+        ? input.letterbox.scale_x
+        : 1.0F;
+    const float scale_y = input.letterbox.scale_y > 0.0F
+        ? input.letterbox.scale_y
+        : 1.0F;
 
     Detection detection;
     detection.class_id = class_id;
     detection.score = score;
-    detection.x1 = (x1 - input.letterbox.pad_w) / ratio;
-    detection.y1 = (y1 - input.letterbox.pad_h) / ratio;
-    detection.x2 = (x2 - input.letterbox.pad_w) / ratio;
-    detection.y2 = (y2 - input.letterbox.pad_h) / ratio;
+    detection.x1 = (x1 - input.letterbox.pad_w) / scale_x;
+    detection.y1 = (y1 - input.letterbox.pad_h) / scale_y;
+    detection.x2 = (x2 - input.letterbox.pad_w) / scale_x;
+    detection.y2 = (y2 - input.letterbox.pad_h) / scale_y;
 
     clipBox(detection, input.image_width, input.image_height);
     return detection;
@@ -191,7 +196,8 @@ cv::Mat letterbox(
         color
     );
 
-    info.ratio = ratio;
+    info.scale_x = static_cast<float>(resized_w) / static_cast<float>(image.cols);
+    info.scale_y = static_cast<float>(resized_h) / static_cast<float>(image.rows);
     info.pad_w = static_cast<float>(left);
     info.pad_h = static_cast<float>(top);
 
@@ -377,10 +383,16 @@ std::optional<TensorInput> preprocessImageMat(
             return std::nullopt;
         }
     } else {
-        if (image.cols != config.input_width || image.rows != config.input_height) {
-            return std::nullopt;
+        letterbox_info.scale_x =
+            static_cast<float>(config.input_width) / static_cast<float>(image.cols);
+        letterbox_info.scale_y =
+            static_cast<float>(config.input_height) / static_cast<float>(image.rows);
+
+        if (image.cols == config.input_width && image.rows == config.input_height) {
+            model_image = image;
+        } else {
+            cv::resize(image, model_image, target_size);
         }
-        model_image = image;
     }
 
     return preprocessImage(

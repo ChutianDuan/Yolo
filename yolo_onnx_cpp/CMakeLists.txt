@@ -95,3 +95,33 @@ target_compile_options(yolo_api PRIVATE
     -Wextra
     -Wpedantic
 )
+
+include(CTest)
+
+if(BUILD_TESTING)
+    add_executable(image_processing_test
+        image/image_processing.cpp
+        test_cpp/image_processing_test.cpp
+        video/optical_flow_tracker.cpp
+    )
+
+    target_include_directories(image_processing_test PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    target_link_libraries(image_processing_test PRIVATE
+        opencv_core
+        opencv_imgproc
+        opencv_imgcodecs
+        opencv_video
+        opencv_videoio
+    )
+
+    target_compile_options(image_processing_test PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+    add_test(NAME image_processing_test COMMAND image_processing_test)
+endif()

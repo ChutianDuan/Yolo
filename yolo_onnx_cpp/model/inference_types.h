@@ -6,7 +6,8 @@
 namespace yolo {
 
 struct LetterBoxInfo {
-    float ratio = 1.0F;
+    float scale_x = 1.0F;
+    float scale_y = 1.0F;
     float pad_w = 0.0F;
     float pad_h = 0.0F;
 };
