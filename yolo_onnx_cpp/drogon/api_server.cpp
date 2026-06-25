@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -21,6 +22,13 @@ namespace {
 std::string invalidImageMessage(const AppConfig& config) {
     (void)config;
     return "Failed to decode or preprocess image";
+}
+
+double elapsedMs(std::chrono::steady_clock::time_point start) {
+    const auto elapsed = std::chrono::steady_clock::now() - start;
+    return static_cast<double>(
+        std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count()
+    ) / 1000.0;
 }
 
 std::string videoExtension(const drogon::HttpFile& file) {
@@ -78,9 +86,12 @@ void registerInferHandler(
         "/infer",
         [engine, config](const drogon::HttpRequestPtr& req,
                          std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
+            const auto request_start = std::chrono::steady_clock::now();
             drogon::MultiPartParser parser;
 
             if (parser.parse(req) != 0) {
+                std::cerr << "[api] /infer bad_request parse_failed elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
                     "Failed to parse multipart/form-data",
@@ -92,6 +103,8 @@ void registerInferHandler(
             const auto& files = parser.getFiles();
 
             if (files.empty()) {
+                std::cerr << "[api] /infer bad_request missing_file elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
                     "No image file uploaded. Use form field name: image",
@@ -100,11 +113,17 @@ void registerInferHandler(
                 return;
             }
 
-            const auto content = files[0].fileContent();
+            const auto& file = files[0];
+            const auto content = file.fileContent();
+            std::cerr << "[api] /infer start file=\"" << file.getFileName()
+                      << "\" bytes=" << content.size() << '\n';
 
             try {
                 const auto input = preprocessImageContent(content, config);
                 if (!input.has_value()) {
+                    std::cerr << "[api] /infer bad_request decode_failed file=\""
+                              << file.getFileName() << "\" bytes=" << content.size()
+                              << " elapsed_ms=" << elapsedMs(request_start) << '\n';
                     callback(makeJsonResponse(
                         400,
                         invalidImageMessage(config),
@@ -114,11 +133,17 @@ void registerInferHandler(
                 }
 
                 const InferResult result = engine->infer(input.value());
+                std::cerr << "[api] /infer ok file=\"" << file.getFileName()
+                          << "\" detections=" << result.detections.size()
+                          << " elapsed_ms=" << elapsedMs(request_start) << '\n';
 
                 callback(drogon::HttpResponse::newHttpJsonResponse(
                     inferResultToJson(result, config.class_names)
                 ));
             } catch (const std::exception& e) {
+                std::cerr << "[api] /infer error file=\"" << file.getFileName()
+                          << "\" message=\"" << e.what() << "\" elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     500,
                     e.what(),
@@ -138,9 +163,12 @@ void registerVideoInferHandler(
         "/infer_video",
         [engine, config](const drogon::HttpRequestPtr& req,
                          std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
+            const auto request_start = std::chrono::steady_clock::now();
             drogon::MultiPartParser parser;
 
             if (parser.parse(req) != 0) {
+                std::cerr << "[api] /infer_video bad_request parse_failed elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
                     "Failed to parse multipart/form-data",
@@ -152,6 +180,8 @@ void registerVideoInferHandler(
             const auto& files = parser.getFiles();
 
             if (files.empty()) {
+                std::cerr << "[api] /infer_video bad_request missing_file elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
                     "No video file uploaded. Use form field name: video",
@@ -160,20 +190,53 @@ void registerVideoInferHandler(
                 return;
             }
 
+            const auto& file = files[0];
+            const auto content = file.fileContent();
+            const std::string extension = videoExtension(file);
+            std::cerr << "[api] /infer_video start file=\"" << file.getFileName()
+                      << "\" bytes=" << content.size()
+                      << " extension=\"" << extension << "\"\n";
+
             try {
-                TempVideoFile temp_video(files[0].fileContent(), videoExtension(files[0]));
+                TempVideoFile temp_video(content, extension);
                 const VideoInferResult result = inferVideoFile(engine, config, temp_video.path());
+                size_t track_observations = 0;
+                for (const auto& frame : result.frames) {
+                    track_observations += frame.tracks.size();
+                }
+                std::cerr << "[api] /infer_video ok file=\"" << file.getFileName()
+                          << "\" bytes=" << content.size()
+                          << " width=" << result.width
+                          << " height=" << result.height
+                          << " frame_count=" << result.frame_count
+                          << " display_frame_count=" << result.display_frame_count
+                          << " processed_frame_count=" << result.processed_frame_count
+                          << " detected_frame_count=" << result.detected_frame_count
+                          << " track_observations=" << track_observations
+                          << " tracking_status=\"" << result.tracking_status << "\""
+                          << " elapsed_ms=" << elapsedMs(request_start)
+                          << " profiled_ms=" << result.total_elapsed_ms << '\n';
                 callback(drogon::HttpResponse::newHttpJsonResponse(
                     videoInferResultToJson(result, config.class_names)
                 ));
             } catch (const VideoInferError& e) {
                 const bool bad_request = e.badRequest();
+                std::cerr << "[api] /infer_video "
+                          << (bad_request ? "bad_request" : "error")
+                          << " file=\"" << file.getFileName()
+                          << "\" bytes=" << content.size()
+                          << " message=\"" << e.what() << "\" elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     bad_request ? 400 : 500,
                     e.what(),
                     bad_request ? drogon::k400BadRequest : drogon::k500InternalServerError
                 ));
             } catch (const std::exception& e) {
+                std::cerr << "[api] /infer_video error file=\"" << file.getFileName()
+                          << "\" bytes=" << content.size()
+                          << " message=\"" << e.what() << "\" elapsed_ms="
+                          << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     500,
                     e.what(),

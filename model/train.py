@@ -8,6 +8,9 @@ from pathlib import Path
 from statistics import median
 from typing import Dict, List, Optional, Sequence, Tuple
 
+CUDA_VISIBLE_DEVICES = "3,4"
+os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
+
 import torch
 import yaml
 from PIL import Image, ImageDraw
@@ -16,8 +19,8 @@ from PIL import Image, ImageDraw
 ROOT = Path(__file__).resolve().parent
 SPLITS = ("train", "val", "test")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
-IMAGE_WIDTH = 1280
-IMAGE_HEIGHT = 736  # stride-aligned model input for 1280x720 BDD100K frames.
+IMAGE_WIDTH = 640
+IMAGE_HEIGHT = 384  # Reduced, stride-aligned input for CPU-friendly inference.
 IMG_SIZE = (IMAGE_HEIGHT, IMAGE_WIDTH)  # Ultralytics uses (height, width).
 BDD100K_NAMES = (
     "person",
@@ -60,8 +63,8 @@ class TrainConfig:
     # 训练配置
     epochs: int = 100
     imgsz: Tuple[int, int] = IMG_SIZE
-    batch: int = 32
-    device: str = "0,1"  # 建议运行时配合 CUDA_VISIBLE_DEVICES=4,5 暴露物理 GPU。
+    batch: int = 64
+    device: str = "0,1"  # Logical devices mapped to physical GPUs 3 and 4.
     workers: int = min(8, os.cpu_count() or 8)
     seed: int = 42
 
@@ -116,7 +119,7 @@ class TrainConfig:
 
     # 输出
     project: str = "runs/detect"
-    name: str = "bdd100k_yolo26s_det_1280x736_car_primary_tail_light_aug"
+    name: str = "bdd100k_yolo26s_det_640x384_car_primary_tail_light_aug"
 
     # 训练前检查
     check_labels: bool = True
@@ -163,7 +166,7 @@ def parse_imgsz_arg(values: Optional[Sequence[int]]) -> Optional[Tuple[int, int]
     if len(values) == 2:
         width, height = values
         return height, width
-    raise ValueError("--imgsz 只支持一个值，或两个值：宽 高，例如 1280 736")
+    raise ValueError("--imgsz 只支持一个值，或两个值：宽 高，例如 640 384")
 
 
 def normalize_cfg_paths(cfg: TrainConfig) -> TrainConfig:
@@ -260,6 +263,7 @@ def resolve_runtime(cfg: TrainConfig) -> Tuple[str, int, bool]:
 def print_env(device: str, workers: int, amp: bool) -> None:
     print("\n========== Environment ==========")
     print("PyTorch:", torch.__version__)
+    print("CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
     print("CUDA available:", torch.cuda.is_available())
     print("Effective device:", device)
     print("Effective workers:", workers)
@@ -1010,9 +1014,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--project", type=str, help="训练输出根目录")
 
     parser.add_argument("--epochs", type=int, help="训练 epoch 数")
-    parser.add_argument("--imgsz", type=int, nargs="+", help="输入图像尺寸：一个值表示正方形；两个值按 宽 高，例如 1280 736")
+    parser.add_argument("--imgsz", type=int, nargs="+", help="输入图像尺寸：一个值表示正方形；两个值按 宽 高，例如 640 384")
     parser.add_argument("--batch", type=int, help="batch size")
-    parser.add_argument("--device", type=str, help="auto、cpu、0 或 0,1；建议配合 CUDA_VISIBLE_DEVICES=4,5")
+    parser.add_argument("--device", type=str, help="auto、cpu、0 或 0,1；默认 0,1 对应物理 GPU 3,4")
     parser.add_argument("--workers", type=int, help="DataLoader workers")
     parser.add_argument("--seed", type=int, help="随机种子")
 

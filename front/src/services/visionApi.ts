@@ -67,6 +67,19 @@ export interface VisionApiResult {
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
+export const apiBaseLabel = apiBaseUrl || "Vite proxy";
+
+export const DROGON_API = {
+  image: {
+    path: "/infer",
+    fieldName: "image",
+  },
+  video: {
+    path: "/infer_video",
+    fieldName: "video",
+  },
+} as const;
+
 const trackColors = [
   "#38bdf8",
   "#f59e0b",
@@ -148,6 +161,46 @@ const createFrame = (
   classCounts: summarizeClasses(detections),
 });
 
+const responsePreview = (text: string) => {
+  const compact = text.trim().replace(/\s+/g, " ");
+  return compact.length > 220 ? compact.slice(0, 220) + "..." : compact;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const payloadMessage = (payload: unknown) =>
+  isRecord(payload) && typeof payload.message === "string"
+    ? payload.message
+    : undefined;
+
+const parseJsonPayload = (
+  text: string,
+  status: number,
+  statusText: string,
+  contentType: string,
+) => {
+  if (text.trim() === "") {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch (error) {
+    throw new Error(
+      "Invalid Drogon API response: HTTP " +
+        status +
+        " " +
+        statusText +
+        "; content-type=" +
+        contentType +
+        "; body=\"" +
+        responsePreview(text) +
+        "\"",
+    );
+  }
+};
+
 const requestMultipart = async <T>(
   path: string,
   fieldName: string,
@@ -155,30 +208,96 @@ const requestMultipart = async <T>(
 ): Promise<T> => {
   const formData = new FormData();
   formData.append(fieldName, file);
+  const startedAt = performance.now();
 
-  const response = await fetch(endpoint(path), {
-    method: "POST",
-    body: formData,
+  console.info("[vision-api] request start", {
+    path,
+    fieldName,
+    fileName: file.name,
+    fileSize: file.size,
+    mime: file.type || null,
   });
 
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message =
-      payload && typeof payload.message === "string"
-        ? payload.message
-        : "HTTP " + response.status;
-    throw new Error(message);
-  }
-  if (!payload || typeof payload.code !== "number") {
-    throw new Error("Invalid API response");
-  }
-  if (payload.code !== 0) {
+  let response: Response;
+  try {
+    response = await fetch(endpoint(path), {
+      method: "POST",
+      body: formData,
+    });
+  } catch (error) {
+    console.error("[vision-api] request failed", { path, error });
     throw new Error(
-      typeof payload.message === "string" ? payload.message : "Inference failed",
+      error instanceof Error
+        ? "Drogon API request failed: " + error.message
+        : "Drogon API request failed",
     );
   }
 
+  const contentType = response.headers.get("content-type") ?? "not provided";
+  const text = await response.text();
+  const elapsedMs = round(performance.now() - startedAt, 1);
+  console.info("[vision-api] response received", {
+    path,
+    status: response.status,
+    ok: response.ok,
+    contentType,
+    bytes: text.length,
+    elapsedMs,
+  });
+
+  const payload = parseJsonPayload(
+    text,
+    response.status,
+    response.statusText,
+    contentType,
+  );
+
+  if (!response.ok) {
+    const message =
+      payloadMessage(payload) ??
+      "HTTP " +
+        response.status +
+        " " +
+        response.statusText +
+        "; content-type=" +
+        contentType +
+        "; body=\"" +
+        responsePreview(text) +
+        "\"";
+    console.warn("[vision-api] response error", { path, message });
+    throw new Error(message);
+  }
+  if (!isRecord(payload) || typeof payload.code !== "number") {
+    throw new Error(
+      "Invalid Drogon API response: HTTP " +
+        response.status +
+        " " +
+        response.statusText +
+        "; content-type=" +
+        contentType +
+        "; body=\"" +
+        responsePreview(text) +
+        "\"",
+    );
+  }
+  if (payload.code !== 0) {
+    throw new Error(payloadMessage(payload) ?? "Inference failed");
+  }
+
   return payload as T;
+};
+
+const assertVideoResponse = (response: BackendVideoResponse) => {
+  if (!Number.isFinite(response.width) || !Number.isFinite(response.height)) {
+    throw new Error("Invalid video response dimensions");
+  }
+  assertDimensions({
+    width: response.width,
+    height: response.height,
+  });
+  if (!Array.isArray(response.frames)) {
+    throw new Error("Invalid video response: frames must be an array");
+  }
 };
 
 const makeTrack = (
@@ -220,7 +339,11 @@ export const inferImage = async (
   assertDimensions(dimensions);
 
   const startedAt = performance.now();
-  const response = await requestMultipart<BackendImageResponse>("/infer", "image", file);
+  const response = await requestMultipart<BackendImageResponse>(
+    DROGON_API.image.path,
+    DROGON_API.image.fieldName,
+    file,
+  );
   const elapsedMs = performance.now() - startedAt;
 
   const detections = filterDetections(
@@ -258,17 +381,17 @@ export const inferVideo = async (
   confidenceThreshold: number,
 ): Promise<VisionApiResult> => {
   const response = await requestMultipart<BackendVideoResponse>(
-    "/infer_video",
-    "video",
+    DROGON_API.video.path,
+    DROGON_API.video.fieldName,
     file,
   );
+  assertVideoResponse(response);
   const dimensions = {
     width: response.width,
     height: response.height,
   };
-  assertDimensions(dimensions);
 
-  const responseFrames = response.frames ?? [];
+  const responseFrames = response.frames;
   const finalFrameIndex = responseFrames.length > 0
     ? Math.max(...responseFrames.map((frame) => frame.frame_index))
     : 0;

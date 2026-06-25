@@ -7,10 +7,10 @@ import {
   initialEventLog,
   mockMetrics,
   mockTracks,
-  modelOptions,
 } from "./data/mockDetections";
 import { getFrameResults } from "./services/mockVisionService";
 import {
+  DROGON_API,
   inferImage,
   inferVideo,
   type MediaDimensions,
@@ -22,12 +22,30 @@ import type {
   InferenceMetrics,
   MediaKind,
   TrackResult,
-  TrackerAlgorithm,
   VisionTaskStatus,
 } from "./types/vision";
 
 const initialConfidenceThreshold = 0.55;
-const initialIouThreshold = 0.45;
+const initialStatusDetail = "Upload an image or video to call the Drogon API.";
+const videoExtensions = new Set([
+  ".avi",
+  ".mjpeg",
+  ".mjpg",
+  ".mkv",
+  ".mov",
+  ".mp4",
+  ".webm",
+]);
+const imageExtensions = new Set([
+  ".bmp",
+  ".gif",
+  ".jpeg",
+  ".jpg",
+  ".png",
+  ".tif",
+  ".tiff",
+  ".webp",
+]);
 
 const formatEventTime = () =>
   new Intl.DateTimeFormat("en-US", {
@@ -61,6 +79,42 @@ const getImageDimensions = (url: string): Promise<MediaDimensions> =>
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Inference request failed";
 
+const fileExtension = (fileName: string) => {
+  const index = fileName.lastIndexOf(".");
+  return index >= 0 ? fileName.slice(index).toLowerCase() : "";
+};
+
+const detectMediaKind = (file: File): MediaKind => {
+  const mime = file.type.toLowerCase();
+  if (mime.startsWith("video/")) {
+    return "video";
+  }
+  if (mime.startsWith("image/")) {
+    return "image";
+  }
+
+  const extension = fileExtension(file.name);
+  if (videoExtensions.has(extension)) {
+    return "video";
+  }
+  if (imageExtensions.has(extension)) {
+    return "image";
+  }
+
+  return "image";
+};
+
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) {
+    return bytes + " B";
+  }
+  const megabytes = bytes / (1024 * 1024);
+  if (megabytes >= 1) {
+    return megabytes.toFixed(1) + " MB";
+  }
+  return (bytes / 1024).toFixed(1) + " KB";
+};
+
 function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [mediaName, setMediaName] = useState("BDD100K demo traffic segment");
@@ -68,11 +122,9 @@ function App() {
   const [mediaUrl, setMediaUrl] = useState<string>();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mediaDimensions, setMediaDimensions] = useState<MediaDimensions>();
-  const [modelId] = useState(modelOptions[0].id);
   const [confidenceThreshold, setConfidenceThreshold] = useState(initialConfidenceThreshold);
-  const [iouThreshold] = useState(initialIouThreshold);
-  const [tracker, setTracker] = useState<TrackerAlgorithm>("ByteTrack");
   const [status, setStatus] = useState<VisionTaskStatus>("idle");
+  const [statusDetail, setStatusDetail] = useState(initialStatusDetail);
   const [currentFrame, setCurrentFrame] = useState(DEFAULT_FRAME);
   const [selectedTrackId, setSelectedTrackId] = useState(12);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -81,11 +133,10 @@ function App() {
   );
   const [tracks, setTracks] = useState<TrackResult[]>(mockTracks);
   const [metrics, setMetrics] = useState<InferenceMetrics>(mockMetrics);
-  const [, setEvents] = useState<EventLogEntry[]>(initialEventLog);
+  const [events, setEvents] = useState<EventLogEntry[]>(initialEventLog);
 
   const currentFrameResult = frameResults[currentFrame] ?? frameResults[0] ?? emptyFrame();
   const isBusy = status === "detecting" || status === "tracking";
-  const selectedModel = modelOptions.find((model) => model.id === modelId) ?? modelOptions[0];
   const currentMetrics: InferenceMetrics = {
     ...metrics,
     objectCount: currentFrameResult.objectCount,
@@ -139,6 +190,12 @@ function App() {
   }, [frameResults.length, isPlaying]);
 
   useEffect(() => {
+    if (frameResults.length <= 1 && isPlaying) {
+      setIsPlaying(false);
+    }
+  }, [frameResults.length, isPlaying]);
+
+  useEffect(() => {
     const visibleTrackIds = currentFrameResult.detections.flatMap((detection) =>
       detection.trackId === undefined ? [] : [detection.trackId],
     );
@@ -148,8 +205,31 @@ function App() {
   }, [currentFrameResult, selectedTrackId]);
 
   const handleFileSelected = async (file: File) => {
-    const nextKind: MediaKind = file.type.startsWith("video") ? "video" : "image";
+    const nextKind = detectMediaKind(file);
     const nextUrl = URL.createObjectURL(file);
+    const contract = nextKind === "video" ? DROGON_API.video : DROGON_API.image;
+    const fileDetail =
+      file.name +
+      " (" +
+      formatBytes(file.size) +
+      ", MIME " +
+      (file.type || "not provided") +
+      ") staged as " +
+      nextKind +
+      "; Run will post multipart field '" +
+      contract.fieldName +
+      "' to " +
+      contract.path +
+      ".";
+
+    console.info("[vision] media selected", {
+      fileName: file.name,
+      fileSize: file.size,
+      mime: file.type || null,
+      mediaKind: nextKind,
+      endpoint: contract.path,
+      fieldName: contract.fieldName,
+    });
 
     setSelectedFile(file);
     setMediaUrl(nextUrl);
@@ -157,6 +237,7 @@ function App() {
     setMediaName(file.name);
     setMediaKind(nextKind);
     setStatus("uploading");
+    setStatusDetail(fileDetail);
     setIsPlaying(false);
     setCurrentFrame(0);
     setSelectedTrackId(0);
@@ -170,15 +251,17 @@ function App() {
     addEvent(
       "success",
       "Media accepted",
-      file.name + " registered as " + nextKind + " for Drogon inference.",
+      fileDetail,
     );
 
     if (nextKind === "image") {
       try {
         setMediaDimensions(await getImageDimensions(nextUrl));
       } catch (error) {
+        const message = errorMessage(error);
         setStatus("failed");
-        addEvent("warning", "Image rejected", errorMessage(error));
+        setStatusDetail(message);
+        addEvent("warning", "Image rejected", message);
       }
     }
   };
@@ -190,42 +273,59 @@ function App() {
     dimensions?: MediaDimensions,
   ) => {
     const nextFrames = frames.length > 0 ? frames : [emptyFrame()];
+    const firstVisibleFrameIndex = nextFrames.findIndex((frame) => frame.objectCount > 0);
+    const nextFrameIndex = firstVisibleFrameIndex >= 0 ? firstVisibleFrameIndex : 0;
 
     setFrameResults(nextFrames);
     setTracks(nextTracks);
     setMetrics(nextMetrics);
-    setCurrentFrame(0);
+    setCurrentFrame(nextFrameIndex);
     if (dimensions) {
       setMediaDimensions(dimensions);
     }
 
     const firstTrackId =
-      nextTracks[0]?.trackId ?? nextFrames[0]?.detections[0]?.trackId ?? 0;
+      nextFrames[nextFrameIndex]?.detections[0]?.trackId ?? nextTracks[0]?.trackId ?? 0;
     setSelectedTrackId(firstTrackId);
   };
 
   const handleStartInference = async () => {
     if (!selectedFile) {
+      const message = "Upload an image or video before calling the Drogon API.";
       setStatus("failed");
+      setStatusDetail(message);
       addEvent(
         "warning",
         "No media selected",
-        "Upload an image or video before calling the Drogon API.",
+        message,
       );
       return;
     }
 
     setIsPlaying(false);
     setStatus(mediaKind === "video" ? "tracking" : "detecting");
+    const contract = mediaKind === "video" ? DROGON_API.video : DROGON_API.image;
+    const requestDetail =
+      "Posting multipart field '" +
+      contract.fieldName +
+      "' to " +
+      contract.path +
+      "; UI filters scores below " +
+      (confidenceThreshold * 100).toFixed(0) +
+      "% confidence.";
+    setStatusDetail(requestDetail);
+    console.info("[vision] inference start", {
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      mime: selectedFile.type || null,
+      mediaKind,
+      endpoint: contract.path,
+      fieldName: contract.fieldName,
+    });
     addEvent(
       "info",
       mediaKind === "video" ? "Video inference requested" : "Image inference requested",
-      selectedModel.label +
-        " calling " +
-        (mediaKind === "video" ? "/infer_video" : "/infer") +
-        " at " +
-        (confidenceThreshold * 100).toFixed(0) +
-        "% confidence.",
+      requestDetail,
     );
 
     try {
@@ -252,6 +352,21 @@ function App() {
       );
 
       setStatus("completed");
+      setIsPlaying(mediaKind === "video" && result.frames.length > 1);
+      console.info("[vision] inference complete", {
+        mediaKind,
+        frames: result.frames.length,
+        tracks: result.tracks.length,
+        objects: objectCount,
+      });
+      setStatusDetail(
+        result.frames.length +
+          " frame(s), " +
+          objectCount +
+          " visible objects, " +
+          result.tracks.length +
+          " track(s).",
+      );
       addEvent(
         "success",
         "Inference complete",
@@ -263,50 +378,27 @@ function App() {
           " track(s).",
       );
     } catch (error) {
+      const message = errorMessage(error);
+      console.error("[vision] inference failed", {
+        fileName: selectedFile.name,
+        mediaKind,
+        message,
+      });
       setStatus("failed");
-      addEvent("warning", "Inference failed", errorMessage(error));
+      setStatusDetail(message);
+      addEvent("warning", "Inference failed", message);
     }
   };
 
-  const handleExport = () => {
-    const payload = {
-      media: {
-        name: mediaName,
-        kind: mediaKind,
-      },
-      model: selectedModel,
-      tracker,
-      thresholds: {
-        confidence: confidenceThreshold,
-        iou: iouThreshold,
-      },
-      currentFrame: currentFrameResult,
-      metrics: currentMetrics,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "visiontrack-frame-" + currentFrame + ".json";
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setStatus("completed");
-    addEvent(
-      "success",
-      "Result exported",
-      "JSON export created for frame " +
-        currentFrame +
-        " with " +
-        currentFrameResult.objectCount +
-        " visible objects.",
-    );
+  const handleTogglePlayback = () => {
+    if (isBusy || status === "uploading" || status === "failed" || frameResults.length <= 1) {
+      return;
+    }
+    setIsPlaying((playing) => !playing);
   };
 
   return (
-    <main className="flex h-[100dvh] w-full max-w-full overflow-hidden bg-[#080b0f] text-slate-100">
+    <main className="h-[100dvh] w-full max-w-full overflow-hidden bg-[#f7f8fb] text-slate-950">
       <input
         ref={fileInputRef}
         type="file"
@@ -320,25 +412,24 @@ function App() {
         }}
       />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-[1680px] flex-col p-2 sm:p-3">
         <TopBar
           status={status}
           mediaName={mediaName}
           isBusy={isBusy}
-          tracker={tracker}
           confidenceThreshold={confidenceThreshold}
           metrics={currentMetrics}
           onUploadClick={() => fileInputRef.current?.click()}
           onRun={handleStartInference}
-          onTrackerChange={setTracker}
           onConfidenceChange={setConfidenceThreshold}
         />
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 border-x border-slate-800 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_260px] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-shell lg:mt-3 lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-1">
           <VisionCanvas
             frame={currentFrameResult}
             frameResults={frameResults}
             frameCount={frameResults.length}
+            framePosition={Math.min(currentFrame, Math.max(frameResults.length - 1, 0))}
             mediaUrl={mediaUrl}
             mediaDimensions={mediaDimensions}
             mediaName={mediaName}
@@ -346,13 +437,15 @@ function App() {
             selectedTrackId={selectedTrackId}
             isPlaying={isPlaying}
             status={status}
+            statusDetail={statusDetail}
             onSelectTrack={setSelectedTrackId}
             onFrameChange={setCurrentFrame}
-            onTogglePlayback={() => setIsPlaying((playing) => !playing)}
+            onTogglePlayback={handleTogglePlayback}
           />
           <ResultPanel
             frame={currentFrameResult}
             tracks={tracks}
+            events={events}
             selectedTrackId={selectedTrackId}
             confidenceThreshold={confidenceThreshold}
             status={status}

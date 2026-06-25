@@ -1,10 +1,12 @@
 #include "image_processing.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -40,9 +42,27 @@ std::string lowerExtension(const std::filesystem::path& path) {
     return extension;
 }
 
-bool isQuickTimeContainer(const std::filesystem::path& path) {
+bool usesPreferredVideoBackends(const std::filesystem::path& path) {
     const std::string extension = lowerExtension(path);
-    return extension == ".mov" || extension == ".qt";
+    return extension == ".avi"
+        || extension == ".mjpeg"
+        || extension == ".mjpg"
+        || extension == ".mov"
+        || extension == ".mp4"
+        || extension == ".qt";
+}
+
+const char* videoBackendName(int backend) {
+    switch (backend) {
+    case cv::CAP_FFMPEG:
+        return "FFmpeg";
+    case cv::CAP_GSTREAMER:
+        return "GStreamer";
+    case cv::CAP_ANY:
+        return "CAP_ANY";
+    default:
+        return "unknown";
+    }
 }
 
 bool tryOpenVideoCapture(
@@ -52,8 +72,26 @@ bool tryOpenVideoCapture(
 ) {
     capture.release();
     try {
-        return capture.open(video_path.string(), backend) && capture.isOpened();
-    } catch (const cv::Exception&) {
+        const bool opened = capture.open(video_path.string(), backend) && capture.isOpened();
+        if (opened) {
+            std::cerr << "[video] open ok path=\"" << video_path.string()
+                      << "\" backend=" << videoBackendName(backend)
+                      << " width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH)
+                      << " height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT)
+                      << " fps=" << capture.get(cv::CAP_PROP_FPS)
+                      << " frames=" << capture.get(cv::CAP_PROP_FRAME_COUNT)
+                      << '\n';
+            return true;
+        }
+
+        std::cerr << "[video] open failed path=\"" << video_path.string()
+                  << "\" backend=" << videoBackendName(backend) << '\n';
+        capture.release();
+        return false;
+    } catch (const cv::Exception& e) {
+        std::cerr << "[video] open exception path=\"" << video_path.string()
+                  << "\" backend=" << videoBackendName(backend)
+                  << " message=\"" << e.what() << "\"\n";
         capture.release();
         return false;
     }
@@ -327,22 +365,48 @@ bool openVideoCapture(
     cv::VideoCapture& capture,
     const std::filesystem::path& video_path
 ) {
-    if (isQuickTimeContainer(video_path)) {
-        if (tryOpenVideoCapture(capture, video_path, cv::CAP_FFMPEG)) {
-            return true;
+    if (usesPreferredVideoBackends(video_path)) {
+        constexpr std::array<int, 3> backends = {
+            cv::CAP_FFMPEG,
+            cv::CAP_GSTREAMER,
+            cv::CAP_ANY,
+        };
+        for (const int backend : backends) {
+            if (tryOpenVideoCapture(capture, video_path, backend)) {
+                return true;
+            }
         }
-        if (tryOpenVideoCapture(capture, video_path, cv::CAP_GSTREAMER)) {
-            return true;
-        }
+        std::cerr << "[video] open all_failed path=\"" << video_path.string()
+                  << "\" extension=\"" << lowerExtension(video_path) << "\"\n";
+        return false;
     }
 
-    return tryOpenVideoCapture(capture, video_path, cv::CAP_ANY);
+    const bool opened = tryOpenVideoCapture(capture, video_path, cv::CAP_ANY);
+    if (!opened) {
+        std::cerr << "[video] open all_failed path=\"" << video_path.string()
+                  << "\" extension=\"" << lowerExtension(video_path) << "\"\n";
+    }
+    return opened;
 }
 
 std::string videoOpenFailureMessage(const std::filesystem::path& video_path) {
-    if (isQuickTimeContainer(video_path)) {
+    const std::string extension = lowerExtension(video_path);
+    if (extension == ".avi") {
+        return "Failed to open .avi video. The OpenCV video backend could not decode "
+            "this AVI codec. Ensure OpenCV has FFmpeg videoio support, or convert the "
+            "file to H.264 MP4 or MJPEG AVI.";
+    }
+    if (extension == ".mjpeg" || extension == ".mjpg") {
+        return "Failed to open MJPEG video. Ensure OpenCV has FFmpeg videoio support, "
+            "or convert the file to mp4.";
+    }
+    if (extension == ".mov" || extension == ".qt") {
         return "Failed to open .mov video. Rebuild OpenCV with FFmpeg or GStreamer "
             "videoio support, or convert the file to mp4/avi.";
+    }
+    if (extension == ".mp4") {
+        return "Failed to open .mp4 video. Ensure OpenCV has FFmpeg videoio support "
+            "and that the codec is supported.";
     }
     return "Failed to open video";
 }
