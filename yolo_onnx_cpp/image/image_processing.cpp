@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,16 @@ constexpr int64_t kNmsScoreIndex = 4;
 constexpr int64_t kNmsClassIndex = 5;
 
 cv::Mat decodeImage(std::string_view content) {
-    const std::vector<unsigned char> buffer(content.begin(), content.end());
+    if (content.empty() || content.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
+        return {};
+    }
+
+    cv::Mat buffer(
+        1,
+        static_cast<int>(content.size()),
+        CV_8UC1,
+        const_cast<char*>(content.data())
+    );
     return cv::imdecode(buffer, cv::IMREAD_COLOR);
 }
 
@@ -127,12 +137,6 @@ TensorInput preprocessImage(
     int original_height,
     const LetterBoxInfo& letterbox_info
 ) {
-    cv::Mat rgb;
-    cv::cvtColor(image, rgb, cv::COLOR_BGR2RGB);
-
-    cv::Mat float_img;
-    rgb.convertTo(float_img, CV_32FC3, 1.0 / 255.0);
-
     TensorInput input;
     input.shape = {kBatch, kInputC, config.input_height, config.input_width};
     input.image_width = original_width;
@@ -140,12 +144,23 @@ TensorInput preprocessImage(
     input.letterbox = letterbox_info;
     input.values.resize(kBatch * kInputC * config.input_height * config.input_width);
 
-    int index = 0;
-    for (int c = 0; c < kInputC; ++c) {
-        for (int h = 0; h < config.input_height; ++h) {
-            for (int w = 0; w < config.input_width; ++w) {
-                input.values[index++] = float_img.at<cv::Vec3f>(h, w)[c];
-            }
+    const size_t image_area = static_cast<size_t>(config.input_height)
+        * static_cast<size_t>(config.input_width);
+    float* red = input.values.data();
+    float* green = red + image_area;
+    float* blue = green + image_area;
+    constexpr float kInv255 = 1.0F / 255.0F;
+
+    for (int h = 0; h < config.input_height; ++h) {
+        const auto* row = image.ptr<cv::Vec3b>(h);
+        const size_t row_offset = static_cast<size_t>(h)
+            * static_cast<size_t>(config.input_width);
+        for (int w = 0; w < config.input_width; ++w) {
+            const cv::Vec3b& pixel = row[w];
+            const size_t offset = row_offset + static_cast<size_t>(w);
+            red[offset] = static_cast<float>(pixel[2]) * kInv255;
+            green[offset] = static_cast<float>(pixel[1]) * kInv255;
+            blue[offset] = static_cast<float>(pixel[0]) * kInv255;
         }
     }
 

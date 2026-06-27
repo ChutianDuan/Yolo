@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -10,6 +11,12 @@
 #include "video/video_inference.h"
 
 namespace yolo {
+
+struct VideoFrameJsonOptions {
+    bool include_frames = true;
+    size_t frame_offset = 0;
+    size_t frame_limit = 0;
+};
 
 drogon::HttpResponsePtr makeJsonResponse(
     int code,
@@ -37,6 +44,12 @@ Json::Value inferResultToJson(
 Json::Value videoInferResultToJson(
     const VideoInferResult& result,
     const std::vector<std::string>& class_names
+);
+
+Json::Value videoInferResultToJson(
+    const VideoInferResult& result,
+    const std::vector<std::string>& class_names,
+    const VideoFrameJsonOptions& options
 );
 
 }  // namespace yolo

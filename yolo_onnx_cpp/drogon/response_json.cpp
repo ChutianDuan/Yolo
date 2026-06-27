@@ -1,5 +1,6 @@
 #include "response_json.h"
 
+#include <algorithm>
 #include <cstddef>
 
 namespace yolo {
@@ -27,11 +28,17 @@ void setDetectionJsonFields(
 
 Json::Value videoFramesToJson(
     const std::vector<VideoFrameTracks>& frames,
-    const std::vector<std::string>& class_names
+    const std::vector<std::string>& class_names,
+    size_t begin,
+    size_t end
 ) {
     Json::Value frames_json(Json::arrayValue);
 
-    for (const auto& frame : frames) {
+    begin = std::min(begin, frames.size());
+    end = std::min(std::max(begin, end), frames.size());
+
+    for (size_t index = begin; index < end; ++index) {
+        const auto& frame = frames[index];
         Json::Value frame_json;
         frame_json["frame_index"] = Json::Int64(frame.frame_index);
         frame_json["timestamp_ms"] = frame.timestamp_ms;
@@ -48,6 +55,18 @@ Json::Value videoFramesToJson(
     }
 
     return frames_json;
+}
+
+size_t frameWindowEnd(size_t frame_count, const VideoFrameJsonOptions& options) {
+    const size_t begin = std::min(options.frame_offset, frame_count);
+    if (!options.include_frames) {
+        return begin;
+    }
+    if (options.frame_limit == 0) {
+        return frame_count;
+    }
+    const size_t remaining = frame_count - begin;
+    return begin + std::min(remaining, options.frame_limit);
 }
 
 Json::Value stageTimingToJson(const VideoInferResult& result) {
@@ -163,6 +182,21 @@ Json::Value videoInferResultToJson(
     const VideoInferResult& result,
     const std::vector<std::string>& class_names
 ) {
+    return videoInferResultToJson(result, class_names, VideoFrameJsonOptions{});
+}
+
+Json::Value videoInferResultToJson(
+    const VideoInferResult& result,
+    const std::vector<std::string>& class_names,
+    const VideoFrameJsonOptions& options
+) {
+    const size_t total_frames = result.frames.size();
+    const size_t frame_begin = std::min(options.frame_offset, total_frames);
+    const size_t frame_end = frameWindowEnd(total_frames, options);
+    const size_t frames_returned = options.include_frames
+        ? frame_end - frame_begin
+        : 0;
+
     Json::Value ret;
     ret["code"] = 0;
     ret["message"] = "success";
@@ -198,7 +232,17 @@ Json::Value videoInferResultToJson(
     ret["timing_ms"] = stageTimingToJson(result);
     ret["timing_ratio"] = stageRatioToJson(result);
     ret["output_shapes"] = shapesToJson(result.output_shapes);
-    ret["frames"] = videoFramesToJson(result.frames, class_names);
+    ret["frames_returned"] = Json::UInt64(frames_returned);
+    ret["frame_offset"] = Json::UInt64(options.frame_offset);
+    ret["frame_limit"] = options.frame_limit > 0
+        ? Json::Value(Json::UInt64(options.frame_limit))
+        : Json::Value(Json::nullValue);
+    ret["has_more_frames"] = options.include_frames
+        ? frame_end < total_frames
+        : total_frames > 0;
+    ret["frames"] = options.include_frames
+        ? videoFramesToJson(result.frames, class_names, frame_begin, frame_end)
+        : Json::Value(Json::arrayValue);
     return ret;
 }
 

@@ -127,6 +127,46 @@ void testLetterboxRestoresOriginalCoordinates() {
     expectNear(detections[0].y2, 540.0F, kTolerance, "Letterbox y2 mapping failed");
 }
 
+void testPreprocessWritesRgbChwTensor() {
+    cv::Mat source(2, 2, CV_8UC3);
+    source.at<cv::Vec3b>(0, 0) = cv::Vec3b(10, 20, 30);
+    source.at<cv::Vec3b>(0, 1) = cv::Vec3b(40, 50, 60);
+    source.at<cv::Vec3b>(1, 0) = cv::Vec3b(70, 80, 90);
+    source.at<cv::Vec3b>(1, 1) = cv::Vec3b(100, 110, 120);
+
+    yolo::AppConfig config;
+    config.input_width = 2;
+    config.input_height = 2;
+    config.use_letterbox = false;
+
+    const auto input = yolo::preprocessImageMat(source, config);
+    expect(input.has_value(), "RGB CHW preprocessing failed");
+    expect(input->values.size() == 12, "Unexpected tensor value count");
+
+    const std::array<float, 12> expected = {
+        30.0F / 255.0F,
+        60.0F / 255.0F,
+        90.0F / 255.0F,
+        120.0F / 255.0F,
+        20.0F / 255.0F,
+        50.0F / 255.0F,
+        80.0F / 255.0F,
+        110.0F / 255.0F,
+        10.0F / 255.0F,
+        40.0F / 255.0F,
+        70.0F / 255.0F,
+        100.0F / 255.0F,
+    };
+    for (size_t i = 0; i < expected.size(); ++i) {
+        expectNear(
+            input->values[i],
+            expected[i],
+            kTolerance,
+            "Unexpected RGB CHW tensor value at " + std::to_string(i)
+        );
+    }
+}
+
 void testOpticalFlowUsesOriginalCoordinates() {
     constexpr int kWidth = 640;
     constexpr int kHeight = 360;
@@ -172,6 +212,7 @@ void testOpticalFlowUsesOriginalCoordinates() {
 int main() {
     testDirectResizeRestoresOriginalCoordinates();
     testLetterboxRestoresOriginalCoordinates();
+    testPreprocessWritesRgbChwTensor();
     testOpticalFlowUsesOriginalCoordinates();
     std::cout << "image_processing_test passed\n";
     return 0;

@@ -158,7 +158,8 @@ cmake --build build
 当前服务端代码按职责拆分为：
 
 - `drogon/api_server.cpp`：只处理 HTTP 路由、multipart 上传、临时视频文件和错误响应。
-- `video/video_inference.cpp`：执行视频推理主流程，包括异步 ONNX 强检测、LK 光流弱跟踪、动态抽帧和插值兜底。
+- `video/video_inference.cpp`：执行视频推理主流程，保留 `inferVideoFile` 入口、异步结果应用、检测调度、同步检测和逐帧循环。
+- `video/video_inference_detail.cpp` / `video/video_inference_detail.h`：封装视频推理的内部支撑逻辑，包括异步 ONNX worker、动态 stride 状态、轨迹变化质量评估、检测帧插值和 summary 统计填充。
 - `video/optical_flow_tracker.cpp` / `video/optical_flow_tracker.h`：封装 LK 光流弱跟踪、帧间运动估计、运动补偿和光流质量判断。
 - `drogon/response_json.cpp`：统一把 `InferResult` / `VideoInferResult` 转成 API JSON 响应。
 - `model/inference_types.h`：定义内部推理结构体，例如 `Detection`、`TrackedDetection` 和 `InferResult`。
@@ -316,6 +317,33 @@ curl -X POST http://127.0.0.1:8080/infer_video \
   -F "video=@/path/to/video.mp4"
 ```
 
+默认响应仍返回全部 `frames`，兼容已有测试脚本和调用方。长视频如果只需要统计信息，或只需要一段帧结果，可以通过查询参数裁剪响应体：
+
+- `include_frames`：`true` / `false`，默认 `true`。为 `false` 时仍返回统计、timing 和 `output_shapes`，但 `frames` 为空数组。
+- `frame_offset`：从 0 开始的返回帧偏移，默认 `0`。
+- `frame_limit`：返回帧数上限，必须为正整数；未传时返回 offset 之后全部帧。
+
+响应会额外包含分页元数据：
+
+- `frames_returned`：本次响应实际返回的帧数。
+- `frame_offset`：本次请求使用的帧偏移。
+- `frame_limit`：本次请求使用的帧数上限；未传时为 `null`。
+- `has_more_frames`：当前响应后是否还有未返回帧；`include_frames: false` 时，只要视频有帧就为 `true`。
+
+只取视频摘要：
+
+```bash
+curl -X POST "http://127.0.0.1:8080/infer_video?include_frames=false" \
+  -F "video=@/path/to/video.mp4"
+```
+
+只取第 10 帧开始的 5 帧结果：
+
+```bash
+curl -X POST "http://127.0.0.1:8080/infer_video?frame_offset=10&frame_limit=5" \
+  -F "video=@/path/to/video.mp4"
+```
+
 当前视频处理不是简单逐帧 YOLO，而是采用“异步强检测 + 弱跟踪 + 动态抽帧 + 兜底插值”：
 
 ```text
@@ -336,14 +364,19 @@ C++ OpenCV 读取原始视频每一帧
 
 例如源视频为 24 FPS，`video_detect_fps: 4.0` 时，基础间隔为 6 帧。稳定场景会接近每 6 帧调度一次 YOLO；复杂运动、光流质量下降或轨迹突变时会临时缩短间隔，尽快用 ONNX 校正。这样可以保持最终展示仍为原始 24 FPS，同时避免每帧都跑 ONNX。
 
-视频主流程在 `video/video_inference.cpp`，LK 光流弱跟踪细节在 `video/optical_flow_tracker.cpp`：
+视频主流程在 `video/video_inference.cpp`，内部支撑逻辑在 `video/video_inference_detail.cpp`，LK 光流弱跟踪细节在 `video/optical_flow_tracker.cpp`。建议阅读顺序：
+
+- 先看 `inferVideoFile` 前半段：打开视频、计算 `base_frame_stride`、决定 `async_dynamic` / `sync_fixed` / `full_onnx` 等模式。
+- 再看 `inferVideoFile` 中部三个 lambda：`applyAsyncInferResult` 负责异步 ONNX 回来后的运动补偿和 ByteTrack 校正，`scheduleAsyncDetection` 负责把检测帧丢给后台 worker，`runSyncDetection` 是非异步模式下的直接 YOLO 检测。
+- 然后看主 `while (capture.read(frame))` 循环：每帧先做光流弱跟踪，再消费已完成的异步检测结果，最后决定是否调度下一次强检测。
+- 最后看 `video_inference_detail.cpp`：动态 stride、轨迹变化质量、插值兜底和结果统计都放在这里，主流程只调用这些结论。
 
 - `inferVideoFile` 是视频推理入口，返回结构体 `VideoInferResult`。
 - 每帧先调用 `weakTrackWithOpticalFlow(previous_gray, current_gray, previous_frame_tracks, ...)` 尝试快速续轨。
 - `weakTrackWithOpticalFlow` 在上一帧每个 track 框内用 `cv::goodFeaturesToTrack` 选角点，再用 `cv::calcOpticalFlowPyrLK` 追踪到当前帧。
 - 对每个 track 的角点位移取中位数，平移 bbox，生成带原 `track_id` 的弱跟踪框。
 - `ByteTracker::updateTracked` 按 `track_id` 更新已有轨迹状态，不创建新 ID。
-- `shouldRunScheduledDetection` 和光流质量评估决定是否调用 `launchAsyncInfer` 调度强检测。
+- `shouldRunScheduledDetection` 和光流质量评估决定是否调用 `scheduleAsyncDetection` 调度强检测。
 - 异步强检测完成后，`motionCompensatedDetections` 将检测框补偿到当前帧，再调用 `ByteTracker::update` 校正轨迹。
 
 返回示例：
@@ -512,6 +545,7 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 - `/infer` 接收图片文件，`/infer_video` 接收视频文件；接口接收的是上传文件内容，不是本地路径字符串。
 - `api_server.cpp` 不承载视频推理细节，只负责请求解析、临时文件管理、调用 `inferVideoFile` 和返回响应。
 - `response_json.cpp` 负责最终序列化：`InferResult` 转 `/infer` 响应，`VideoInferResult` 转 `/infer_video` 响应。
+- `/infer_video` 默认序列化全部 `frames`；也支持 `include_frames`、`frame_offset` 和 `frame_limit` 查询参数，用于只返回摘要或一段帧结果。
 - 响应中的 `detections` 包含 `class_id`、可选 `class_name`、`score` 和 `box`。
 - 视频响应中的 `frames[].tracks` 包含 `track_id`、`class_id`、可选 `class_name`、`score` 和 `box`。
 - 视频响应中的 `frames[].is_detection_frame` 和 `frames[].tracks_source` 用于区分强检测帧、光流弱跟踪帧和插值兜底帧。
@@ -520,6 +554,8 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 
 - `VideoFrameTracks` 保存单帧视频结果：`frame_index`、`timestamp_ms`、检测帧标记、校正延迟、`tracks_source` 和 `std::vector<TrackedDetection>`。
 - `VideoInferResult` 保存视频响应所需的全部统计信息、`output_shapes` 和逐帧 `VideoFrameTracks`。
+- `video_inference.cpp` 只负责把这些状态串成流程：读帧、弱跟踪、消费异步结果、调度强检测、收尾汇总。
+- `video_inference_detail.cpp` 负责不直接表达主流程的辅助逻辑：`AsyncInferWorker`、`DynamicStrideState`、`TrackChangeQuality`、检测帧间插值和 `fillVideoSummary`。
 - 视频推理过程中不构造逐帧 JSON；`frames` 和 `tracks` 都是结构体容器，直到 HTTP 响应阶段才由 `response_json.cpp` 转 JSON。
 
 #### tracking / ByteTrack 与光流弱跟踪
@@ -533,11 +569,19 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 - `weakTrackWithOpticalFlow` 是轻量弱检查逻辑：在上一帧 track 框内选角点，使用 LK 光流追踪到当前帧，对每个目标取角点位移中位数并平移 bbox。
 - 光流弱跟踪的作用是让跳过帧上的框跟随真实图像运动，减少纯线性插值带来的框漂移；强检测帧仍由 YOLO 定期校正。
 
+### 后续优化方向
+
+- 长视频生产接口可继续演进为异步任务、结果文件分页读取或流式 JSON，避免服务端和客户端都等待一次性完整响应。
+- 可补充 `preprocess_ms`、`json_serialization_ms`、响应字节数等指标，把非 ONNX 耗时拆清楚。
+- 可评估 worker-local tensor scratch buffer，减少每帧 `std::vector<float>` 分配；需要先明确并发推理模型。
+- 后端加速建议单独推进 INT8、CUDA/TensorRT 或其它 ONNX Runtime execution provider，和当前 CPU 部署边界分开验证。
+- 视频质量参数可继续用 `compare_full_onnx_vs_flow.py` 扫描不同 `video_detect_fps`、dynamic/fixed stride 和类别跟踪策略。
+
 ### 注意事项
 
 - `model/onnx.py` 当前导出参数里 `nms=False`，这种导出通常不是 `output0(1, 300, 6)`。如果部署使用 `[1,300,6]` 输出的模型，需要确认导出的 ONNX 已包含 NMS 或经过后处理导出。
 - `model_path` 指向的模型文件需要存在，例如 `yolo_onnx_cpp/deploy/best.onnx`。
 - 如果 `num_classes` 和 `class_names` 同时配置，两者数量必须一致。
-- `/infer_video` 当前会把原始展示帧都放进一次 JSON 响应，即使 ONNX 只处理抽帧点，长视频响应体仍会较大；真实生产服务建议增加帧数上限、分页或异步任务输出。
+- `/infer_video` 默认会把原始展示帧都放进一次 JSON 响应，即使 ONNX 只处理抽帧点，长视频响应体仍会较大；只需要摘要或局部帧时应使用 `include_frames=false` 或 `frame_offset` / `frame_limit`。
 - `.mov` / `.qt` 视频会优先尝试 OpenCV FFmpeg 后端；如果仍无法打开，先确认 vcpkg 中安装的是 `opencv4[ffmpeg]`，或将输入转码为当前 OpenCV 后端可读的 mp4/avi。
 - LK 光流弱跟踪适合短间隔跳过帧。若 `video_detect_fps` 过低、目标快速形变、严重遮挡或相机剧烈运动，仍可能出现漂移；此时应提高强检测帧率或只对 `car/truck/bus/person/rider/motor/bike` 等动态类别做跟踪。

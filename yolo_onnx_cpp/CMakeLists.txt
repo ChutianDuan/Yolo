@@ -69,6 +69,7 @@ add_executable(yolo_api
     model/yolo_engine.cpp
     tracking/byte_tracker.cpp
     video/optical_flow_tracker.cpp
+    video/video_inference_detail.cpp
     video/video_inference.cpp
 )
 
@@ -124,4 +125,25 @@ if(BUILD_TESTING)
     )
 
     add_test(NAME image_processing_test COMMAND image_processing_test)
+
+    add_executable(response_json_test
+        drogon/response_json.cpp
+        test_cpp/response_json_test.cpp
+    )
+
+    target_include_directories(response_json_test PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    target_link_libraries(response_json_test PRIVATE
+        Drogon::Drogon
+    )
+
+    target_compile_options(response_json_test PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+    add_test(NAME response_json_test COMMAND response_json_test)
 endif()

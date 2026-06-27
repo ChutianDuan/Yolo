@@ -132,6 +132,7 @@ public:
     explicit Impl(const AppConfig& config)
         : env_(ORT_LOGGING_LEVEL_WARNING, "yolo_api"),
           session_(nullptr),
+          memory_info_(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)),
           conf_threshold_(config.conf_threshold),
           iou_threshold_(config.iou_threshold),
           class_count_(config.num_classes > 0
@@ -160,6 +161,14 @@ public:
             auto name = session_.GetOutputNameAllocated(i, allocator);
             output_names_str_.emplace_back(name.get());
         }
+        input_name_ptrs_.reserve(input_names_str_.size());
+        for (const auto& name : input_names_str_) {
+            input_name_ptrs_.push_back(name.c_str());
+        }
+        output_name_ptrs_.reserve(output_names_str_.size());
+        for (const auto& name : output_names_str_) {
+            output_name_ptrs_.push_back(name.c_str());
+        }
 
         std::cout << "Model loaded: " << config.model_path << '\n';
         std::cout << "Input name: " << input_names_str_[0] << '\n';
@@ -170,43 +179,28 @@ public:
     }
 
     InferResult infer(const TensorInput& input) {
-        Ort::MemoryInfo memory_info = Ort::MemoryInfo::CreateCpu(
-            OrtArenaAllocator,
-            OrtMemTypeDefault
-        );
-
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
-            memory_info,
+            memory_info_,
             const_cast<float*>(input.values.data()),
             input.values.size(),
             input.shape.data(),
             input.shape.size()
         );
 
-        std::vector<const char*> input_names;
-        std::vector<const char*> output_names;
-
-        for (const auto& name : input_names_str_) {
-            input_names.push_back(name.c_str());
-        }
-
-        for (const auto& name : output_names_str_) {
-            output_names.push_back(name.c_str());
-        }
-
         auto onnx_start = std::chrono::steady_clock::now();
         auto output_tensors = session_.Run(
             Ort::RunOptions{nullptr},
-            input_names.data(),
+            input_name_ptrs_.data(),
             &input_tensor,
             1,
-            output_names.data(),
-            output_names.size()
+            output_name_ptrs_.data(),
+            output_name_ptrs_.size()
         );
 
         InferResult result;
         result.onnx_inference_ms = elapsedMs(onnx_start);
         auto postprocess_start = std::chrono::steady_clock::now();
+        result.output_shapes.reserve(output_tensors.size());
 
         for (auto& output_tensor : output_tensors) {
             auto type_info = output_tensor.GetTensorTypeAndShapeInfo();
@@ -231,9 +225,12 @@ private:
     Ort::Env env_;
     Ort::SessionOptions session_options_;
     Ort::Session session_;
+    Ort::MemoryInfo memory_info_;
 
     std::vector<std::string> input_names_str_;
     std::vector<std::string> output_names_str_;
+    std::vector<const char*> input_name_ptrs_;
+    std::vector<const char*> output_name_ptrs_;
     float conf_threshold_ = 0.25F;
     float iou_threshold_ = 0.45F;
     int class_count_ = 0;
