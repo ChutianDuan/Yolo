@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="Linux-x86_64-conda-linux-gnu-g++"
+	BuildStamp="20260701-0040-Experimental"
+	Name="LXD-zhongpub2-s1"
+	Generator="ctest-4.3.2"
+	CompilerName="/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++"
+	CompilerVersion="15.2.0"
+	OSName="Linux"
+	Hostname="LXD-zhongpub2-s1"
+	OSRelease="5.15.0-139-generic"
+	OSVersion="#149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="85"
+	ModelName="Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz"
+	ProcessorCacheSize="22528"
+	NumberOfLogicalCPU="64"
+	NumberOfPhysicalCPU="32"
+	TotalVirtualMemory="8191"
+	TotalPhysicalMemory="224318"
+	LogicalProcessorsPerPhysical="2"
+	ProcessorClockFrequency="1100.000000"
+	>
+	<Testing>
+		<StartDateTime>Jul 10 09:51 UTC</StartDateTime>
+		<StartTestTime>1783677117</StartTestTime>
+		<TestList/>
+		<EndDateTime>Jul 10 09:51 UTC</EndDateTime>
+		<EndTestTime>1783677117</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

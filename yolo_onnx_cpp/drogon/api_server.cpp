@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cctype>
 #include <filesystem>
+#include <functional>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -177,6 +178,7 @@ void registerInferHandler(
         [engine, config](const drogon::HttpRequestPtr& req,
                          std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
             const auto request_start = std::chrono::steady_clock::now();
+            const ProcessUsageSnapshot usage_start = captureProcessUsage();
             drogon::MultiPartParser parser;
 
             if (parser.parse(req) != 0) {
@@ -209,7 +211,9 @@ void registerInferHandler(
                       << "\" bytes=" << content.size() << '\n';
 
             try {
+                const auto preprocess_start = std::chrono::steady_clock::now();
                 const auto input = preprocessImageContent(content, config);
+                const double preprocess_ms = elapsedMs(preprocess_start);
                 if (!input.has_value()) {
                     std::cerr << "[api] /infer bad_request decode_failed file=\""
                               << file.getFileName() << "\" bytes=" << content.size()
@@ -222,9 +226,29 @@ void registerInferHandler(
                     return;
                 }
 
-                const InferResult result = engine->infer(input.value());
+                InferResult result = engine->infer(input.value());
+                result.preprocess_ms = preprocess_ms;
+                result.timing_samples.preprocess_ms.push_back(preprocess_ms);
+                result.timing_samples.queue_wait_ms.push_back(0.0);
+                result.end_to_end_ms = elapsedMs(request_start);
+                result.timing_samples.end_to_end_ms.push_back(result.end_to_end_ms);
+                const ProcessUsageSnapshot usage_end = captureProcessUsage();
+                result.metrics = buildPerformanceMetrics(
+                    result.timing_samples,
+                    1,
+                    result.end_to_end_ms,
+                    usage_start,
+                    usage_end,
+                    0,
+                    0,
+                    0
+                );
                 std::cerr << "[api] /infer ok file=\"" << file.getFileName()
                           << "\" detections=" << result.detections.size()
+                          << " average_fps=" << result.metrics.average_fps
+                          << " cpu_utilization_percent="
+                          << result.metrics.cpu_utilization_percent
+                          << " rss_memory_mb=" << result.metrics.rss_memory_mb
                           << " elapsed_ms=" << elapsedMs(request_start) << '\n';
 
                 callback(drogon::HttpResponse::newHttpJsonResponse(
@@ -245,19 +269,25 @@ void registerInferHandler(
     );
 }
 
+using VideoInferRunner = std::function<VideoInferResult(const std::filesystem::path&)>;
+
 void registerVideoInferHandler(
-    const std::shared_ptr<YoloEngine>& engine,
-    const AppConfig& config
+    const std::string& route,
+    const AppConfig& config,
+    VideoInferRunner runner
 ) {
     drogon::app().registerHandler(
-        "/infer_video",
-        [engine, config](const drogon::HttpRequestPtr& req,
-                         std::function<void(const drogon::HttpResponsePtr&)>&& callback) {
+        route,
+        [route, config, runner = std::move(runner)](
+            const drogon::HttpRequestPtr& req,
+            std::function<void(const drogon::HttpResponsePtr&)>&& callback
+        ) {
             const auto request_start = std::chrono::steady_clock::now();
             VideoFrameJsonOptions frame_json_options;
             std::string frame_options_error;
             if (!parseVideoFrameJsonOptions(req, frame_json_options, frame_options_error)) {
-                std::cerr << "[api] /infer_video bad_request invalid_frame_options message=\""
+                std::cerr << "[api] " << route
+                          << " bad_request invalid_frame_options message=\""
                           << frame_options_error << "\" elapsed_ms="
                           << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
@@ -271,7 +301,8 @@ void registerVideoInferHandler(
             drogon::MultiPartParser parser;
 
             if (parser.parse(req) != 0) {
-                std::cerr << "[api] /infer_video bad_request parse_failed elapsed_ms="
+                std::cerr << "[api] " << route
+                          << " bad_request parse_failed elapsed_ms="
                           << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
@@ -284,7 +315,8 @@ void registerVideoInferHandler(
             const auto& files = parser.getFiles();
 
             if (files.empty()) {
-                std::cerr << "[api] /infer_video bad_request missing_file elapsed_ms="
+                std::cerr << "[api] " << route
+                          << " bad_request missing_file elapsed_ms="
                           << elapsedMs(request_start) << '\n';
                 callback(makeJsonResponse(
                     400,
@@ -297,18 +329,18 @@ void registerVideoInferHandler(
             const auto& file = files[0];
             const auto content = file.fileContent();
             const std::string extension = videoExtension(file);
-            std::cerr << "[api] /infer_video start file=\"" << file.getFileName()
+            std::cerr << "[api] " << route << " start file=\"" << file.getFileName()
                       << "\" bytes=" << content.size()
                       << " extension=\"" << extension << "\"\n";
 
             try {
                 TempVideoFile temp_video(content, extension);
-                const VideoInferResult result = inferVideoFile(engine, config, temp_video.path());
+                const VideoInferResult result = runner(temp_video.path());
                 size_t track_observations = 0;
                 for (const auto& frame : result.frames) {
                     track_observations += frame.tracks.size();
                 }
-                std::cerr << "[api] /infer_video ok file=\"" << file.getFileName()
+                std::cerr << "[api] " << route << " ok file=\"" << file.getFileName()
                           << "\" bytes=" << content.size()
                           << " width=" << result.width
                           << " height=" << result.height
@@ -318,6 +350,13 @@ void registerVideoInferHandler(
                           << " detected_frame_count=" << result.detected_frame_count
                           << " track_observations=" << track_observations
                           << " tracking_status=\"" << result.tracking_status << "\""
+                          << " average_fps=" << result.metrics.average_fps
+                          << " cpu_utilization_percent="
+                          << result.metrics.cpu_utilization_percent
+                          << " rss_memory_mb=" << result.metrics.rss_memory_mb
+                          << " queue_length=" << result.metrics.queue_length
+                          << " dropped_frame_count="
+                          << result.metrics.dropped_frame_count
                           << " elapsed_ms=" << elapsedMs(request_start)
                           << " profiled_ms=" << result.total_elapsed_ms << '\n';
                 callback(drogon::HttpResponse::newHttpJsonResponse(
@@ -325,7 +364,7 @@ void registerVideoInferHandler(
                 ));
             } catch (const VideoInferError& e) {
                 const bool bad_request = e.badRequest();
-                std::cerr << "[api] /infer_video "
+                std::cerr << "[api] " << route << ' '
                           << (bad_request ? "bad_request" : "error")
                           << " file=\"" << file.getFileName()
                           << "\" bytes=" << content.size()
@@ -337,7 +376,7 @@ void registerVideoInferHandler(
                     bad_request ? drogon::k400BadRequest : drogon::k500InternalServerError
                 ));
             } catch (const std::exception& e) {
-                std::cerr << "[api] /infer_video error file=\"" << file.getFileName()
+                std::cerr << "[api] " << route << " error file=\"" << file.getFileName()
                           << "\" bytes=" << content.size()
                           << " message=\"" << e.what() << "\" elapsed_ms="
                           << elapsedMs(request_start) << '\n';
@@ -356,11 +395,25 @@ void registerVideoInferHandler(
 
 void runApiServer(
     const std::shared_ptr<YoloEngine>& engine,
+    const std::shared_ptr<YoloEngine>& low_res_engine,
     const AppConfig& config,
     uint16_t port
 ) {
     registerInferHandler(engine, config);
-    registerVideoInferHandler(engine, config);
+    registerVideoInferHandler(
+        "/infer_video",
+        config,
+        [engine, config](const std::filesystem::path& video_path) {
+            return inferVideoFile(engine, config, video_path);
+        }
+    );
+    registerVideoInferHandler(
+        "/infer_video_high_low",
+        config,
+        [engine, low_res_engine, config](const std::filesystem::path& video_path) {
+            return inferVideoFileHighLow(engine, low_res_engine, config, video_path);
+        }
+    );
 
     constexpr size_t kBytesPerMegabyte = 1024 * 1024;
     const size_t max_body_size = static_cast<size_t>(config.client_max_body_mb)

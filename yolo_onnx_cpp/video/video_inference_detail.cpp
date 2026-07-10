@@ -178,6 +178,20 @@ void markComplexStride(DynamicStrideState& state, bool urgent) {
     state.current_stride = urgent ? state.urgent_stride : state.complex_stride;
 }
 
+void appendSamples(std::vector<double>& target, const std::vector<double>& source) {
+    target.insert(target.end(), source.begin(), source.end());
+}
+
+void appendTimingSamples(StageTimingSamples& target, const StageTimingSamples& source) {
+    appendSamples(target.decode_ms, source.decode_ms);
+    appendSamples(target.preprocess_ms, source.preprocess_ms);
+    appendSamples(target.infer_ms, source.infer_ms);
+    appendSamples(target.postprocess_ms, source.postprocess_ms);
+    appendSamples(target.tracker_ms, source.tracker_ms);
+    appendSamples(target.queue_wait_ms, source.queue_wait_ms);
+    appendSamples(target.end_to_end_ms, source.end_to_end_ms);
+}
+
 AsyncInferResult runAsyncInfer(
     const std::shared_ptr<YoloEngine>& engine,
     const AppConfig& config,
@@ -188,7 +202,9 @@ AsyncInferResult runAsyncInfer(
     async_result.frame_index = frame_index;
 
     try {
+        const auto preprocess_start = std::chrono::steady_clock::now();
         const auto input = preprocessImageMat(frame, config);
+        const double preprocess_ms = elapsedMs(preprocess_start);
         if (!input.has_value()) {
             async_result.bad_request = true;
             async_result.error_message = invalidVideoFrameMessage(config);
@@ -196,6 +212,8 @@ AsyncInferResult runAsyncInfer(
         }
 
         async_result.result = engine->infer(input.value());
+        async_result.result.preprocess_ms = preprocess_ms;
+        async_result.result.timing_samples.preprocess_ms.push_back(preprocess_ms);
         async_result.ok = true;
         return async_result;
     } catch (const std::exception& e) {
@@ -209,6 +227,53 @@ AsyncInferResult runAsyncInfer(
 double elapsedMs(std::chrono::steady_clock::time_point start) {
     const auto elapsed = std::chrono::steady_clock::now() - start;
     return std::chrono::duration<double, std::milli>(elapsed).count();
+}
+
+void addInferMetrics(VideoInferResult& result, const InferResult& infer_result) {
+    result.preprocess_ms += infer_result.preprocess_ms;
+    result.decode_ms += infer_result.decode_ms;
+    result.infer_ms += infer_result.infer_ms;
+    result.postprocess_ms += infer_result.postprocess_ms;
+    result.queue_wait_ms += infer_result.queue_wait_ms;
+
+    result.model_inference_ms += infer_result.model_inference_ms;
+    result.model_postprocess_ms += infer_result.decode_ms + infer_result.postprocess_ms;
+    result.onnx_inference_ms = result.model_inference_ms;
+    result.onnx_postprocess_ms = result.model_postprocess_ms;
+    appendTimingSamples(result.timing_samples, infer_result.timing_samples);
+
+    if (result.output_shapes.empty()) {
+        result.output_shapes = infer_result.output_shapes;
+    }
+}
+
+void addTrackerMetrics(VideoInferResult& result, double tracker_ms) {
+    result.tracker_ms += tracker_ms;
+    result.tracking_postprocess_ms += tracker_ms;
+    result.timing_samples.tracker_ms.push_back(tracker_ms);
+}
+
+void addEndToEndSample(VideoInferResult& result, double end_to_end_ms) {
+    result.timing_samples.end_to_end_ms.push_back(end_to_end_ms);
+}
+
+void finalizeVideoPerformanceMetrics(
+    VideoInferResult& result,
+    int64_t output_count,
+    const ProcessUsageSnapshot& usage_start,
+    const ProcessUsageSnapshot& usage_end
+) {
+    result.end_to_end_ms = result.total_elapsed_ms;
+    result.metrics = buildPerformanceMetrics(
+        result.timing_samples,
+        output_count,
+        result.end_to_end_ms,
+        usage_start,
+        usage_end,
+        result.queue_length,
+        result.max_queue_length,
+        result.dropped_frame_count
+    );
 }
 
 TrackChangeQuality trackChangeQuality(
@@ -342,13 +407,23 @@ AsyncInferWorker::~AsyncInferWorker() {
     }
 }
 
-bool AsyncInferWorker::submit(cv::Mat frame, int64_t frame_index) {
+bool AsyncInferWorker::submit(cv::Mat frame, int64_t frame_index, size_t* queue_length) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (stopping_ || hasPendingLocked()) {
+        if (queue_length != nullptr) {
+            *queue_length = pendingCountLocked();
+        }
         return false;
     }
 
-    requests_.push_back(Request{frame_index, std::move(frame)});
+    requests_.push_back(Request{
+        frame_index,
+        std::chrono::steady_clock::now(),
+        std::move(frame)
+    });
+    if (queue_length != nullptr) {
+        *queue_length = pendingCountLocked();
+    }
     request_ready_.notify_one();
     return true;
 }
@@ -383,8 +458,19 @@ bool AsyncInferWorker::hasPending() const {
     return hasPendingLocked();
 }
 
+size_t AsyncInferWorker::pendingCount() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return pendingCountLocked();
+}
+
 bool AsyncInferWorker::hasPendingLocked() const {
     return in_flight_ || !requests_.empty() || !results_.empty();
+}
+
+size_t AsyncInferWorker::pendingCountLocked() const {
+    return requests_.size()
+        + results_.size()
+        + (in_flight_ ? static_cast<size_t>(1) : static_cast<size_t>(0));
 }
 
 void AsyncInferWorker::run() {
@@ -406,6 +492,7 @@ void AsyncInferWorker::run() {
             requests_.pop_front();
             in_flight_ = true;
         }
+        const double queue_wait_ms = elapsedMs(request.submitted_at);
 
         AsyncInferResult result = runAsyncInfer(
             engine_,
@@ -413,6 +500,8 @@ void AsyncInferWorker::run() {
             std::move(request.frame),
             request.frame_index
         );
+        result.result.queue_wait_ms = queue_wait_ms;
+        result.result.timing_samples.queue_wait_ms.push_back(queue_wait_ms);
 
         {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -490,7 +579,7 @@ void fillVideoSummary(
     double source_fps,
     float target_detect_fps,
     const std::string& stride_mode,
-    bool onnx_async,
+    bool model_async,
     int base_frame_stride,
     int min_stride_used,
     int max_stride_used,
@@ -537,7 +626,8 @@ void fillVideoSummary(
             / static_cast<double>(readable_frame_count)
         : 0.0;
     result.stride_mode = stride_mode;
-    result.onnx_async = onnx_async;
+    result.model_async = model_async;
+    result.onnx_async = model_async;
     result.base_frame_stride = base_frame_stride;
     result.min_frame_stride_used = min_stride_used;
     result.max_frame_stride_used = max_stride_used;

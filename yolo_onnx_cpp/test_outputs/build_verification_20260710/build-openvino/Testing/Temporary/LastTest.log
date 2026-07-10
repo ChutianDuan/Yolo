@@ -1,0 +1,163 @@
+Start testing: Jul 10 12:27 UTC
+----------------------------------------------------------
+1/6 Testing: app_config_test
+1/6 Test: app_config_test
+Command: "/home/ubuntu/YOLO/build-openvino/app_config_test"
+Directory: /home/ubuntu/YOLO/build-openvino
+"app_config_test" start time: Jul 10 12:27 UTC
+Output:
+----------------------------------------------------------
+app_config_test passed
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"app_config_test" end time: Jul 10 12:27 UTC
+"app_config_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: image_processing_test
+2/6 Test: image_processing_test
+Command: "/home/ubuntu/YOLO/build-openvino/image_processing_test"
+Directory: /home/ubuntu/YOLO/build-openvino
+"image_processing_test" start time: Jul 10 12:27 UTC
+Output:
+----------------------------------------------------------
+image_processing_test passed
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"image_processing_test" end time: Jul 10 12:27 UTC
+"image_processing_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: authority_tracker_policy_test
+3/6 Test: authority_tracker_policy_test
+Command: "/home/ubuntu/YOLO/build-openvino/authority_tracker_policy_test"
+Directory: /home/ubuntu/YOLO/build-openvino
+"authority_tracker_policy_test" start time: Jul 10 12:27 UTC
+Output:
+----------------------------------------------------------
+authority_tracker_policy_test passed
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"authority_tracker_policy_test" end time: Jul 10 12:27 UTC
+"authority_tracker_policy_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: video_inference_compare_test
+4/6 Test: video_inference_compare_test
+Command: "/home/ubuntu/YOLO/build-openvino/video_inference_compare_test"
+Directory: /home/ubuntu/YOLO/build-openvino
+"video_inference_compare_test" start time: Jul 10 12:27 UTC
+Output:
+----------------------------------------------------------
+video_inference_compare_test source_video="/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0000f77c-6257be58.mov" sample_video="/tmp/yolo_video_compare_384284542085293.avi" max_frames=10 high_res_async=true
+Model loaded: /home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best.onnx
+Model backend: onnxruntime
+Input name: images
+Output count: 1
+Class count: 10
+Confidence threshold: 0.250
+IoU threshold: 0.450
+Model loaded: /home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx
+Model backend: onnxruntime
+Input name: images
+Output count: 1
+Class count: 10
+Confidence threshold: 0.250
+IoU threshold: 0.450
+[video] open ok path="/tmp/yolo_video_compare_384284542085293.avi" backend=FFmpeg width=1280 height=720 fps=30.149 frames=10
+[video] open ok path="/tmp/yolo_video_compare_384284542085293.avi" backend=FFmpeg width=1280 height=720 fps=30.149 frames=10
+single_infer frames=10 processed=1 detected=1 forced=0 skipped=2 track_observations=7 unique_tracks=7 avg_tracks_per_frame=0.700 elapsed_ms=351.994 model_ms=323.288
+high_low_infer frames=10 processed=2 detected=2 forced=0 skipped=0 track_observations=80 unique_tracks=8 avg_tracks_per_frame=8.000 elapsed_ms=395.284 model_ms=558.853
+single_infer_detail
+  frames=10 source_frames=10 display_frames=10 size=1280x720 source_fps=30.149 target_detect_fps=4.000 effective_detect_fps=3.015 frame_stride=10.000 stride_mode=async_dynamic model_async=true
+  stride base=8 min=8 max=8 final=8
+  detection processed=1 detected_frames=1 forced=0 scheduled=1 skipped=2 async_requests=1 async_corrections=1 async_corrected_frames=1 weak_tracked_frames=0 interpolated_frames=0 empty_frames=9
+  tracks observations=7 unique=7 avg_per_frame=0.700
+  model infer_samples=1 preprocess_samples=1 end_to_end_samples=10 output_shapes=[1x300x6]
+  timing_total_ms total=351.994 decode=0.005 preprocess=13.839 infer=323.288 model_inference=323.288 postprocess=0.011 tracker=0.161 optical_flow=5.855 queue_wait=0.072 tracking_postprocess=0.161 profiled=343.231 other=8.763
+  timing_ratio preprocess=0.040 infer=0.942 decode=0.000 postprocess=0.000 tracker=0.000 optical_flow=0.017 queue_wait=0.000
+  latency_p50_ms decode=0.005 preprocess=13.839 infer=323.288 postprocess=0.011 tracker=0.002 queue_wait=0.072 end_to_end=0.974
+  latency_p95_ms decode=0.005 preprocess=13.839 infer=323.288 postprocess=0.011 tracker=0.114 queue_wait=0.072 end_to_end=7.586
+  latency_p99_ms decode=0.005 preprocess=13.839 infer=323.288 postprocess=0.011 tracker=0.114 queue_wait=0.072 end_to_end=7.586
+  runtime average_fps=28.410 cpu_utilization_percent=526.663 rss_memory_mb=338.766 queue_length=0 max_queue_length=1 dropped_frames=2
+  track_sources async_corrected=1 empty=9
+high_low_infer_detail
+  frames=10 source_frames=10 display_frames=10 size=1280x720 source_fps=30.149 target_detect_fps=4.000 effective_detect_fps=6.030 frame_stride=5.000 stride_mode=async_high_low_dynamic model_async=true
+  stride base=8 min=2 max=8 final=8
+  detection processed=2 detected_frames=2 forced=0 scheduled=2 skipped=0 async_requests=1 async_corrections=1 async_corrected_frames=0 weak_tracked_frames=8 interpolated_frames=0 empty_frames=0
+  tracks observations=80 unique=8 avg_per_frame=8.000
+  model infer_samples=3 preprocess_samples=3 end_to_end_samples=10 output_shapes=[1x300x6]
+  timing_total_ms total=395.284 decode=0.030 preprocess=23.564 infer=558.853 model_inference=558.853 postprocess=0.011 tracker=0.134 optical_flow=27.649 queue_wait=0.093 tracking_postprocess=0.135 profiled=610.334 other=0.000
+  timing_ratio preprocess=0.039 infer=0.916 decode=0.000 postprocess=0.000 tracker=0.000 optical_flow=0.045 queue_wait=0.000
+  latency_p50_ms decode=0.012 preprocess=3.654 infer=98.283 postprocess=0.003 tracker=0.005 queue_wait=0.000 end_to_end=1.186
+  latency_p95_ms decode=0.013 preprocess=16.449 infer=367.515 postprocess=0.005 tracker=0.070 queue_wait=0.093 end_to_end=103.433
+  latency_p99_ms decode=0.013 preprocess=16.449 infer=367.515 postprocess=0.005 tracker=0.070 queue_wait=0.093 end_to_end=103.433
+  runtime average_fps=25.298 cpu_utilization_percent=988.629 rss_memory_mb=594.605 queue_length=0 max_queue_length=1 dropped_frames=0
+  track_sources detected=2 weak_tracked=8
+comparison high_low_vs_single
+  elapsed_delta_ms=43.290 elapsed_delta_percent=12.299 fps_delta=-3.111
+  infer_delta_ms=235.565 model_inference_delta_ms=235.565 preprocess_delta_ms=9.725 tracker_delta_ms=-0.026 optical_flow_delta_ms=21.794
+  processed_delta=1 detected_frame_delta=1 track_observation_delta=73 unique_track_delta=1
+video_inference_compare_test passed
+<end of output>
+Test time =   1.36 sec
+----------------------------------------------------------
+Test Passed.
+"video_inference_compare_test" end time: Jul 10 12:27 UTC
+"video_inference_compare_test" time elapsed: 00:00:01
+----------------------------------------------------------
+
+5/6 Testing: openvino_python_smoke_test
+5/6 Test: openvino_python_smoke_test
+Command: "/root/miniconda3/bin/conda" "run" "-n" "yolo" "python" "/home/ubuntu/YOLO/yolo_onnx_cpp/tools/openvino_smoke_test.py" "--onnx" "/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx" "--video" "/home/ubuntu/YOLO/yolo_onnx_cpp/../Readme/dynamic_onnx_flow_detections.mp4" "--output-dir" "/home/ubuntu/YOLO/build-openvino/openvino-smoke" "--input-width" "640" "--input-height" "384" "--max-abs-tol" "0.001" "--mean-abs-tol" "0.0001"
+Directory: /home/ubuntu/YOLO/build-openvino
+"openvino_python_smoke_test" start time: Jul 10 12:27 UTC
+Output:
+----------------------------------------------------------
++ /root/miniconda3/envs/yolo/bin/python /home/ubuntu/YOLO/yolo_onnx_cpp/tools/convert_to_openvino.py --model /home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx --output /home/ubuntu/YOLO/build-openvino/openvino-smoke/best_640x384.xml --copy-classes --overwrite
+converted_model=/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx
+openvino_xml=/home/ubuntu/YOLO/build-openvino/openvino-smoke/best_640x384.xml
+openvino_bin=/home/ubuntu/YOLO/build-openvino/openvino-smoke/best_640x384.bin
+precision=FP32
++ /root/miniconda3/envs/yolo/bin/python /home/ubuntu/YOLO/yolo_onnx_cpp/tools/compare_openvino_onnx.py --onnx /home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx --ir /home/ubuntu/YOLO/build-openvino/openvino-smoke/best_640x384.xml --video /home/ubuntu/YOLO/Readme/dynamic_onnx_flow_detections.mp4 --input-width 640 --input-height 384 --device CPU --max-abs-tol 0.001 --mean-abs-tol 0.0001
+onnx_model=/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx
+openvino_model=/home/ubuntu/YOLO/build-openvino/openvino-smoke/best_640x384.xml
+input_shape=[1, 3, 384, 640]
+openvino_device=CPU
+output[0].shape=[1, 300, 6]
+output[0].max_abs_diff=0.00012207
+output[0].mean_abs_diff=0.00000370
+output[0].max_rel_diff=0.00010557
+output[0].mean_rel_diff=0.00000236
+
+<end of output>
+Test time =   8.66 sec
+----------------------------------------------------------
+Test Passed.
+"openvino_python_smoke_test" end time: Jul 10 12:28 UTC
+"openvino_python_smoke_test" time elapsed: 00:00:08
+----------------------------------------------------------
+
+6/6 Testing: response_json_test
+6/6 Test: response_json_test
+Command: "/home/ubuntu/YOLO/build-openvino/response_json_test"
+Directory: /home/ubuntu/YOLO/build-openvino
+"response_json_test" start time: Jul 10 12:28 UTC
+Output:
+----------------------------------------------------------
+response_json_test passed
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"response_json_test" end time: Jul 10 12:28 UTC
+"response_json_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Jul 10 12:28 UTC

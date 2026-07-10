@@ -1,0 +1,12 @@
+image_processing_test 56 0.000872546
+response_json_test 49 0.000226981
+byte_tracker_test 12 0.000366395
+app_config_test 37 0.000274817
+detection_scheduler_test 11 0.000260228
+roi_detection_test 11 0.000225599
+yolo_engine_shape_test 11 0.0531131
+detector_bundle_test 9 0.0932607
+video_inference_compare_test 38 0.0346111
+authority_tracker_policy_test 23 0.00042974
+openvino_python_smoke_test 11 0.644224
+---

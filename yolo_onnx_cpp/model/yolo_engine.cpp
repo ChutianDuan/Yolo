@@ -1,15 +1,22 @@
 #include "yolo_engine.h"
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <json/json.h>
 #include <onnxruntime/onnxruntime_cxx_api.h>
+#if YOLO_ENABLE_OPENVINO
+#include <openvino/openvino.hpp>
+#endif
 
 #include "image/image_processing.h"
 
@@ -18,6 +25,11 @@ namespace {
 
 constexpr size_t kMaxNmsCandidates = 3000;
 constexpr size_t kMaxDetections = 300;
+
+enum class ModelBackend {
+    OnnxRuntime,
+    OpenVino,
+};
 
 double elapsedMs(std::chrono::steady_clock::time_point start) {
     const auto elapsed = std::chrono::steady_clock::now() - start;
@@ -125,6 +137,41 @@ std::vector<Detection> nonMaxSuppression(
     return kept;
 }
 
+std::string lowerExtension(const std::string& path) {
+    std::string extension = std::filesystem::path(path).extension().string();
+    std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return extension;
+}
+
+ModelBackend resolveBackend(const AppConfig& config) {
+    if (config.model_backend == "onnx") {
+        return ModelBackend::OnnxRuntime;
+    }
+    if (config.model_backend == "openvino") {
+        return ModelBackend::OpenVino;
+    }
+    return lowerExtension(config.model_path) == ".xml"
+        ? ModelBackend::OpenVino
+        : ModelBackend::OnnxRuntime;
+}
+
+const char* backendName(ModelBackend backend) {
+    return backend == ModelBackend::OpenVino ? "openvino" : "onnxruntime";
+}
+
+#if YOLO_ENABLE_OPENVINO
+std::vector<int64_t> shapeToInt64(const ov::Shape& shape) {
+    std::vector<int64_t> result;
+    result.reserve(shape.size());
+    for (size_t dim : shape) {
+        result.push_back(static_cast<int64_t>(dim));
+    }
+    return result;
+}
+#endif
+
 }  // namespace
 
 class YoloEngine::Impl {
@@ -133,6 +180,7 @@ public:
         : env_(ORT_LOGGING_LEVEL_WARNING, "yolo_api"),
           session_(nullptr),
           memory_info_(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)),
+          backend_(resolveBackend(config)),
           conf_threshold_(config.conf_threshold),
           iou_threshold_(config.iou_threshold),
           class_count_(config.num_classes > 0
@@ -142,6 +190,21 @@ public:
             class_count_ = loadClassCount(config.model_path);
         }
 
+        if (backend_ == ModelBackend::OpenVino) {
+            initOpenVino(config);
+        } else {
+            initOnnxRuntime(config);
+        }
+    }
+
+    InferResult infer(const TensorInput& input) {
+        return backend_ == ModelBackend::OpenVino
+            ? inferOpenVino(input)
+            : inferOnnxRuntime(input);
+    }
+
+private:
+    void initOnnxRuntime(const AppConfig& config) {
         session_options_.SetIntraOpNumThreads(config.thread_num);
         session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
 
@@ -151,6 +214,15 @@ public:
 
         const size_t input_count = session_.GetInputCount();
         const size_t output_count = session_.GetOutputCount();
+        if (input_count != 1) {
+            throw std::runtime_error(
+                "ONNX Runtime model must have exactly one input, got "
+                + std::to_string(input_count)
+            );
+        }
+        if (output_count == 0) {
+            throw std::runtime_error("ONNX Runtime model must have at least one output");
+        }
 
         for (size_t i = 0; i < input_count; ++i) {
             auto name = session_.GetInputNameAllocated(i, allocator);
@@ -171,6 +243,7 @@ public:
         }
 
         std::cout << "Model loaded: " << config.model_path << '\n';
+        std::cout << "Model backend: " << backendName(backend_) << '\n';
         std::cout << "Input name: " << input_names_str_[0] << '\n';
         std::cout << "Output count: " << output_names_str_.size() << '\n';
         std::cout << "Class count: " << class_count_ << '\n';
@@ -178,7 +251,7 @@ public:
         std::cout << "IoU threshold: " << iou_threshold_ << '\n';
     }
 
-    InferResult infer(const TensorInput& input) {
+    InferResult inferOnnxRuntime(const TensorInput& input) {
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
             memory_info_,
             const_cast<float*>(input.values.data()),
@@ -187,7 +260,7 @@ public:
             input.shape.size()
         );
 
-        auto onnx_start = std::chrono::steady_clock::now();
+        auto infer_start = std::chrono::steady_clock::now();
         auto output_tensors = session_.Run(
             Ort::RunOptions{nullptr},
             input_name_ptrs_.data(),
@@ -198,39 +271,157 @@ public:
         );
 
         InferResult result;
-        result.onnx_inference_ms = elapsedMs(onnx_start);
-        auto postprocess_start = std::chrono::steady_clock::now();
+        result.model_inference_ms = elapsedMs(infer_start);
+        result.onnx_inference_ms = result.model_inference_ms;
+        result.infer_ms = result.model_inference_ms;
+        result.timing_samples.infer_ms.push_back(result.infer_ms);
+
+        auto shape_start = std::chrono::steady_clock::now();
         result.output_shapes.reserve(output_tensors.size());
 
         for (auto& output_tensor : output_tensors) {
             auto type_info = output_tensor.GetTensorTypeAndShapeInfo();
             result.output_shapes.push_back(type_info.GetShape());
         }
+        result.postprocess_ms += elapsedMs(shape_start);
 
         if (!output_tensors.empty()) {
             auto type_info = output_tensors[0].GetTensorTypeAndShapeInfo();
             const auto shape = type_info.GetShape();
             const float* output_data = output_tensors[0].GetTensorData<float>();
-            result.detections = nonMaxSuppression(
-                decode(output_data, shape, input, class_count_, conf_threshold_),
-                iou_threshold_
+            auto decode_start = std::chrono::steady_clock::now();
+            std::vector<Detection> decoded = decode(
+                output_data,
+                shape,
+                input,
+                class_count_,
+                conf_threshold_
             );
+            result.decode_ms = elapsedMs(decode_start);
+            result.timing_samples.decode_ms.push_back(result.decode_ms);
+
+            auto nms_start = std::chrono::steady_clock::now();
+            result.detections = nonMaxSuppression(std::move(decoded), iou_threshold_);
+            result.postprocess_ms += elapsedMs(nms_start);
         }
 
-        result.postprocess_ms = elapsedMs(postprocess_start);
+        result.timing_samples.postprocess_ms.push_back(result.postprocess_ms);
         return result;
     }
 
-private:
+    void initOpenVino(const AppConfig& config) {
+#if YOLO_ENABLE_OPENVINO
+        auto model = ov_core_.read_model(config.model_path);
+        ov_compiled_model_ = ov_core_.compile_model(model, config.openvino_device);
+        ov_infer_request_ = ov_compiled_model_.create_infer_request();
+
+        const auto inputs = ov_compiled_model_.inputs();
+        const auto outputs = ov_compiled_model_.outputs();
+        if (inputs.size() != 1 || outputs.empty()) {
+            throw std::runtime_error(
+                "OpenVINO model must have exactly one input and at least one output"
+            );
+        }
+        ov_input_name_ = inputs[0].get_any_name();
+
+        std::cout << "Model loaded: " << config.model_path << '\n';
+        std::cout << "Model backend: " << backendName(backend_) << '\n';
+        std::cout << "OpenVINO device: " << config.openvino_device << '\n';
+        std::cout << "Input name: " << ov_input_name_ << '\n';
+        std::cout << "Output count: " << outputs.size() << '\n';
+        std::cout << "Class count: " << class_count_ << '\n';
+        std::cout << "Confidence threshold: " << conf_threshold_ << '\n';
+        std::cout << "IoU threshold: " << iou_threshold_ << '\n';
+#else
+        (void)config;
+        throw std::runtime_error(
+            "OpenVINO backend requested but yolo_api was built without "
+            "YOLO_ENABLE_OPENVINO=ON"
+        );
+#endif
+    }
+
+    InferResult inferOpenVino(const TensorInput& input) {
+#if YOLO_ENABLE_OPENVINO
+        std::lock_guard<std::mutex> lock(ov_infer_mutex_);
+        ov::Shape input_shape;
+        input_shape.reserve(input.shape.size());
+        for (int64_t dim : input.shape) {
+            if (dim < 0) {
+                throw std::runtime_error("OpenVINO input shape cannot contain negative dims");
+            }
+            input_shape.push_back(static_cast<size_t>(dim));
+        }
+
+        ov::Tensor input_tensor(ov::element::f32, input_shape);
+        std::copy(input.values.begin(), input.values.end(), input_tensor.data<float>());
+        ov_infer_request_.set_tensor(ov_input_name_, input_tensor);
+
+        auto infer_start = std::chrono::steady_clock::now();
+        ov_infer_request_.infer();
+
+        InferResult result;
+        result.model_inference_ms = elapsedMs(infer_start);
+        result.onnx_inference_ms = result.model_inference_ms;
+        result.infer_ms = result.model_inference_ms;
+        result.timing_samples.infer_ms.push_back(result.infer_ms);
+
+        auto shape_start = std::chrono::steady_clock::now();
+        const auto outputs = ov_compiled_model_.outputs();
+        result.output_shapes.reserve(outputs.size());
+        for (size_t i = 0; i < outputs.size(); ++i) {
+            result.output_shapes.push_back(
+                shapeToInt64(ov_infer_request_.get_output_tensor(i).get_shape())
+            );
+        }
+        result.postprocess_ms += elapsedMs(shape_start);
+
+        if (!outputs.empty()) {
+            const ov::Tensor output_tensor = ov_infer_request_.get_output_tensor(0);
+            const float* output_data = output_tensor.data<const float>();
+            const std::vector<int64_t> shape = shapeToInt64(output_tensor.get_shape());
+
+            auto decode_start = std::chrono::steady_clock::now();
+            std::vector<Detection> decoded = decode(
+                output_data,
+                shape,
+                input,
+                class_count_,
+                conf_threshold_
+            );
+            result.decode_ms = elapsedMs(decode_start);
+            result.timing_samples.decode_ms.push_back(result.decode_ms);
+
+            auto nms_start = std::chrono::steady_clock::now();
+            result.detections = nonMaxSuppression(std::move(decoded), iou_threshold_);
+            result.postprocess_ms += elapsedMs(nms_start);
+        }
+
+        result.timing_samples.postprocess_ms.push_back(result.postprocess_ms);
+        return result;
+#else
+        (void)input;
+        throw std::runtime_error("OpenVINO backend is not compiled");
+#endif
+    }
+
     Ort::Env env_;
     Ort::SessionOptions session_options_;
     Ort::Session session_;
     Ort::MemoryInfo memory_info_;
+#if YOLO_ENABLE_OPENVINO
+    ov::Core ov_core_;
+    ov::CompiledModel ov_compiled_model_;
+    ov::InferRequest ov_infer_request_;
+    std::mutex ov_infer_mutex_;
+    std::string ov_input_name_;
+#endif
 
     std::vector<std::string> input_names_str_;
     std::vector<std::string> output_names_str_;
     std::vector<const char*> input_name_ptrs_;
     std::vector<const char*> output_name_ptrs_;
+    ModelBackend backend_ = ModelBackend::OnnxRuntime;
     float conf_threshold_ = 0.25F;
     float iou_threshold_ = 0.45F;
     int class_count_ = 0;

@@ -11,9 +11,9 @@
 本项目建议把环境拆成两套维护：
 
 - `conda` 训练环境：运行 YOLO 训练、验证、ONNX 导出、INT8 量化和 Python 测试脚本。
-- `CMake + vcpkg` 部署环境：编译并运行 `yolo_onnx_cpp/` 下的 Drogon HTTP 服务，使用 ONNX Runtime CPU 后端推理。
+- `CMake + vcpkg` 部署环境：编译并运行 `yolo_onnx_cpp/` 下的 Drogon HTTP 服务，默认使用 ONNX Runtime CPU 后端推理，也可启用 OpenVINO 后端。
 
-两套环境边界要保持清晰：训练环境可以使用 CUDA/PyTorch；C++ 部署服务默认只依赖 CMake/vcpkg 提供的 OpenCV、Drogon、ONNX Runtime CPU，不依赖 Python 运行时。
+两套环境边界要保持清晰：训练环境可以使用 CUDA/PyTorch；C++ 部署服务默认只依赖 CMake/vcpkg 提供的 OpenCV、Drogon、ONNX Runtime CPU，不依赖 Python 运行时。启用 C++ OpenVINO 后端时，OpenVINO 也必须来自 `/root/vcpkg`。
 
 ### Conda：YOLO 训练与导出环境
 
@@ -24,31 +24,31 @@
 - 运行 `model/data/` 下的数据转换、切片、评估和对比脚本。
 - 运行 `yolo_onnx_cpp/test/*.py` 做 HTTP 端到端测试和视频对比实验。
 
-推荐创建独立 conda 环境：
+本机已经整理出两个环境规格文件：
+
+- `envs/yolo.yml`：YOLO 训练、验证、ONNX 导出和 Python 实验脚本。
+- `envs/rag-api.yml`：RAG/FastAPI 服务依赖。
+
+二者不要合并：`yolo` 当前使用 PyTorch `2.5.1+cu121`、NumPy `2.2.6`；`rag-api` 当前使用 PyTorch `2.6.0+cu124`、NumPy `1.26.4`，并补了 `datasets 2.21.0`，避免仓库根目录的 `datasets/` 数据目录影响 `sentence_transformers` 导入。
+
+创建或重建环境：
 
 ```bash
-conda create -n yolo-train python=3.10 -y
-conda activate yolo-train
+conda env create -f envs/yolo.yml
+conda env create -f envs/rag-api.yml
 ```
 
-安装 PyTorch。按机器 CUDA 版本选择对应命令；如果只做 CPU 导出和脚本测试，也可以安装 CPU 版 PyTorch。示例：
+如果只需要修复当前已有环境，先验证依赖一致性：
 
 ```bash
-# CUDA 12.1 示例，按实际驱动和 CUDA 版本调整。
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-```
-
-安装训练、导出和测试脚本依赖：
-
-```bash
-pip install ultralytics opencv-python pillow pyyaml numpy tqdm
-pip install onnx onnxruntime onnxruntime-tools
+conda run -n yolo python -m pip check
+conda run -n rag-api python -m pip check
 ```
 
 如果需要 INT8 量化，`model/onnx.py` 会使用 `onnxruntime.quantization`。确认依赖可用：
 
 ```bash
-python -c "import torch, ultralytics, onnx, onnxruntime, cv2; print('ok')"
+conda run -n yolo python -c "import torch, ultralytics, onnx, onnxruntime, cv2; print('ok')"
 ```
 
 本机训练默认建议只暴露物理 GPU 4 和 GPU 5：
@@ -85,7 +85,7 @@ yolo_onnx_cpp/deploy/best.onnx
 yolo_onnx_cpp/deploy/classes.json
 ```
 
-### CMake：Drogon + ONNX Runtime CPU 部署环境
+### CMake：Drogon + ONNX Runtime/OpenVINO CPU 部署环境
 
 用途：
 
@@ -104,19 +104,27 @@ OpenCV ffmpeg feature（用于读取 mp4/mov/qt 等常见视频容器）
 JsonCpp
 ```
 
-如果重建 C++ 部署环境，建议确保 OpenCV 带 FFmpeg 后端。当前 vcpkg 环境对应命令示例：
+如果重建 C++ 部署环境，建议统一安装到 `/root/vcpkg/installed/x64-linux-gcc15`，不要在子目录生成 `vcpkg_installed/`。当前 vcpkg 环境对应命令示例：
 
 ```bash
-/root/vcpkg/vcpkg install 'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon \
+export PATH=/root/vcpkg/downloads/tools/gperf-3.1/bin:/root/vcpkg/downloads/tools/flex-2.6.4/bin:/root/vcpkg/downloads/tools/bison-3.8.2/bin:/root/vcpkg/downloads/tools/autotools/bin:/root/vcpkg/downloads/tools/nasm-3.01/bin:/root/vcpkg/.toolchains/gcc15/bin:/root/vcpkg:${PATH}
+export ACLOCAL_PATH=/root/vcpkg/installed/x64-linux-gcc15/share/aclocal:/root/vcpkg/downloads/tools/autotools/share/aclocal
+export LD_LIBRARY_PATH=/root/vcpkg/downloads/tools/autotools/lib:/root/vcpkg/.toolchains/gcc15/lib:${LD_LIBRARY_PATH:-}
+/root/vcpkg/vcpkg install 'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon jsoncpp 'ffmpeg[ffmpeg,ffprobe,x264]' \
+  --classic \
   --triplet x64-linux-gcc15 \
-  --overlay-triplets=/root/vcpkg/custom-triplets
+  --host-triplet x64-linux-gcc15 \
+  --overlay-triplets=/root/vcpkg/custom-triplets \
+  --overlay-ports=/root/vcpkg/custom-ports \
+  --recurse
 ```
 
-当前 VSCode/CMake 配置使用 `/root/vcpkg` 下的 GCC15 toolchain 和 vcpkg triplet。命令行配置示例：
+当前 VSCode/CMake 配置使用 `/root/vcpkg` 下的 GCC15 toolchain 和 vcpkg triplet。命令行可直接使用 preset：
 
 ```bash
-cmake -S yolo_onnx_cpp -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DYOLO_CONFIG_PROFILE=default -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-cmake --build build
+cd yolo_onnx_cpp
+cmake --preset vcpkg-gcc15-release
+cmake --build --preset vcpkg-gcc15-release
 ```
 
 `YOLO_CONFIG_PROFILE` 控制编译进二进制的默认配置文件：
@@ -131,7 +139,7 @@ cmake --build build
 ./build/yolo_api yolo_onnx_cpp/config.reference.yaml
 ```
 
-部署服务不需要激活 `yolo-train` conda 环境；只要 `build/yolo_api` 能找到 vcpkg 依赖并且 `model_path` 指向存在的 ONNX 文件即可。
+部署服务不需要激活 `yolo` conda 环境；只要 `build/yolo_api` 能找到 vcpkg 依赖并且 `model_path` 指向存在的模型文件即可。
 
 构建完成后建议确认：
 
@@ -140,6 +148,102 @@ cmake --build build
 ```
 
 服务启动后监听 `0.0.0.0:8080`。如果 `model_path` 是相对路径，会按配置文件所在目录解析，例如 `./deploy/best.onnx` 会解析到 `yolo_onnx_cpp/deploy/best.onnx`。
+
+### OpenVINO 转换与对比
+
+Python 侧 OpenVINO 工具放在 `yolo` conda 环境中，用于环境检查、ONNX 转 IR、以及同一帧的 ONNX Runtime/OpenVINO 输出差异对比：
+
+```bash
+conda run -n yolo python yolo_onnx_cpp/tools/check_openvino_env.py
+
+conda run -n yolo python yolo_onnx_cpp/tools/convert_to_openvino.py \
+  --model yolo_onnx_cpp/deploy/best_640x384.onnx \
+  --output /tmp/yolo_openvino_test/best_640x384.xml \
+  --copy-classes --overwrite
+
+conda run -n yolo python yolo_onnx_cpp/tools/compare_openvino_onnx.py \
+  --onnx yolo_onnx_cpp/deploy/best_640x384.onnx \
+  --ir /tmp/yolo_openvino_test/best_640x384.xml \
+  --video Readme/dynamic_onnx_flow_detections.mp4 \
+  --input-width 640 --input-height 384
+```
+
+转换脚本默认保存 FP32 IR，便于和 ONNX Runtime 做精度对齐；只有明确接受精度差异时再加 `--fp16`。
+
+C++ 服务通过配置选择后端：
+
+```yaml
+model_path: ./deploy/best.xml
+model_backend: auto      # auto: .xml 使用 OpenVINO，.onnx 使用 ONNX Runtime
+openvino_device: CPU
+```
+
+默认 preset 不编译 OpenVINO。要启用 C++ OpenVINO 后端，先把 OpenVINO 安装进 `/root/vcpkg`，再使用 OpenVINO preset：
+
+```bash
+/root/vcpkg/vcpkg install 'openvino[core,cpu,ir,onnx]:x64-linux-gcc15' \
+  --overlay-triplets=/root/vcpkg/custom-triplets \
+  --overlay-ports=/root/vcpkg/custom-ports
+
+cd yolo_onnx_cpp
+cmake --preset vcpkg-gcc15-openvino
+cmake --build --preset vcpkg-gcc15-openvino
+```
+
+当前 `/root/vcpkg/custom-ports/openvino` overlay port 会以 `-DENABLE_MLAS_FOR_CPU=OFF` 构建 OpenVINO CPU plugin，避免静态链接时 OpenVINO `libmlas.a` 和 ONNX Runtime `libonnxruntime_mlas.a` 重复符号冲突。
+
+### Qt 桌面界面
+
+Qt 界面放在独立目录 `qt_ui/`，只复用 `yolo_onnx_cpp/` 中的配置解析、图像预处理和 ONNX 推理代码，不依赖 Drogon HTTP 服务。
+
+Qt 通过 vcpkg 安装。沿用当前 `/root/vcpkg` 与 `x64-linux-gcc15` triplet 时，依赖安装命令示例：
+
+```bash
+bash qt_ui/check_env.sh
+```
+
+```bash
+export PATH=/root/vcpkg/downloads/tools/gperf-3.1/bin:/root/vcpkg/downloads/tools/flex-2.6.4/bin:/root/vcpkg/downloads/tools/bison-3.8.2/bin:/root/vcpkg/downloads/tools/autotools/bin:/root/vcpkg/downloads/tools/nasm-3.01/bin:/root/vcpkg/.toolchains/gcc15/bin:/root/vcpkg:${PATH}
+export ACLOCAL_PATH=/root/vcpkg/installed/x64-linux-gcc15/share/aclocal:/root/vcpkg/downloads/tools/autotools/share/aclocal
+export LD_LIBRARY_PATH=/root/vcpkg/downloads/tools/autotools/lib:/root/vcpkg/.toolchains/gcc15/lib:${LD_LIBRARY_PATH:-}
+/root/vcpkg/vcpkg install 'qtbase[core,widgets,xcb,xrender,fontconfig,png,jpeg]' \
+  'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon jsoncpp 'ffmpeg[ffmpeg,ffprobe,x264]' \
+  --classic \
+  --triplet x64-linux-gcc15 \
+  --host-triplet x64-linux-gcc15 \
+  --overlay-triplets=/root/vcpkg/custom-triplets \
+  --overlay-ports=/root/vcpkg/custom-ports \
+  --recurse
+```
+
+构建和运行：
+
+```bash
+cd qt_ui
+cmake --preset vcpkg-gcc15-release
+cmake --build --preset vcpkg-gcc15-release
+../build-qt/yolo_qt
+```
+
+如果不用 preset，也可以在仓库根目录手动配置：
+
+```bash
+cmake -S qt_ui -B build-qt -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  -DVCPKG_MANIFEST_MODE=OFF \
+  -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 \
+  -DVCPKG_HOST_TRIPLET=x64-linux-gcc15 \
+  -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets \
+  -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc \
+  -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+cmake --build build-qt
+./build-qt/yolo_qt
+```
+
+界面默认尝试查找 `yolo_onnx_cpp/config.yaml`，也可以在窗口中手动选择配置文件。Linux 服务器如果没有图形会话，需要在桌面环境或 SSH X11 转发下运行。
 
 
 ## 数据
@@ -159,7 +263,7 @@ cmake --build build
 
 - `drogon/api_server.cpp`：只处理 HTTP 路由、multipart 上传、临时视频文件和错误响应。
 - `video/video_inference.cpp`：执行视频推理主流程，保留 `inferVideoFile` 入口、异步结果应用、检测调度、同步检测和逐帧循环。
-- `video/video_inference_detail.cpp` / `video/video_inference_detail.h`：封装视频推理的内部支撑逻辑，包括异步 ONNX worker、动态 stride 状态、轨迹变化质量评估、检测帧插值和 summary 统计填充。
+- `video/video_inference_detail.cpp` / `video/video_inference_detail.h`：封装视频推理的内部支撑逻辑，包括异步模型推理 worker、动态 stride 状态、轨迹变化质量评估、检测帧插值和 summary 统计填充。
 - `video/optical_flow_tracker.cpp` / `video/optical_flow_tracker.h`：封装 LK 光流弱跟踪、帧间运动估计、运动补偿和光流质量判断。
 - `drogon/response_json.cpp`：统一把 `InferResult` / `VideoInferResult` 转成 API JSON 响应。
 - `model/inference_types.h`：定义内部推理结构体，例如 `Detection`、`TrackedDetection` 和 `InferResult`。
@@ -171,6 +275,35 @@ cmake --build build
 - input: `images(1, 3, 736, 1280): float32`
 - output: `output0(1, 300, 6): float32`
 - `output0` 每行按 `[x1, y1, x2, y2, score, class_id]` 解析。
+
+### High/Low 去重与光流质量优化（2026-07-10）
+
+`/infer_video_high_low` 已完成重复状态、光流漂移和质量触发调度优化，详细实施记录和验收数据见 [优化计划.md](优化计划.md)。核心行为如下：
+
+- tracker 每次 high-res、low-res、flow 和异步 replay 更新后都会合并重复 stable/provisional 状态；输出阶段另有只读去重安全网。
+- 普通 provisional 连续 3 次 low-res 命中才输出；`score >= 0.60` 时允许 2 次命中。连续 2 次 low-res miss 停止输出，12 帧未更新删除。
+- low-res 匹配最大面积比为 2，fresh/stale 分别使用收紧的 IoU、中心距离和面积门控；异常尺度只触发 authority refresh，不污染 stable geometry。
+- LK 光流逐轨迹要求至少 4 个有效点、有效率不低于 0.50、median forward-backward error 不高于 2 px，并限制位移离散度和单帧位移。
+- detector score 与 flow confidence/age 分开保存；flow-only 超过 16 帧停止输出，24 帧删除，连续两帧边界裁剪的轨迹停止输出。
+- global motion 只使用检测框外背景角点，背景点或 inlier 不足时禁用 fallback。
+- dynamic stride 可缩短到 urgent 2 帧/complex 3 帧；重复突增、flow 质量下降、尺度/速度跳变、geometry 拒绝和类别冲突会请求 low/high refresh，并带去抖和最短 cadence。
+
+视频响应新增 `high_low_diagnostics` 对象，只增加字段，不改变原字段。该对象包含 stable/provisional 当前及峰值数量、provisional 创建/晋升/过期/去重、三类重复合并、geometry/class conflict、逐原因 flow rejection、flow-only TTL、direct/global flow 更新和 urgent low/high detection 计数。普通 `/infer_video` 响应也会保留该对象，其计数默认为 0。
+
+最终三场景回归使用 full high-res 结果作为伪标签，IoU=0.5 pooled 结果如下：
+
+| 指标 | 优化前 | 优化后 |
+| --- | ---: | ---: |
+| precision | 0.5048 | 0.7249 |
+| recall | 0.8684 | 0.8269 |
+| F1 | 0.6384 | 0.7726 |
+| predictions/labels | 1.72 | 1.141 |
+| FP | 29,307 | 10,773 |
+| weak-tracked precision | 0.5025 | 0.7274 |
+| weak-tracked mean IoU | 0.8588 | 0.8614 |
+| pooled FPS | 31.34 | 24.71 |
+
+精度、召回、F1、输出量、FP 和三场景最低 recall 目标已达到；weak-tracked mean IoU 目标 0.88 与 pooled FPS 目标 28 尚未达到。最终结果目录为 `yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_optimization_20260710/`，三个固定参数回归分别使用 `final_day_20260710_113056`、`final_night_20260710_113211` 和 `final_rain_20260710_113304`。
 
 ### 配置文件
 
@@ -222,7 +355,9 @@ client_max_body_mb: 256
 cmake -S yolo_onnx_cpp -B build -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake \
+  -DVCPKG_MANIFEST_MODE=OFF \
   -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 \
+  -DVCPKG_HOST_TRIPLET=x64-linux-gcc15 \
   -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets \
   -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc \
   -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ \
@@ -344,30 +479,30 @@ curl -X POST "http://127.0.0.1:8080/infer_video?frame_offset=10&frame_limit=5" \
   -F "video=@/path/to/video.mp4"
 ```
 
-当前视频处理不是简单逐帧 YOLO，而是采用“异步强检测 + 弱跟踪 + 动态抽帧 + 兜底插值”：
+当前视频处理不是简单逐帧 YOLO，而是采用“异步模型强检测 + 弱跟踪 + 动态抽帧 + 兜底插值”：
 
 ```text
 C++ OpenCV 读取原始视频每一帧
         ↓
 按 source_fps / video_detect_fps 计算 base_frame_stride
         ↓
-根据光流质量、轨迹变化和 base_frame_stride 动态决定是否调度 ONNX 强检测
+根据光流质量、轨迹变化和 base_frame_stride 动态决定是否调度模型强检测
         ↓
 非强检测帧：LK 光流弱跟踪上一帧 track 框，并用 ByteTrack updateTracked 续轨
         ↓
-异步 ONNX 返回后：根据帧间运动补偿检测框，再用 ByteTrack update 校正轨迹
+异步模型推理返回后：根据帧间运动补偿检测框，再用 ByteTrack update 校正轨迹
         ↓
 光流失败帧：检测关键帧之间 bbox 插值兜底
         ↓
 生成 VideoInferResult，最终由 response_json.cpp 序列化为 JSON
 ```
 
-例如源视频为 24 FPS，`video_detect_fps: 4.0` 时，基础间隔为 6 帧。稳定场景会接近每 6 帧调度一次 YOLO；复杂运动、光流质量下降或轨迹突变时会临时缩短间隔，尽快用 ONNX 校正。这样可以保持最终展示仍为原始 24 FPS，同时避免每帧都跑 ONNX。
+例如源视频为 24 FPS，`video_detect_fps: 4.0` 时，基础间隔为 6 帧。稳定场景会接近每 6 帧调度一次模型推理；复杂运动、光流质量下降或轨迹突变时会临时缩短间隔，尽快用模型检测校正。这样可以保持最终展示仍为原始 24 FPS，同时避免每帧都跑完整模型。
 
 视频主流程在 `video/video_inference.cpp`，内部支撑逻辑在 `video/video_inference_detail.cpp`，LK 光流弱跟踪细节在 `video/optical_flow_tracker.cpp`。建议阅读顺序：
 
-- 先看 `inferVideoFile` 前半段：打开视频、计算 `base_frame_stride`、决定 `async_dynamic` / `sync_fixed` / `full_onnx` 等模式。
-- 再看 `inferVideoFile` 中部三个 lambda：`applyAsyncInferResult` 负责异步 ONNX 回来后的运动补偿和 ByteTrack 校正，`scheduleAsyncDetection` 负责把检测帧丢给后台 worker，`runSyncDetection` 是非异步模式下的直接 YOLO 检测。
+- 先看 `inferVideoFile` 前半段：打开视频、计算 `base_frame_stride`、决定 `async_dynamic` / `sync_fixed` / `full_model` 等模式。
+- 再看 `inferVideoFile` 中部三个 lambda：`applyAsyncInferResult` 负责异步模型推理回来后的运动补偿和 ByteTrack 校正，`scheduleAsyncDetection` 负责把检测帧丢给后台 worker，`runSyncDetection` 是非异步模式下的直接模型检测。
 - 然后看主 `while (capture.read(frame))` 循环：每帧先做光流弱跟踪，再消费已完成的异步检测结果，最后决定是否调度下一次强检测。
 - 最后看 `video_inference_detail.cpp`：动态 stride、轨迹变化质量、插值兜底和结果统计都放在这里，主流程只调用这些结论。
 
@@ -378,6 +513,8 @@ C++ OpenCV 读取原始视频每一帧
 - `ByteTracker::updateTracked` 按 `track_id` 更新已有轨迹状态，不创建新 ID。
 - `shouldRunScheduledDetection` 和光流质量评估决定是否调用 `scheduleAsyncDetection` 调度强检测。
 - 异步强检测完成后，`motionCompensatedDetections` 将检测框补偿到当前帧，再调用 `ByteTracker::update` 校正轨迹。
+
+响应 JSON 中的 `onnx_async`、`onnx_inference_ms`、`onnx_decode_nms_ms` 是历史兼容字段名；启用 OpenVINO 后也会继续填充这些字段，内部实现已使用 `model_*` 语义。
 
 返回示例：
 
@@ -448,9 +585,9 @@ C++ OpenCV 读取原始视频每一帧
 
 `tracks_source` 取值说明：
 
-- `async_corrected`：该帧已用异步 ONNX 结果校正。
+- `async_corrected`：该帧已用异步模型推理结果校正。
 - `detected`：兼容保留的强检测来源标记；当前异步视频流程通常使用 `async_corrected`。
-- `weak_tracked`：该帧没有跑 YOLO，使用 LK 光流弱跟踪更新框。
+- `weak_tracked`：该帧没有跑完整模型，使用 LK 光流弱跟踪更新框。
 - `interpolated`：光流没有可用结果时，用相邻检测帧做 bbox 插值兜底。
 - `empty`：没有检测、弱跟踪或插值结果。
 
@@ -459,13 +596,13 @@ C++ OpenCV 读取原始视频每一帧
 - `400`：表单解析失败、没有上传视频、视频无法打开、没有可读帧、没有采样帧被处理，或在 `use_letterbox: false` 时视频帧尺寸不匹配。
 - `500`：模型推理、临时视频文件写入或服务端内部异常。
 
-### 全帧 ONNX 与 ONNX + 光流对比实验
+### 全帧模型推理与模型 + 光流对比实验
 
-对比实验入口为 `yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py`。脚本会对同一个视频连续跑三次 `/infer_video`：
+对比实验入口为 `yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py`。脚本名和输出文件名里的 `onnx` 是历史命名；当前配置为 `.xml` + `model_backend: openvino` 时，同一套流程也可以用于 OpenVINO 后端。脚本会对同一个视频连续跑三次 `/infer_video`：
 
-- `full_onnx`：临时配置 `video_detect_fps: 0`，每一帧都跑 ONNX，结果作为伪标签。
-- `dynamic_onnx_flow`：临时配置 `video_detect_fps: --flow-detect-fps`、`video_stride_mode: dynamic`，强检测帧跑 ONNX，跳过帧使用 LK 光流弱跟踪，并允许运行时调整 stride。
-- `fixed_onnx_flow`：临时配置 `video_detect_fps: --fixed-flow-detect-fps`、`video_stride_mode: fixed`，用固定 stride 跑 ONNX + 光流；未显式传入时复用 `--flow-detect-fps`。
+- `full_onnx`：临时配置 `video_detect_fps: 0`，每一帧都跑模型推理，结果作为伪标签。
+- `dynamic_onnx_flow`：临时配置 `video_detect_fps: --flow-detect-fps`、`video_stride_mode: dynamic`，强检测帧跑模型推理，跳过帧使用 LK 光流弱跟踪，并允许运行时调整 stride。
+- `fixed_onnx_flow`：临时配置 `video_detect_fps: --fixed-flow-detect-fps`、`video_stride_mode: fixed`，用固定 stride 跑模型推理 + 光流；未显式传入时复用 `--flow-detect-fps`。
 - 对比方式：按帧、按类别做贪心 IoU 匹配，输出 precision、recall、F1、mean matched IoU、FP/FN，并按 `tracks_source` 和类别拆分统计。
 
 示例命令：
@@ -477,14 +614,14 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
   --iou-thresholds 0.3,0.5,0.7
 ```
 
-注意：如果输入视频本身 FPS 不高，且 `source_fps <= --flow-detect-fps`，服务端会得到 `frame_stride=1`，此时 ONNX+光流实际不会跳帧，无法体现光流方案的性能收益。24 FPS 视频配 `--flow-detect-fps 4` 时会每 6 帧跑一次 ONNX，其余帧走光流弱跟踪。
+注意：如果输入视频本身 FPS 不高，且 `source_fps <= --flow-detect-fps`，服务端会得到 `frame_stride=1`，此时模型 + 光流实际不会跳帧，无法体现光流方案的性能收益。24 FPS 视频配 `--flow-detect-fps 4` 时会每 6 帧跑一次模型推理，其余帧走光流弱跟踪。
 
 脚本默认输出到 `yolo_onnx_cpp/test_outputs/video_compare/<video_stem>_full_dynamic_fixed_onnx_flow_<timestamp>/`，主要产物包括：
 
-- `full_onnx_infer_video_response.json`：全帧 ONNX 原始响应。
-- `full_onnx_pseudo_labels.jsonl`：由全帧 ONNX 生成的逐帧伪标签，便于后续复用。
-- `dynamic_onnx_flow_infer_video_response.json`：动态 stride ONNX+光流原始响应。
-- `fixed_onnx_flow_infer_video_response.json`：固定 stride ONNX+光流原始响应。
+- `full_onnx_infer_video_response.json`：全帧模型推理原始响应。
+- `full_onnx_pseudo_labels.jsonl`：由全帧模型推理生成的逐帧伪标签，便于后续复用。
+- `dynamic_onnx_flow_infer_video_response.json`：动态 stride 模型 + 光流原始响应。
+- `fixed_onnx_flow_infer_video_response.json`：固定 stride 模型 + 光流原始响应。
 - `comparison.json`：机器可读的效果和性能指标。
 - `comparison.md`：便于阅读的实验摘要。
 - `full_onnx_config.yaml` / `dynamic_onnx_flow_config.yaml` / `fixed_onnx_flow_config.yaml`：本次实验实际使用的临时配置。
@@ -493,14 +630,14 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 `comparison.json` 中需要重点看：
 
 - `runs.<run>.unique_track_count`：该 run 内出现过的唯一 track id 数量，便于观察 ID 碎片化是否下降。
-- `performance_vs_full_onnx.<run>.elapsed_speedup_full_over_run`：全帧 ONNX 耗时 / 指定 ONNX+光流 run 耗时，大于 1 表示该 run 更快。
-- `performance_vs_full_onnx.<run>.onnx_frame_reduction_ratio`：指定 run 少跑 ONNX 的帧比例。
+- `performance_vs_full_onnx.<run>.elapsed_speedup_full_over_run`：全帧模型推理耗时 / 指定模型 + 光流 run 耗时，大于 1 表示该 run 更快。
+- `performance_vs_full_onnx.<run>.onnx_frame_reduction_ratio`：指定 run 少跑完整模型推理的帧比例。
 - `performance_vs_full_onnx.<run>.full_onnx_display_fps` / `run_display_fps`：端到端展示帧吞吐，包含上传、服务端处理和 JSON 响应读取。
-- `quality_vs_full_onnx_labels.<run>[].overall`：以全帧 ONNX 为伪标签的总体 precision、recall、F1 和 IoU。
+- `quality_vs_full_onnx_labels.<run>[].overall`：以全帧模型推理为伪标签的总体 precision、recall、F1 和 IoU。
 - `quality_vs_full_onnx_labels.<run>[].by_flow_frame_source`：分别查看强检测帧、光流帧、插值帧的匹配质量。
 - `quality_vs_full_onnx_labels.<run>[].by_class`：按类别查看误差来源。
 
-这里的全帧 ONNX 只是伪标签，不等价于人工标注真值；该实验用于衡量“少跑 ONNX + 光流补帧”相对全帧 ONNX 的一致性和端到端性能收益。
+这里的全帧模型推理只是伪标签，不等价于人工标注真值；该实验用于衡量“少跑完整模型 + 光流补帧”相对全帧模型推理的一致性和端到端性能收益。
 
 #### 2026-06-15 ByteTrack 升级验证
 
@@ -566,8 +703,8 @@ python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
 - 轨迹生命周期包含 `Tracked`、`Lost`、`Removed`，并通过 `track_buffer` 保留短暂丢失轨迹；同类高 IoU 重复轨迹会按轨迹寿命移除较短的一条。
 - 匹配仍保留类别约束，避免不同类别之间抢占同一个 ID。
 - `ByteTracker::updateTracked` 接收已经带有 `track_id` 的弱跟踪框，只更新已有轨迹的 Kalman 状态和生命周期，不创建新轨迹。它用于跳过帧的光流弱跟踪结果。
-- `weakTrackWithOpticalFlow` 是轻量弱检查逻辑：在上一帧 track 框内选角点，使用 LK 光流追踪到当前帧，对每个目标取角点位移中位数并平移 bbox。
-- 光流弱跟踪的作用是让跳过帧上的框跟随真实图像运动，减少纯线性插值带来的框漂移；强检测帧仍由 YOLO 定期校正。
+- `weakTrackWithOpticalFlow` 在上一帧 track 框内选角点，使用双向 LK 光流计算逐轨迹有效点率、FB error、位移中位数、位移离散度、运动比例和边界裁剪；只有通过逐轨迹门控的结果才平移 bbox，宽高保持不变。
+- 光流弱跟踪只负责短间隔平移，detector score 不会被旧光流结果当作当前置信度复用；flow-only age、边界退出和背景 global motion 都有独立门控，强检测帧仍由 YOLO 定期或按质量紧急校正。
 
 ### 后续优化方向
 

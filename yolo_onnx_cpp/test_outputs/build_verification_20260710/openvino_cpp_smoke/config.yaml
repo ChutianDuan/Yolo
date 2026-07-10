@@ -1,0 +1,29 @@
+model_path: /tmp/yolo_openvino_test/best_640x384.xml
+# auto selects OpenVINO for .xml IR files and ONNX Runtime for .onnx files.
+model_backend: openvino
+openvino_device: CPU
+input_width: 640
+input_height: 384
+conf_threshold: 0.25
+iou_threshold: 0.45
+num_classes: 10
+class_names:
+  - person
+  - rider
+  - car
+  - truck
+  - bus
+  - train
+  - motor
+  - bike
+  - traffic light
+  - traffic sign
+thread_num: 4
+# true keeps the source aspect ratio with padding; false resizes directly.
+# For a static model, input_width/input_height must match the exported shape.
+use_letterbox: true
+# Reference mode: run the configured backend on every readable video frame.
+video_detect_fps: 0
+video_stride_mode: dynamic
+video_model_async: false
+client_max_body_mb: 256

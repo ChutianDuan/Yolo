@@ -205,6 +205,117 @@ void testOpticalFlowUsesOriginalCoordinates() {
     expectNear(result.tracks[0].detection.y1, detection.y1 + kDy, 0.75F, "Optical flow y1");
     expectNear(result.tracks[0].detection.x2, detection.x2 + kDx, 0.75F, "Optical flow x2");
     expectNear(result.tracks[0].detection.y2, detection.y2 + kDy, 0.75F, "Optical flow y2");
+    expectNear(
+        result.tracks[0].detection.x2 - result.tracks[0].detection.x1,
+        detection.x2 - detection.x1,
+        kTolerance,
+        "Optical flow changed bbox width"
+    );
+    expectNear(
+        result.tracks[0].detection.y2 - result.tracks[0].detection.y1,
+        detection.y2 - detection.y1,
+        kTolerance,
+        "Optical flow changed bbox height"
+    );
+}
+
+void testOpticalFlowRejectsOnlyTwoFeaturePoints() {
+    constexpr int kWidth = 160;
+    constexpr int kHeight = 120;
+    cv::Mat previous = cv::Mat::zeros(kHeight, kWidth, CV_8UC1);
+    cv::circle(previous, cv::Point(45, 55), 1, cv::Scalar(255), cv::FILLED);
+    cv::circle(previous, cv::Point(95, 55), 1, cv::Scalar(255), cv::FILLED);
+    cv::Mat current;
+    const cv::Mat transform = (cv::Mat_<double>(2, 3) << 1.0, 0.0, 3.0, 0.0, 1.0, 2.0);
+    cv::warpAffine(previous, current, transform, previous.size());
+
+    yolo::Detection detection;
+    detection.class_id = 2;
+    detection.score = 0.9F;
+    detection.x1 = 20.0F;
+    detection.y1 = 30.0F;
+    detection.x2 = 120.0F;
+    detection.y2 = 90.0F;
+    const auto result = yolo::weakTrackWithOpticalFlow(
+        previous,
+        current,
+        {yolo::TrackedDetection{8, detection}},
+        kWidth,
+        kHeight
+    );
+
+    expect(result.track_qualities.size() == 1, "Missing per-track flow quality");
+    expect(result.track_qualities[0].sampled_point_count < 4,
+           "Two-point fixture unexpectedly generated four corners");
+    expect(result.tracks.empty(), "Flow accepted fewer than four feature points");
+    expect(result.quality.low_point_track_count == 1,
+           "Low-point rejection was not diagnosed");
+}
+
+void testOpticalFlowRejectsInconsistentPointMotion() {
+    constexpr int kWidth = 260;
+    constexpr int kHeight = 150;
+    cv::Mat previous = cv::Mat::zeros(kHeight, kWidth, CV_8UC1);
+    cv::Mat current = cv::Mat::zeros(kHeight, kWidth, CV_8UC1);
+    cv::Mat left_patch(40, 40, CV_8UC1);
+    cv::Mat right_patch(40, 40, CV_8UC1);
+    cv::RNG rng(12345);
+    rng.fill(left_patch, cv::RNG::UNIFORM, 0, 256);
+    rng.fill(right_patch, cv::RNG::UNIFORM, 0, 256);
+    left_patch.copyTo(previous(cv::Rect(40, 50, 40, 40)));
+    left_patch.copyTo(current(cv::Rect(70, 50, 40, 40)));
+    right_patch.copyTo(previous(cv::Rect(170, 50, 40, 40)));
+    right_patch.copyTo(current(cv::Rect(140, 50, 40, 40)));
+
+    yolo::Detection detection;
+    detection.class_id = 2;
+    detection.score = 0.9F;
+    detection.x1 = 25.0F;
+    detection.y1 = 35.0F;
+    detection.x2 = 220.0F;
+    detection.y2 = 110.0F;
+    const auto result = yolo::weakTrackWithOpticalFlow(
+        previous,
+        current,
+        {yolo::TrackedDetection{9, detection}},
+        kWidth,
+        kHeight
+    );
+
+    expect(result.tracks.empty(), "Inconsistent point motion moved the bbox");
+    expect(
+        result.quality.motion_dispersion_rejection_count > 0
+            || result.quality.forward_backward_rejection_count > 0,
+        "Inconsistent flow rejection was not diagnosed"
+    );
+}
+
+void testGlobalMotionRequiresBackgroundInliers() {
+    constexpr int kWidth = 180;
+    constexpr int kHeight = 120;
+    cv::Mat previous = cv::Mat::zeros(kHeight, kWidth, CV_8UC1);
+    for (int y = 40; y <= 75; y += 12) {
+        for (int x = 50; x <= 110; x += 12) {
+            cv::rectangle(previous, cv::Rect(x, y, 4, 4), cv::Scalar(255), cv::FILLED);
+        }
+    }
+    cv::Mat current;
+    const cv::Mat transform = (cv::Mat_<double>(2, 3) << 1.0, 0.0, 4.0, 0.0, 1.0, 1.0);
+    cv::warpAffine(previous, current, transform, previous.size());
+
+    yolo::Detection detection;
+    detection.x1 = 35.0F;
+    detection.y1 = 25.0F;
+    detection.x2 = 135.0F;
+    detection.y2 = 95.0F;
+    const yolo::FrameMotion motion = yolo::frameMotionForCurrentFrame(
+        previous,
+        current,
+        1,
+        yolo::WeakTrackQuality{},
+        {yolo::TrackedDetection{3, detection}}
+    );
+    expect(!motion.valid, "Foreground-only points enabled global motion fallback");
 }
 
 }  // namespace
@@ -214,6 +325,9 @@ int main() {
     testLetterboxRestoresOriginalCoordinates();
     testPreprocessWritesRgbChwTensor();
     testOpticalFlowUsesOriginalCoordinates();
+    testOpticalFlowRejectsOnlyTwoFeaturePoints();
+    testOpticalFlowRejectsInconsistentPointMotion();
+    testGlobalMotionRequiresBackgroundInliers();
     std::cout << "image_processing_test passed\n";
     return 0;
 }

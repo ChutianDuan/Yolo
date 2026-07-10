@@ -103,6 +103,25 @@ void testOutOfRangeOffset() {
     expect(!json["has_more_frames"].asBool(), "Out-of-range response should not have more frames");
 }
 
+void testHighLowDiagnosticsAreAdditive() {
+    yolo::VideoInferResult result = makeVideoResult();
+    result.high_low_diagnostics.provisional_created_count = 4;
+    result.high_low_diagnostics.flow_rejected_track_count = 7;
+    result.high_low_diagnostics.urgent_low_res_detection_count = 2;
+
+    const Json::Value json = yolo::videoInferResultToJson(result, {});
+    expect(json.isMember("high_low_diagnostics"),
+           "Video response omitted high-low diagnostics");
+    expect(
+        json["high_low_diagnostics"]["provisional_created_count"].asInt64() == 4,
+        "Provisional diagnostic count mismatch"
+    );
+    expect(
+        json["high_low_diagnostics"]["flow_rejected_track_count"].asInt64() == 7,
+        "Flow rejection diagnostic count mismatch"
+    );
+}
+
 }  // namespace
 
 int main() {
@@ -110,6 +129,7 @@ int main() {
     testSummaryOmitsFrames();
     testFrameWindow();
     testOutOfRangeOffset();
+    testHighLowDiagnosticsAreAdditive();
     std::cout << "response_json_test passed\n";
     return 0;
 }

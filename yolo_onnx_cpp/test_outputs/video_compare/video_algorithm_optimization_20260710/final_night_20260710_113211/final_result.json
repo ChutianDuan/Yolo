@@ -1,0 +1,276 @@
+{
+  "scene": "night",
+  "output_dir": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_optimization_20260710/final_night_20260710_113211",
+  "quality": {
+    "frames": 1194,
+    "labels": 12475,
+    "predictions": 16015,
+    "matches": 11205,
+    "false_positives": 4810,
+    "false_negatives": 1270,
+    "precision": 0.699657,
+    "recall": 0.898196,
+    "f1": 0.786592,
+    "mean_matched_iou": 0.885609
+  },
+  "summary": {
+    "http_elapsed_sec": 51.873,
+    "source_fps": 30.057900478308298,
+    "target_detect_fps": 4.0,
+    "effective_detect_fps": 8.609549383234036,
+    "stride_mode": "async_high_low_dynamic",
+    "onnx_async": true,
+    "frame_stride": 3.491228070175439,
+    "base_frame_stride": 8,
+    "min_frame_stride_used": 2,
+    "max_frame_stride_used": 10,
+    "final_frame_stride": 8,
+    "frame_count": 1194,
+    "source_frame_count": 1194,
+    "processed_frame_count": 342,
+    "display_frame_count": 1194,
+    "detected_frame_count": 367,
+    "high_res_detection_count": null,
+    "low_res_detection_count": null,
+    "roi_detection_count": null,
+    "roi_requested_count": null,
+    "roi_merged_count": null,
+    "onnx_call_count": null,
+    "async_infer_request_count": 46,
+    "async_correction_count": 46,
+    "async_corrected_frame_count": 0,
+    "forced_detection_count": 26,
+    "scheduled_detection_count": 316,
+    "skipped_detection_count": 1,
+    "weak_tracked_frame_count": 827,
+    "interpolated_frame_count": 0,
+    "empty_frame_count": 0,
+    "average_fps": 23.167006569740312,
+    "cpu_utilization_percent": 1552.5316460080878,
+    "rss_memory_mb": 647.0,
+    "queue_length": 0,
+    "max_queue_length": 1,
+    "dropped_frame_count": 1,
+    "timing_ms": {
+      "decode_ms": 4.263729,
+      "end_to_end_ms": 51538.812164,
+      "infer_ms": 49520.54016100001,
+      "legacy_postprocess_ms": 37.764715,
+      "onnx_decode_nms_ms": 6.124710000000005,
+      "onnx_inference_ms": 49520.54016100001,
+      "optical_flow_ms": 11053.295514999989,
+      "other_ms": 0.0,
+      "postprocess_ms": 1.8609809999999998,
+      "preprocess_ms": 1148.7510699999993,
+      "profiled_stage_ms": 61761.576603999994,
+      "queue_wait_ms": 1.280538,
+      "total_elapsed_ms": 51538.812164,
+      "tracker_ms": 31.584609999999998,
+      "tracking_postprocess_ms": 31.640005
+    },
+    "timing_ratio": {
+      "decode": 6.90353004965851e-05,
+      "onnx_inference": 0.8018017493062638,
+      "optical_flow": 0.17896718514604953,
+      "postprocess": 3.013169517889984e-05,
+      "preprocess": 0.018599769195749453,
+      "queue_wait": 2.0733570456118598e-05,
+      "tracker": 0.0005113957858056755
+    },
+    "latency_percentiles_ms": {
+      "decode_ms": {
+        "p50": 0.008613,
+        "p95": 0.022849,
+        "p99": 0.031137
+      },
+      "end_to_end_ms": {
+        "p50": 9.91599,
+        "p95": 124.705172,
+        "p99": 141.868596
+      },
+      "infer_ms": {
+        "p50": 98.889729,
+        "p95": 356.638857,
+        "p99": 422.356323
+      },
+      "postprocess_ms": {
+        "p50": 0.0045769999999999995,
+        "p95": 0.005975,
+        "p99": 0.015078
+      },
+      "preprocess_ms": {
+        "p50": 2.399642,
+        "p95": 5.682628,
+        "p99": 10.685322
+      },
+      "queue_wait_ms": {
+        "p50": 0.0,
+        "p95": 0.025517,
+        "p99": 0.040471
+      },
+      "tracker_ms": {
+        "p50": 0.02383,
+        "p95": 0.041673,
+        "p99": 0.093345
+      }
+    },
+    "metrics": {
+      "average_fps": 23.167006569740312,
+      "cpu_utilization_percent": 1552.5316460080878,
+      "decode_ms": 4.263729,
+      "dropped_frame_count": 1,
+      "end_to_end_ms": 51538.812164,
+      "infer_ms": 49520.54016100001,
+      "latency_percentiles_ms": {
+        "decode_ms": {
+          "p50": 0.008613,
+          "p95": 0.022849,
+          "p99": 0.031137
+        },
+        "end_to_end_ms": {
+          "p50": 9.91599,
+          "p95": 124.705172,
+          "p99": 141.868596
+        },
+        "infer_ms": {
+          "p50": 98.889729,
+          "p95": 356.638857,
+          "p99": 422.356323
+        },
+        "postprocess_ms": {
+          "p50": 0.0045769999999999995,
+          "p95": 0.005975,
+          "p99": 0.015078
+        },
+        "preprocess_ms": {
+          "p50": 2.399642,
+          "p95": 5.682628,
+          "p99": 10.685322
+        },
+        "queue_wait_ms": {
+          "p50": 0.0,
+          "p95": 0.025517,
+          "p99": 0.040471
+        },
+        "tracker_ms": {
+          "p50": 0.02383,
+          "p95": 0.041673,
+          "p99": 0.093345
+        }
+      },
+      "max_queue_length": 1,
+      "postprocess_ms": 1.8609809999999998,
+      "preprocess_ms": 1148.7510699999993,
+      "queue_length": 0,
+      "queue_wait_ms": 1.280538,
+      "rss_memory_mb": 647.0,
+      "tracker_ms": 31.584609999999998
+    },
+    "frame_source_counts": {
+      "detected": 367,
+      "weak_tracked": 827
+    },
+    "unique_track_count": 174,
+    "avg_tracks_per_frame": 13.413,
+    "max_tracks_in_frame": 23
+  },
+  "diagnostics": {
+    "direct_flow_update_count": 13998,
+    "exiting_track_suppression_count": 519,
+    "flow_age_expired_count": 89,
+    "flow_age_output_suppression_count": 803,
+    "flow_boundary_rejection_count": 0,
+    "flow_forward_backward_rejection_count": 48,
+    "flow_invalid_ratio_rejection_count": 68,
+    "flow_low_point_rejection_count": 394,
+    "flow_motion_dispersion_rejection_count": 8,
+    "flow_motion_jump_rejection_count": 25,
+    "flow_rejected_track_count": 546,
+    "flow_track_count": 15623,
+    "global_flow_update_count": 83,
+    "low_res_class_conflict_count": 36,
+    "low_res_geometry_rejection_count": 81,
+    "max_provisional_track_count": 16,
+    "max_stable_track_count": 24,
+    "output_suppressed_duplicate_count": 0,
+    "provisional_created_count": 262,
+    "provisional_deduplicated_count": 12,
+    "provisional_expired_count": 189,
+    "provisional_promoted_count": 60,
+    "provisional_provisional_duplicate_count": 3,
+    "provisional_track_count": 1,
+    "stable_provisional_duplicate_count": 9,
+    "stable_stable_duplicate_count": 9,
+    "stable_track_count": 10,
+    "urgent_class_conflict_count": 5,
+    "urgent_duplicate_count": 0,
+    "urgent_flow_age_count": 6,
+    "urgent_flow_quality_count": 13,
+    "urgent_geometry_count": 12,
+    "urgent_high_res_detection_count": 29,
+    "urgent_low_res_detection_count": 26,
+    "urgent_track_change_count": 2
+  },
+  "worst_frames": [
+    {
+      "frame_index": 5,
+      "timestamp_sec": 0.166,
+      "frame_source": "weak_tracked",
+      "labels": 9,
+      "predictions": 14,
+      "matches": 3,
+      "false_positives": 11,
+      "false_negatives": 6,
+      "f1": 0.26087,
+      "error_count": 17
+    },
+    {
+      "frame_index": 931,
+      "timestamp_sec": 30.974,
+      "frame_source": "weak_tracked",
+      "labels": 5,
+      "predictions": 13,
+      "matches": 4,
+      "false_positives": 9,
+      "false_negatives": 1,
+      "f1": 0.444444,
+      "error_count": 10
+    },
+    {
+      "frame_index": 260,
+      "timestamp_sec": 8.65,
+      "frame_source": "weak_tracked",
+      "labels": 10,
+      "predictions": 13,
+      "matches": 6,
+      "false_positives": 7,
+      "false_negatives": 4,
+      "f1": 0.521739,
+      "error_count": 11
+    },
+    {
+      "frame_index": 539,
+      "timestamp_sec": 17.932,
+      "frame_source": "detected",
+      "labels": 15,
+      "predictions": 18,
+      "matches": 10,
+      "false_positives": 8,
+      "false_negatives": 5,
+      "f1": 0.606061,
+      "error_count": 13
+    },
+    {
+      "frame_index": 388,
+      "timestamp_sec": 12.908,
+      "frame_source": "weak_tracked",
+      "labels": 9,
+      "predictions": 14,
+      "matches": 7,
+      "false_positives": 7,
+      "false_negatives": 2,
+      "f1": 0.608696,
+      "error_count": 9
+    }
+  ]
+}

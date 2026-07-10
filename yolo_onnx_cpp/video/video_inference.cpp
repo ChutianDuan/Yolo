@@ -29,11 +29,15 @@ bool VideoInferError::badRequest() const {
 
 using video_inference_detail::applyTrackChangeToStride;
 using video_inference_detail::applyWeakQualityToStride;
+using video_inference_detail::addEndToEndSample;
+using video_inference_detail::addInferMetrics;
+using video_inference_detail::addTrackerMetrics;
 using video_inference_detail::AsyncInferResult;
 using video_inference_detail::AsyncInferWorker;
 using video_inference_detail::DynamicStrideState;
 using video_inference_detail::elapsedMs;
 using video_inference_detail::fillVideoSummary;
+using video_inference_detail::finalizeVideoPerformanceMetrics;
 using video_inference_detail::finiteOrZero;
 using video_inference_detail::frameTimestampMs;
 using video_inference_detail::invalidVideoFrameMessage;
@@ -50,6 +54,7 @@ VideoInferResult inferVideoFile(
     const std::filesystem::path& video_path
 ) {
     const auto total_start = std::chrono::steady_clock::now();
+    const ProcessUsageSnapshot usage_start = captureProcessUsage();
     cv::VideoCapture capture;
     if (!openVideoCapture(capture, video_path)) {
         throw VideoInferError(videoOpenFailureMessage(video_path), true);
@@ -59,11 +64,11 @@ VideoInferResult inferVideoFile(
     const double declared_frame_count = finiteOrZero(capture.get(cv::CAP_PROP_FRAME_COUNT));
     const int base_frame_stride = videoFrameStride(source_fps, config.video_detect_fps);
     DynamicStrideState stride_state = makeDynamicStrideState(base_frame_stride);
-    const bool async_enabled = config.video_onnx_async && base_frame_stride > 1;
+    const bool async_enabled = config.video_model_async && base_frame_stride > 1;
     const bool dynamic_stride_enabled = base_frame_stride > 1
         && config.video_stride_mode == "dynamic";
     const std::string stride_mode = base_frame_stride <= 1
-        ? "full_onnx"
+        ? "full_model"
         : std::string(async_enabled ? "async_" : "sync_")
             + (dynamic_stride_enabled ? "dynamic" : "fixed");
 
@@ -92,6 +97,8 @@ VideoInferResult inferVideoFile(
     int64_t scheduled_detection_count = 0;
     int64_t skipped_detection_count = 0;
     int64_t async_correction_count = 0;
+    int64_t dropped_frame_count = 0;
+    size_t max_queue_length = 0;
     int image_width = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH));
     int image_height = static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT));
     int min_stride_used = stride_state.current_stride;
@@ -128,13 +135,9 @@ VideoInferResult inferVideoFile(
             return false;
         }
 
-        if (processed_frame_count == 0) {
-            result.output_shapes = async_result.result.output_shapes;
-        }
-        result.onnx_inference_ms += async_result.result.onnx_inference_ms;
-        result.onnx_postprocess_ms += async_result.result.postprocess_ms;
+        addInferMetrics(result, async_result.result);
 
-        auto postprocess_start = std::chrono::steady_clock::now();
+        auto tracker_start = std::chrono::steady_clock::now();
         const auto corrected_detections = motionCompensatedDetections(
             async_result.result.detections,
             async_result.frame_index,
@@ -173,7 +176,7 @@ VideoInferResult inferVideoFile(
 
         ++processed_frame_count;
         ++async_correction_count;
-        result.tracking_postprocess_ms += elapsedMs(postprocess_start);
+        addTrackerMetrics(result, elapsedMs(tracker_start));
         return true;
     };
 
@@ -220,21 +223,33 @@ VideoInferResult inferVideoFile(
         &forced_detection_count,
         &scheduled_detection_count,
         &skipped_detection_count,
+        &dropped_frame_count,
+        &max_queue_length,
         &rememberStride
     ](const cv::Mat& source_frame,
       int64_t source_frame_index,
       bool forced,
       VideoFrameTracks& frame_result) {
-        if (async_worker == nullptr || async_worker->hasPending()) {
+        if (async_worker == nullptr) {
+            return;
+        }
+
+        size_t queue_length = async_worker->pendingCount();
+        max_queue_length = std::max(max_queue_length, queue_length);
+        if (queue_length > 0) {
             ++skipped_detection_count;
+            ++dropped_frame_count;
             return;
         }
 
         cv::Mat async_frame = source_frame.clone();
-        if (!async_worker->submit(std::move(async_frame), source_frame_index)) {
+        if (!async_worker->submit(std::move(async_frame), source_frame_index, &queue_length)) {
+            max_queue_length = std::max(max_queue_length, queue_length);
             ++skipped_detection_count;
+            ++dropped_frame_count;
             return;
         }
+        max_queue_length = std::max(max_queue_length, queue_length);
 
         stride_state.last_detection_frame_index = source_frame_index;
         frame_result.is_detection_frame = true;
@@ -263,19 +278,20 @@ VideoInferResult inferVideoFile(
       int64_t source_frame_index,
       bool forced,
       VideoFrameTracks& frame_result) {
+        const auto preprocess_start = std::chrono::steady_clock::now();
         const auto input = preprocessImageMat(source_frame, config);
+        const double preprocess_ms = elapsedMs(preprocess_start);
         if (!input.has_value()) {
             throw VideoInferError(invalidVideoFrameMessage(config), true);
         }
 
-        const InferResult infer_result = engine->infer(input.value());
-        result.onnx_inference_ms += infer_result.onnx_inference_ms;
-        result.onnx_postprocess_ms += infer_result.postprocess_ms;
-        if (processed_frame_count == 0) {
-            result.output_shapes = infer_result.output_shapes;
-        }
+        InferResult infer_result = engine->infer(input.value());
+        infer_result.preprocess_ms = preprocess_ms;
+        infer_result.timing_samples.preprocess_ms.push_back(preprocess_ms);
+        infer_result.timing_samples.queue_wait_ms.push_back(0.0);
+        addInferMetrics(result, infer_result);
 
-        auto postprocess_start = std::chrono::steady_clock::now();
+        auto tracker_start = std::chrono::steady_clock::now();
         const auto tracks_before_detection = previous_frame_tracks;
         auto detected_tracks = tracker.update(infer_result.detections);
         updateTrackVelocities(
@@ -296,10 +312,11 @@ VideoInferResult inferVideoFile(
             ++scheduled_detection_count;
         }
         rememberStride();
-        result.tracking_postprocess_ms += elapsedMs(postprocess_start);
+        addTrackerMetrics(result, elapsedMs(tracker_start));
     };
 
     while (capture.read(frame)) {
+        const auto frame_start = std::chrono::steady_clock::now();
         VideoFrameTracks frame_result;
         frame_result.frame_index = frame_index;
         frame_result.timestamp_ms = frameTimestampMs(
@@ -311,6 +328,7 @@ VideoInferResult inferVideoFile(
         // 当前帧如果没有图像，跳过但仍然记录一个空结果，以保持帧索引和时间戳的连续性
         if (frame.empty()) {
             result.frames.push_back(std::move(frame_result));
+            addEndToEndSample(result, elapsedMs(frame_start));
             ++frame_index;
             continue;
         }
@@ -334,7 +352,8 @@ VideoInferResult inferVideoFile(
             previous_gray,
             current_gray,
             frame_index,
-            weak_result.quality
+            weak_result.quality,
+            previous_frame_tracks
         ));
         result.optical_flow_ms += elapsedMs(flow_start);
 
@@ -350,7 +369,7 @@ VideoInferResult inferVideoFile(
         }
 
         if (!async_result_applied) {
-            auto postprocess_start = std::chrono::steady_clock::now();
+            auto tracker_start = std::chrono::steady_clock::now();
             if (!weak_result.tracks.empty()) {
                 frame_result.tracks = tracker.updateTracked(weak_result.tracks);
                 if (!frame_result.tracks.empty()) {
@@ -374,7 +393,7 @@ VideoInferResult inferVideoFile(
                 track_velocities
             );
             rememberStride();
-            result.tracking_postprocess_ms += elapsedMs(postprocess_start);
+            addTrackerMetrics(result, elapsedMs(tracker_start));
         }
 
         const bool force_detection = dynamic_stride_enabled
@@ -408,6 +427,7 @@ VideoInferResult inferVideoFile(
 
         previous_gray = current_gray;
         result.frames.push_back(std::move(frame_result));
+        addEndToEndSample(result, elapsedMs(frame_start));
         ++frame_index;
     }
 
@@ -456,6 +476,16 @@ VideoInferResult inferVideoFile(
         static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT))
     );
     result.total_elapsed_ms = elapsedMs(total_start);
+    result.queue_length = async_worker != nullptr ? async_worker->pendingCount() : 0;
+    result.max_queue_length = max_queue_length;
+    result.dropped_frame_count = dropped_frame_count;
+    const ProcessUsageSnapshot usage_end = captureProcessUsage();
+    finalizeVideoPerformanceMetrics(
+        result,
+        result.frame_count,
+        usage_start,
+        usage_end
+    );
 
     return result;
 }

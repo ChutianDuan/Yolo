@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "vcpkg-gcc15-release",
+      "displayName": "vcpkg GCC15 Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../build-qt",
+      "environment": {
+        "VCPKG_ROOT": "/root/vcpkg",
+        "LD_LIBRARY_PATH": "/root/vcpkg/.toolchains/gcc15/lib:$penv{LD_LIBRARY_PATH}"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_MANIFEST_MODE": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-gcc15",
+        "VCPKG_HOST_TRIPLET": "x64-linux-gcc15",
+        "VCPKG_OVERLAY_TRIPLETS": "$env{VCPKG_ROOT}/custom-triplets",
+        "VCPKG_OVERLAY_PORTS": "$env{VCPKG_ROOT}/custom-ports",
+        "CMAKE_C_COMPILER": "$env{VCPKG_ROOT}/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc",
+        "CMAKE_CXX_COMPILER": "$env{VCPKG_ROOT}/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "vcpkg-gcc15-release",
+      "configurePreset": "vcpkg-gcc15-release"
+    }
+  ]
+}

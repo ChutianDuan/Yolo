@@ -15,6 +15,11 @@ struct WeakTrackQuality {
     size_t sampled_point_count = 0;
     size_t valid_point_count = 0;
     size_t low_point_track_count = 0;
+    size_t invalid_ratio_track_count = 0;
+    size_t forward_backward_rejection_count = 0;
+    size_t motion_dispersion_rejection_count = 0;
+    size_t motion_jump_rejection_count = 0;
+    size_t boundary_rejection_count = 0;
     size_t tracked_track_count = 0;
     double valid_point_ratio = 0.0;
     double tracked_track_ratio = 0.0;
@@ -27,8 +32,24 @@ struct WeakTrackQuality {
     bool has_flow = false;
 };
 
+struct TrackFlowQuality {
+    int track_id = -1;
+    size_t sampled_point_count = 0;
+    size_t valid_point_count = 0;
+    double valid_point_ratio = 0.0;
+    double median_forward_backward_error = 0.0;
+    float median_dx = 0.0F;
+    float median_dy = 0.0F;
+    double displacement_spread_ratio = 0.0;
+    double motion_ratio = 0.0;
+    double visible_area_ratio = 1.0;
+    bool boundary_clipped = false;
+    bool accepted = false;
+};
+
 struct WeakTrackResult {
     std::vector<TrackedDetection> tracks;
+    std::vector<TrackFlowQuality> track_qualities;
     WeakTrackQuality quality;
 };
 
@@ -36,6 +57,10 @@ struct FrameMotion {
     int64_t frame_index = 0;
     float dx = 0.0F;
     float dy = 0.0F;
+    size_t sampled_point_count = 0;
+    size_t valid_point_count = 0;
+    double inlier_ratio = 0.0;
+    double displacement_spread_ratio = 0.0;
     bool valid = false;
 };
 
@@ -51,7 +76,8 @@ FrameMotion frameMotionForCurrentFrame(
     const cv::Mat& previous_gray,
     const cv::Mat& current_gray,
     int64_t frame_index,
-    const WeakTrackQuality& quality
+    const WeakTrackQuality& quality,
+    const std::vector<TrackedDetection>& previous_tracks
 );
 
 std::vector<Detection> motionCompensatedDetections(

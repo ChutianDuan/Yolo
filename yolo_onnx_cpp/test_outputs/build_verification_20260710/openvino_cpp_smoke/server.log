@@ -1,0 +1,11 @@
+Model loaded: /tmp/yolo_openvino_test/best_640x384.xml
+Model backend: openvino
+OpenVINO device: CPU
+Input name: images
+Output count: 1
+Class count: 10
+Confidence threshold: 0.25
+IoU threshold: 0.45
+[api] /infer start file="5cc07468d.jpg" bytes=138320
+[api] /infer ok file="5cc07468d.jpg" detections=0 average_fps=17.2977 cpu_utilization_percent=1120.69 rss_memory_mb=150.824 elapsed_ms=58.052
+20260710 12:29:03.679742 UTC 262688 WARN  SIGTERM signal received. - HttpAppFrameworkImpl.cc:172

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -23,6 +24,44 @@ struct VideoFrameTracks {
     std::vector<TrackedDetection> tracks;
 };
 
+struct HighLowDiagnostics {
+    int64_t stable_track_count = 0;
+    int64_t provisional_track_count = 0;
+    int64_t max_stable_track_count = 0;
+    int64_t max_provisional_track_count = 0;
+    int64_t provisional_created_count = 0;
+    int64_t provisional_promoted_count = 0;
+    int64_t provisional_expired_count = 0;
+    int64_t provisional_deduplicated_count = 0;
+    int64_t stable_stable_duplicate_count = 0;
+    int64_t stable_provisional_duplicate_count = 0;
+    int64_t provisional_provisional_duplicate_count = 0;
+    int64_t output_suppressed_duplicate_count = 0;
+    int64_t low_res_geometry_rejection_count = 0;
+    int64_t low_res_class_conflict_count = 0;
+    int64_t flow_track_count = 0;
+    int64_t flow_rejected_track_count = 0;
+    int64_t flow_low_point_rejection_count = 0;
+    int64_t flow_invalid_ratio_rejection_count = 0;
+    int64_t flow_forward_backward_rejection_count = 0;
+    int64_t flow_motion_dispersion_rejection_count = 0;
+    int64_t flow_motion_jump_rejection_count = 0;
+    int64_t flow_boundary_rejection_count = 0;
+    int64_t direct_flow_update_count = 0;
+    int64_t global_flow_update_count = 0;
+    int64_t flow_age_output_suppression_count = 0;
+    int64_t flow_age_expired_count = 0;
+    int64_t exiting_track_suppression_count = 0;
+    int64_t urgent_low_res_detection_count = 0;
+    int64_t urgent_high_res_detection_count = 0;
+    int64_t urgent_flow_quality_count = 0;
+    int64_t urgent_track_change_count = 0;
+    int64_t urgent_duplicate_count = 0;
+    int64_t urgent_flow_age_count = 0;
+    int64_t urgent_geometry_count = 0;
+    int64_t urgent_class_conflict_count = 0;
+};
+
 struct VideoInferResult {
     std::string tracking_status = "active";
     double fps = 0.0;
@@ -31,6 +70,8 @@ struct VideoInferResult {
     double effective_detect_fps = 0.0;
     double frame_stride = 0.0;
     std::string stride_mode;
+    bool model_async = true;
+    // Legacy alias kept for the existing JSON schema and tests.
     bool onnx_async = true;
     int base_frame_stride = 1;
     int min_frame_stride_used = 1;
@@ -53,10 +94,26 @@ struct VideoInferResult {
     int64_t interpolated_frame_count = 0;
     int64_t empty_frame_count = 0;
     double total_elapsed_ms = 0.0;
+    double model_inference_ms = 0.0;
+    double model_postprocess_ms = 0.0;
+    // Legacy aliases kept for the existing JSON schema and tests.
     double onnx_inference_ms = 0.0;
     double onnx_postprocess_ms = 0.0;
+    double decode_ms = 0.0;
+    double preprocess_ms = 0.0;
+    double infer_ms = 0.0;
+    double postprocess_ms = 0.0;
+    double tracker_ms = 0.0;
+    double queue_wait_ms = 0.0;
+    double end_to_end_ms = 0.0;
+    size_t queue_length = 0;
+    size_t max_queue_length = 0;
+    int64_t dropped_frame_count = 0;
     double optical_flow_ms = 0.0;
     double tracking_postprocess_ms = 0.0;
+    StageTimingSamples timing_samples;
+    PerformanceMetrics metrics;
+    HighLowDiagnostics high_low_diagnostics;
     std::vector<std::vector<int64_t>> output_shapes;
     std::vector<VideoFrameTracks> frames;
 };
@@ -73,6 +130,13 @@ private:
 
 VideoInferResult inferVideoFile(
     const std::shared_ptr<YoloEngine>& engine,
+    const AppConfig& config,
+    const std::filesystem::path& video_path
+);
+
+VideoInferResult inferVideoFileHighLow(
+    const std::shared_ptr<YoloEngine>& high_res_engine,
+    const std::shared_ptr<YoloEngine>& low_res_engine,
     const AppConfig& config,
     const std::filesystem::path& video_path
 );

@@ -1,0 +1,35 @@
+Start testing: Jun 25 23:01 UTC
+----------------------------------------------------------
+1/2 Testing: image_processing_test
+1/2 Test: image_processing_test
+Command: "/home/ubuntu/YOLO/build-release/image_processing_test"
+Directory: /home/ubuntu/YOLO/build-release
+"image_processing_test" start time: Jun 25 23:01 UTC
+Output:
+----------------------------------------------------------
+image_processing_test passed
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"image_processing_test" end time: Jun 25 23:01 UTC
+"image_processing_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: response_json_test
+2/2 Test: response_json_test
+Command: "/home/ubuntu/YOLO/build-release/response_json_test"
+Directory: /home/ubuntu/YOLO/build-release
+"response_json_test" start time: Jun 25 23:01 UTC
+Output:
+----------------------------------------------------------
+response_json_test passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"response_json_test" end time: Jun 25 23:01 UTC
+"response_json_test" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Jun 25 23:01 UTC

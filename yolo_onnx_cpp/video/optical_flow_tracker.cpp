@@ -57,28 +57,37 @@ cv::Rect detectionRoi(const Detection& detection, int image_width, int image_hei
     return cv::Rect(x1, y1, x2 - x1, y2 - y1);
 }
 
-float medianValue(std::vector<float>& values) {
+float medianValue(std::vector<float> values) {
     const size_t middle = values.size() / 2;
     std::nth_element(values.begin(), values.begin() + middle, values.end());
     return values[middle];
 }
 
-FrameMotion frameMotionFromWeakQuality(int64_t frame_index, const WeakTrackQuality& quality) {
-    FrameMotion motion = emptyFrameMotion(frame_index);
-    if (quality.valid_point_count == 0) {
-        return motion;
-    }
+float detectionArea(const Detection& detection) {
+    return std::max(0.0F, detection.x2 - detection.x1)
+        * std::max(0.0F, detection.y2 - detection.y1);
+}
 
-    motion.dx = quality.median_dx;
-    motion.dy = quality.median_dy;
-    motion.valid = true;
-    return motion;
+double visibleAreaRatio(
+    const Detection& detection,
+    int image_width,
+    int image_height
+) {
+    const float original_area = detectionArea(detection);
+    if (original_area <= 0.0F) {
+        return 0.0;
+    }
+    Detection clipped_detection = detection;
+    clipDetection(clipped_detection, image_width, image_height);
+    return static_cast<double>(detectionArea(clipped_detection))
+        / static_cast<double>(original_area);
 }
 
 FrameMotion estimateGlobalFrameMotion(
     const cv::Mat& previous_gray,
     const cv::Mat& current_gray,
-    int64_t frame_index
+    int64_t frame_index,
+    const std::vector<TrackedDetection>& previous_tracks
 ) {
     FrameMotion motion = emptyFrameMotion(frame_index);
     if (previous_gray.empty()
@@ -88,9 +97,29 @@ FrameMotion estimateGlobalFrameMotion(
     }
 
     constexpr int kMaxCorners = 200;
-    constexpr float kMaxForwardBackwardError = 4.0F;
+    constexpr int kMinBackgroundPoints = 8;
+    constexpr float kMaxForwardBackwardError = 2.0F;
     std::vector<cv::Point2f> previous_points;
-    cv::goodFeaturesToTrack(previous_gray, previous_points, kMaxCorners, 0.01, 8.0);
+    cv::Mat background_mask(previous_gray.size(), CV_8UC1, cv::Scalar(255));
+    for (const auto& track : previous_tracks) {
+        const cv::Rect roi = detectionRoi(
+            track.detection,
+            previous_gray.cols,
+            previous_gray.rows
+        );
+        if (!roi.empty()) {
+            background_mask(roi).setTo(cv::Scalar(0));
+        }
+    }
+    cv::goodFeaturesToTrack(
+        previous_gray,
+        previous_points,
+        kMaxCorners,
+        0.01,
+        8.0,
+        background_mask
+    );
+    motion.sampled_point_count = previous_points.size();
     if (previous_points.empty()) {
         return motion;
     }
@@ -142,12 +171,45 @@ FrameMotion estimateGlobalFrameMotion(
         valid_dy.push_back(current_points[i].y - previous_points[i].y);
     }
 
-    if (valid_dx.empty() || valid_dy.empty()) {
+    motion.valid_point_count = valid_dx.size();
+    if (valid_dx.size() < kMinBackgroundPoints || valid_dy.size() < kMinBackgroundPoints) {
         return motion;
     }
 
-    motion.dx = medianValue(valid_dx);
-    motion.dy = medianValue(valid_dy);
+    const float median_dx = medianValue(valid_dx);
+    const float median_dy = medianValue(valid_dy);
+    std::vector<float> residuals;
+    residuals.reserve(valid_dx.size());
+    for (size_t i = 0; i < valid_dx.size(); ++i) {
+        residuals.push_back(std::hypot(
+            valid_dx[i] - median_dx,
+            valid_dy[i] - median_dy
+        ));
+    }
+    const float median_residual = medianValue(residuals);
+    const float inlier_threshold = std::max(1.5F, median_residual * 3.0F);
+    const size_t inlier_count = static_cast<size_t>(std::count_if(
+        residuals.begin(),
+        residuals.end(),
+        [inlier_threshold](float residual) {
+            return residual <= inlier_threshold;
+        }
+    ));
+    const double image_diagonal = std::hypot(
+        static_cast<double>(previous_gray.cols),
+        static_cast<double>(previous_gray.rows)
+    );
+    motion.inlier_ratio = static_cast<double>(inlier_count)
+        / static_cast<double>(valid_dx.size());
+    motion.displacement_spread_ratio = image_diagonal > 0.0
+        ? static_cast<double>(median_residual) / image_diagonal
+        : 0.0;
+    if (motion.inlier_ratio < 0.60 || motion.displacement_spread_ratio > 0.015) {
+        return motion;
+    }
+
+    motion.dx = median_dx;
+    motion.dy = median_dy;
     motion.valid = true;
     return motion;
 }
@@ -186,17 +248,20 @@ WeakTrackResult weakTrackWithOpticalFlow(
     WeakTrackResult result;
     result.quality.previous_track_count = previous_tracks.size();
     result.quality.mean_frame_diff = normalizedMeanAbsDiff(previous_gray, current_gray);
+    result.track_qualities.reserve(previous_tracks.size());
 
     if (previous_gray.empty() || current_gray.empty() || previous_tracks.empty()) {
         return result;
     }
 
-    constexpr int kMaxCornersPerTrack = 16;
-    constexpr int kMinTrackedPoints = 3;
-    constexpr float kMaxMotionRatio = 0.25F;
-    constexpr float kMaxForwardBackwardError = 4.0F;
-    const float max_dx = static_cast<float>(image_width) * kMaxMotionRatio;
-    const float max_dy = static_cast<float>(image_height) * kMaxMotionRatio;
+    constexpr int kMaxCornersPerTrack = 20;
+    constexpr int kMinTrackedPoints = 4;
+    constexpr double kMinValidPointRatio = 0.50;
+    constexpr float kCandidateForwardBackwardError = 5.0F;
+    constexpr double kMaxMedianForwardBackwardError = 2.0;
+    constexpr double kMaxDisplacementSpreadRatio = 0.08;
+    constexpr double kMaxMotionRatio = 0.35;
+    constexpr double kMinVisibleAreaRatio = 0.50;
     const double image_diagonal = std::hypot(
         static_cast<double>(image_width),
         static_cast<double>(image_height)
@@ -222,7 +287,7 @@ WeakTrackResult weakTrackWithOpticalFlow(
             local_points,
             kMaxCornersPerTrack,
             0.01,
-            4.0
+            3.0
         );
 
         for (const auto& local_point : local_points) {
@@ -270,6 +335,7 @@ WeakTrackResult weakTrackWithOpticalFlow(
 
     std::vector<std::vector<float>> dx_by_track(previous_tracks.size());
     std::vector<std::vector<float>> dy_by_track(previous_tracks.size());
+    std::vector<std::vector<float>> fb_error_by_track(previous_tracks.size());
     std::vector<float> flow_magnitudes;
     std::vector<float> forward_backward_errors;
     std::vector<float> valid_dx;
@@ -293,17 +359,14 @@ WeakTrackResult weakTrackWithOpticalFlow(
             backward_points[i].x - previous_points[i].x,
             backward_points[i].y - previous_points[i].y
         );
-        if (forward_backward_error > kMaxForwardBackwardError) {
+        const size_t track_index = point_track_indices[i];
+        fb_error_by_track[track_index].push_back(forward_backward_error);
+        if (forward_backward_error > kCandidateForwardBackwardError) {
             continue;
         }
 
         const float dx = current_points[i].x - previous_points[i].x;
         const float dy = current_points[i].y - previous_points[i].y;
-        if (std::fabs(dx) > max_dx || std::fabs(dy) > max_dy) {
-            continue;
-        }
-
-        const size_t track_index = point_track_indices[i];
         dx_by_track[track_index].push_back(dx);
         dy_by_track[track_index].push_back(dy);
         flow_magnitudes.push_back(std::hypot(dx, dy));
@@ -316,31 +379,113 @@ WeakTrackResult weakTrackWithOpticalFlow(
     tracked_detections.reserve(previous_tracks.size());
 
     for (size_t i = 0; i < previous_tracks.size(); ++i) {
+        TrackFlowQuality track_quality;
+        track_quality.track_id = previous_tracks[i].track_id;
+        track_quality.sampled_point_count = sampled_points_by_track[i];
+        track_quality.valid_point_count = dx_by_track[i].size();
+        track_quality.valid_point_ratio = sampled_points_by_track[i] > 0
+            ? static_cast<double>(dx_by_track[i].size())
+                / static_cast<double>(sampled_points_by_track[i])
+            : 0.0;
+        if (!fb_error_by_track[i].empty()) {
+            track_quality.median_forward_backward_error =
+                static_cast<double>(medianValue(fb_error_by_track[i]));
+        }
+
         if (dx_by_track[i].size() < kMinTrackedPoints
             || dy_by_track[i].size() < kMinTrackedPoints) {
             if (sampled_points_by_track[i] > 0) {
                 ++result.quality.low_point_track_count;
             }
+            result.track_qualities.push_back(track_quality);
+            continue;
+        }
+        if (track_quality.valid_point_ratio < kMinValidPointRatio) {
+            ++result.quality.invalid_ratio_track_count;
+            result.track_qualities.push_back(track_quality);
+            continue;
+        }
+        if (track_quality.median_forward_backward_error
+            > kMaxMedianForwardBackwardError) {
+            ++result.quality.forward_backward_rejection_count;
+            result.track_qualities.push_back(track_quality);
             continue;
         }
 
         const float dx = medianValue(dx_by_track[i]);
         const float dy = medianValue(dy_by_track[i]);
+        track_quality.median_dx = dx;
+        track_quality.median_dy = dy;
+        const double bbox_diagonal = std::hypot(
+            static_cast<double>(previous_tracks[i].detection.x2
+                - previous_tracks[i].detection.x1),
+            static_cast<double>(previous_tracks[i].detection.y2
+                - previous_tracks[i].detection.y1)
+        );
+        std::vector<float> residuals;
+        residuals.reserve(dx_by_track[i].size());
+        for (size_t point_index = 0;
+             point_index < dx_by_track[i].size();
+             ++point_index) {
+            residuals.push_back(std::hypot(
+                dx_by_track[i][point_index] - dx,
+                dy_by_track[i][point_index] - dy
+            ));
+        }
+        track_quality.displacement_spread_ratio = bbox_diagonal > 0.0
+            ? static_cast<double>(medianValue(residuals)) / bbox_diagonal
+            : 0.0;
+        track_quality.motion_ratio = bbox_diagonal > 0.0
+            ? std::hypot(static_cast<double>(dx), static_cast<double>(dy))
+                / bbox_diagonal
+            : 0.0;
+        if (track_quality.displacement_spread_ratio
+            > kMaxDisplacementSpreadRatio) {
+            ++result.quality.motion_dispersion_rejection_count;
+            result.track_qualities.push_back(track_quality);
+            continue;
+        }
+        if (track_quality.motion_ratio > kMaxMotionRatio) {
+            ++result.quality.motion_jump_rejection_count;
+            result.track_qualities.push_back(track_quality);
+            continue;
+        }
+
         Detection detection = previous_tracks[i].detection;
         detection.x1 += dx;
         detection.x2 += dx;
         detection.y1 += dy;
         detection.y2 += dy;
-        detection.score *= 0.98F;
-        clipDetection(detection, image_width, image_height);
-        if (!hasValidBox(detection)) {
+        const float center_x = (detection.x1 + detection.x2) * 0.5F;
+        const float center_y = (detection.y1 + detection.y2) * 0.5F;
+        track_quality.visible_area_ratio = visibleAreaRatio(
+            detection,
+            image_width,
+            image_height
+        );
+        track_quality.boundary_clipped = track_quality.visible_area_ratio < 0.999;
+        if (center_x < 0.0F || center_x >= static_cast<float>(image_width)
+            || center_y < 0.0F || center_y >= static_cast<float>(image_height)
+            || track_quality.visible_area_ratio < kMinVisibleAreaRatio) {
+            ++result.quality.boundary_rejection_count;
+            result.track_qualities.push_back(track_quality);
             continue;
         }
 
+        detection.score *= 0.98F;
+        clipDetection(detection, image_width, image_height);
+        if (!hasValidBox(detection)) {
+            ++result.quality.boundary_rejection_count;
+            result.track_qualities.push_back(track_quality);
+            continue;
+        }
+
+        track_quality.accepted = true;
         tracked_detections.push_back(TrackedDetection{
             previous_tracks[i].track_id,
             detection
         });
+        result.track_qualities.push_back(track_quality);
         result.quality.min_score = std::min(result.quality.min_score, detection.score);
     }
 
@@ -381,13 +526,18 @@ FrameMotion frameMotionForCurrentFrame(
     const cv::Mat& previous_gray,
     const cv::Mat& current_gray,
     int64_t frame_index,
-    const WeakTrackQuality& quality
+    const WeakTrackQuality& quality,
+    const std::vector<TrackedDetection>& previous_tracks
 ) {
-    FrameMotion motion = frameMotionFromWeakQuality(frame_index, quality);
-    if (motion.valid) {
-        return motion;
+    if (previous_tracks.empty() || quality.tracked_track_ratio >= 0.80) {
+        return emptyFrameMotion(frame_index);
     }
-    return estimateGlobalFrameMotion(previous_gray, current_gray, frame_index);
+    return estimateGlobalFrameMotion(
+        previous_gray,
+        current_gray,
+        frame_index,
+        previous_tracks
+    );
 }
 
 std::vector<Detection> motionCompensatedDetections(

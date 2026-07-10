@@ -22,6 +22,7 @@ pnpm-debug.log*
 build/
 build-*/
 cmake-build-*/
+vcpkg_installed/
 CMakeFiles/
 CMakeCache.txt
 compile_commands.json
@@ -46,6 +47,11 @@ test_*.py
 *.jsonl
 coverage/
 htmlcov/
+
+# Keep repository-owned test and smoke-test sources visible.
+!yolo_onnx_cpp/test/
+!yolo_onnx_cpp/test/*.py
+!yolo_onnx_cpp/tools/openvino_smoke_test.py
 
 # Datasets, experiment outputs, and training artifacts
 /data/

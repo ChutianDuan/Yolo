@@ -1,6 +1,14 @@
 model_path: ./deploy/best.onnx
+# auto selects OpenVINO for .xml IR files and ONNX Runtime for .onnx files.
+model_backend: auto
+openvino_device: CPU
 input_width: 1280
 input_height: 736
+low_res_model_path: ./deploy/best_640x384.onnx
+low_res_input_width: 640
+low_res_input_height: 384
+low_res_conf_threshold: 0.25
+low_res_iou_threshold: 0.45
 conf_threshold: 0.25
 iou_threshold: 0.45
 num_classes: 10
@@ -17,11 +25,11 @@ class_names:
   - traffic sign
 thread_num: 4
 # true keeps the source aspect ratio with padding; false resizes directly.
-# For a static ONNX model, input_width/input_height must match the exported shape.
+# For a static model, input_width/input_height must match the exported shape.
 use_letterbox: true
 # 0 disables video frame sampling and runs detection on every frame.
 video_detect_fps: 4.0
-# dynamic adapts the ONNX sampling stride; fixed keeps the base stride.
+# dynamic adapts the model sampling stride; fixed keeps the base stride.
 video_stride_mode: dynamic
-video_onnx_async: true
+video_model_async: true
 client_max_body_mb: 256

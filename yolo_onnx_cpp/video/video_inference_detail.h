@@ -58,18 +58,21 @@ public:
     AsyncInferWorker(const AsyncInferWorker&) = delete;
     AsyncInferWorker& operator=(const AsyncInferWorker&) = delete;
 
-    bool submit(cv::Mat frame, int64_t frame_index);
+    bool submit(cv::Mat frame, int64_t frame_index, size_t* queue_length = nullptr);
     bool tryPopResult(AsyncInferResult& result);
     bool waitPopResult(AsyncInferResult& result);
     bool hasPending() const;
+    size_t pendingCount() const;
 
 private:
     struct Request {
         int64_t frame_index = 0;
+        std::chrono::steady_clock::time_point submitted_at;
         cv::Mat frame;
     };
 
     bool hasPendingLocked() const;
+    size_t pendingCountLocked() const;
     void run();
 
     std::shared_ptr<YoloEngine> engine_;
@@ -85,6 +88,19 @@ private:
 };
 
 double elapsedMs(std::chrono::steady_clock::time_point start);
+
+void addInferMetrics(VideoInferResult& result, const InferResult& infer_result);
+
+void addTrackerMetrics(VideoInferResult& result, double tracker_ms);
+
+void addEndToEndSample(VideoInferResult& result, double end_to_end_ms);
+
+void finalizeVideoPerformanceMetrics(
+    VideoInferResult& result,
+    int64_t output_count,
+    const ProcessUsageSnapshot& usage_start,
+    const ProcessUsageSnapshot& usage_end
+);
 
 TrackChangeQuality trackChangeQuality(
     const std::vector<TrackedDetection>& previous_tracks,
@@ -131,7 +147,7 @@ void fillVideoSummary(
     double source_fps,
     float target_detect_fps,
     const std::string& stride_mode,
-    bool onnx_async,
+    bool model_async,
     int base_frame_stride,
     int min_stride_used,
     int max_stride_used,

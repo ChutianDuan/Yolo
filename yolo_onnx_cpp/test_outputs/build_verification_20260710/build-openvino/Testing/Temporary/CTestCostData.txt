@@ -1,0 +1,7 @@
+app_config_test 3 0.00684593
+image_processing_test 3 0.0194587
+authority_tracker_policy_test 3 0.00945952
+video_inference_compare_test 3 0.454454
+openvino_python_smoke_test 3 2.88585
+response_json_test 3 0.00579358
+---

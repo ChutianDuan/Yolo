@@ -29,11 +29,24 @@ int main(int argc, char* argv[]) {
     try {
         engine = std::make_shared<yolo::YoloEngine>(config);
     } catch (const std::exception& e) {
-        std::cerr << "Failed to load ONNX model: " << config.model_path << '\n'
+        std::cerr << "Failed to load model: " << config.model_path << '\n'
                   << e.what() << '\n';
         return 1;
     }
 
-    yolo::runApiServer(engine, config, port);
+    std::shared_ptr<yolo::YoloEngine> low_res_engine;
+    if (yolo::hasLowResModelConfig(config)) {
+        const yolo::AppConfig low_res_config = yolo::makeLowResAppConfig(config);
+        try {
+            low_res_engine = std::make_shared<yolo::YoloEngine>(low_res_config);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to load low-res model: "
+                      << low_res_config.model_path << '\n'
+                      << e.what() << '\n';
+            return 1;
+        }
+    }
+
+    yolo::runApiServer(engine, low_res_engine, config, port);
     return 0;
 }

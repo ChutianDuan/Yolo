@@ -10,6 +10,7 @@ namespace yolo {
 
 void runApiServer(
     const std::shared_ptr<YoloEngine>& engine,
+    const std::shared_ptr<YoloEngine>& low_res_engine,
     const AppConfig& config,
     uint16_t port
 );

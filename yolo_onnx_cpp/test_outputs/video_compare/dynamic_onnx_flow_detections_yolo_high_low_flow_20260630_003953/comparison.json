@@ -1,0 +1,1256 @@
+{
+  "video": "/home/ubuntu/YOLO/Readme/dynamic_onnx_flow_detections.mp4",
+  "output_dir": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953",
+  "thresholds": [
+    0.3,
+    0.5,
+    0.7
+  ],
+  "run_order": [
+    "full_yolo",
+    "high_yolo_flow",
+    "high_low_yolo_flow",
+    "low_yolo_flow"
+  ],
+  "quality_order": [
+    "high_yolo_flow",
+    "high_low_yolo_flow",
+    "low_yolo_flow_internal"
+  ],
+  "runs": {
+    "full_yolo": {
+      "http_elapsed_sec": 376.012,
+      "display_fps": 3.202,
+      "frame_count": 1204,
+      "processed_frame_count": 1204,
+      "detected_frame_count": 1204,
+      "effective_detect_fps": 29.97,
+      "frame_stride": 1.0,
+      "stride_mode": "full_onnx",
+      "onnx_async": false,
+      "async_infer_request_count": 0,
+      "async_correction_count": 0,
+      "forced_detection_count": 0,
+      "scheduled_detection_count": 1204,
+      "skipped_detection_count": 0,
+      "timing_ms": {
+        "onnx_decode_nms_ms": 14.159094999999988,
+        "onnx_inference_ms": 353606.8676520003,
+        "optical_flow_ms": 12647.657478000006,
+        "other_ms": 9545.809576999745,
+        "postprocess_ms": 79.82824199999992,
+        "profiled_stage_ms": 366334.3533720003,
+        "total_elapsed_ms": 375880.162949,
+        "tracking_postprocess_ms": 65.66914699999992
+      },
+      "frame_source_counts": {
+        "detected": 1193,
+        "interpolated": 11
+      },
+      "avg_tracks_per_frame": 7.382,
+      "max_tracks_in_frame": 14,
+      "model": "high",
+      "detect_fps": 0.0,
+      "config": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/full_yolo_config.yaml"
+    },
+    "high_yolo_flow": {
+      "http_elapsed_sec": 65.916,
+      "display_fps": 18.266,
+      "frame_count": 1204,
+      "processed_frame_count": 176,
+      "detected_frame_count": 176,
+      "effective_detect_fps": 4.380996677740863,
+      "frame_stride": 6.840909090909091,
+      "stride_mode": "sync_dynamic",
+      "onnx_async": false,
+      "async_infer_request_count": 0,
+      "async_correction_count": 0,
+      "forced_detection_count": 3,
+      "scheduled_detection_count": 173,
+      "skipped_detection_count": 0,
+      "timing_ms": {
+        "onnx_decode_nms_ms": 2.805462999999999,
+        "onnx_inference_ms": 53712.08350200001,
+        "optical_flow_ms": 8723.855551999995,
+        "other_ms": 3303.9899339999974,
+        "postprocess_ms": 35.27633299999999,
+        "profiled_stage_ms": 62471.215387000004,
+        "total_elapsed_ms": 65775.205321,
+        "tracking_postprocess_ms": 32.47086999999999
+      },
+      "frame_source_counts": {
+        "detected": 176,
+        "weak_tracked": 1028
+      },
+      "avg_tracks_per_frame": 7.067,
+      "max_tracks_in_frame": 13,
+      "model": "high",
+      "detect_fps": 4.0,
+      "config": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/high_yolo_flow_config.yaml"
+    },
+    "low_yolo_flow": {
+      "http_elapsed_sec": 28.284,
+      "display_fps": 42.569,
+      "frame_count": 1204,
+      "processed_frame_count": 186,
+      "detected_frame_count": 186,
+      "effective_detect_fps": 4.629916943521595,
+      "frame_stride": 6.473118279569892,
+      "stride_mode": "sync_dynamic",
+      "onnx_async": false,
+      "async_infer_request_count": 0,
+      "async_correction_count": 0,
+      "forced_detection_count": 8,
+      "scheduled_detection_count": 178,
+      "skipped_detection_count": 0,
+      "timing_ms": {
+        "onnx_decode_nms_ms": 3.0414440000000007,
+        "onnx_inference_ms": 16550.343888,
+        "optical_flow_ms": 8774.816353999995,
+        "other_ms": 2815.333658000007,
+        "postprocess_ms": 32.98468199999999,
+        "profiled_stage_ms": 25358.144923999993,
+        "total_elapsed_ms": 28173.478582,
+        "tracking_postprocess_ms": 29.94323799999999
+      },
+      "frame_source_counts": {
+        "detected": 184,
+        "weak_tracked": 1004,
+        "interpolated": 16
+      },
+      "avg_tracks_per_frame": 5.664,
+      "max_tracks_in_frame": 12,
+      "model": "low",
+      "detect_fps": 4.0,
+      "config": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/low_yolo_flow_config.yaml"
+    },
+    "high_low_yolo_flow": {
+      "http_elapsed_sec": 65.916,
+      "display_fps": 18.266,
+      "frame_count": 1204,
+      "processed_frame_count": 176,
+      "detected_frame_count": 176,
+      "effective_detect_fps": 4.380996677740863,
+      "frame_stride": 6.840909090909091,
+      "stride_mode": "sync_dynamic",
+      "onnx_async": false,
+      "async_infer_request_count": 0,
+      "async_correction_count": 0,
+      "forced_detection_count": 3,
+      "scheduled_detection_count": 173,
+      "skipped_detection_count": 0,
+      "timing_ms": {
+        "onnx_decode_nms_ms": 2.805462999999999,
+        "onnx_inference_ms": 53712.08350200001,
+        "optical_flow_ms": 8723.855551999995,
+        "other_ms": 3303.9899339999974,
+        "postprocess_ms": 35.27633299999999,
+        "profiled_stage_ms": 62471.215387000004,
+        "total_elapsed_ms": 65775.205321,
+        "tracking_postprocess_ms": 32.47086999999999
+      },
+      "frame_source_counts": {
+        "high_flow_primary": 936,
+        "low_flow_fill": 268
+      },
+      "avg_tracks_per_frame": 7.532,
+      "max_tracks_in_frame": 13,
+      "model": "high+low",
+      "detect_fps": 4.0,
+      "fusion": {
+        "strategy": "Use high-res YOLO+flow as primary. On non-high-detection frames, use low-res YOLO+flow if it has more tracks.",
+        "high_primary_frame_count": 936,
+        "low_fill_frame_count": 268
+      }
+    }
+  },
+  "quality": {
+    "high_yolo_flow": [
+      {
+        "iou_threshold": 0.3,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 8509,
+          "matches": 7514,
+          "false_positives": 995,
+          "false_negatives": 1374,
+          "precision": 0.883065,
+          "recall": 0.84541,
+          "f1": 0.863827,
+          "mean_matched_iou": 0.890087
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 176,
+            "labels": 1254,
+            "predictions": 1234,
+            "matches": 1179,
+            "false_positives": 55,
+            "false_negatives": 75,
+            "precision": 0.955429,
+            "recall": 0.940191,
+            "f1": 0.947749,
+            "mean_matched_iou": 0.926465
+          },
+          "weak_tracked": {
+            "frames": 1028,
+            "labels": 7634,
+            "predictions": 7275,
+            "matches": 6335,
+            "false_positives": 940,
+            "false_negatives": 1299,
+            "precision": 0.87079,
+            "recall": 0.82984,
+            "f1": 0.849822,
+            "mean_matched_iou": 0.883317
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 47,
+            "false_positives": 37,
+            "false_negatives": 90,
+            "precision": 0.559524,
+            "recall": 0.343066,
+            "f1": 0.425339,
+            "mean_matched_iou": 0.842661
+          },
+          "2:car": {
+            "frames": 1166,
+            "labels": 3905,
+            "predictions": 3734,
+            "matches": 3463,
+            "false_positives": 271,
+            "false_negatives": 442,
+            "precision": 0.927424,
+            "recall": 0.886812,
+            "f1": 0.906663,
+            "mean_matched_iou": 0.851009
+          },
+          "3:truck": {
+            "frames": 24,
+            "labels": 15,
+            "predictions": 11,
+            "matches": 2,
+            "false_positives": 9,
+            "false_negatives": 13,
+            "precision": 0.181818,
+            "recall": 0.133333,
+            "f1": 0.153846,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 10,
+            "false_positives": 4,
+            "false_negatives": 17,
+            "precision": 0.714286,
+            "recall": 0.37037,
+            "f1": 0.487805,
+            "mean_matched_iou": 0.781578
+          },
+          "8:traffic light": {
+            "frames": 924,
+            "labels": 2903,
+            "predictions": 2738,
+            "matches": 2604,
+            "false_positives": 134,
+            "false_negatives": 299,
+            "precision": 0.951059,
+            "recall": 0.897003,
+            "f1": 0.923241,
+            "mean_matched_iou": 0.934333
+          },
+          "9:traffic sign": {
+            "frames": 1122,
+            "labels": 1901,
+            "predictions": 1928,
+            "matches": 1388,
+            "false_positives": 540,
+            "false_negatives": 513,
+            "precision": 0.719917,
+            "recall": 0.730142,
+            "f1": 0.724993,
+            "mean_matched_iou": 0.906852
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.5,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 8509,
+          "matches": 7449,
+          "false_positives": 1060,
+          "false_negatives": 1439,
+          "precision": 0.875426,
+          "recall": 0.838096,
+          "f1": 0.856355,
+          "mean_matched_iou": 0.894226
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 176,
+            "labels": 1254,
+            "predictions": 1234,
+            "matches": 1178,
+            "false_positives": 56,
+            "false_negatives": 76,
+            "precision": 0.954619,
+            "recall": 0.939394,
+            "f1": 0.946945,
+            "mean_matched_iou": 0.926905
+          },
+          "weak_tracked": {
+            "frames": 1028,
+            "labels": 7634,
+            "predictions": 7275,
+            "matches": 6271,
+            "false_positives": 1004,
+            "false_negatives": 1363,
+            "precision": 0.861993,
+            "recall": 0.821457,
+            "f1": 0.841237,
+            "mean_matched_iou": 0.888087
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 47,
+            "false_positives": 37,
+            "false_negatives": 90,
+            "precision": 0.559524,
+            "recall": 0.343066,
+            "f1": 0.425339,
+            "mean_matched_iou": 0.842661
+          },
+          "2:car": {
+            "frames": 1166,
+            "labels": 3905,
+            "predictions": 3734,
+            "matches": 3419,
+            "false_positives": 315,
+            "false_negatives": 486,
+            "precision": 0.91564,
+            "recall": 0.875544,
+            "f1": 0.895143,
+            "mean_matched_iou": 0.856471
+          },
+          "3:truck": {
+            "frames": 24,
+            "labels": 15,
+            "predictions": 11,
+            "matches": 2,
+            "false_positives": 9,
+            "false_negatives": 13,
+            "precision": 0.181818,
+            "recall": 0.133333,
+            "f1": 0.153846,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 10,
+            "false_positives": 4,
+            "false_negatives": 17,
+            "precision": 0.714286,
+            "recall": 0.37037,
+            "f1": 0.487805,
+            "mean_matched_iou": 0.781578
+          },
+          "8:traffic light": {
+            "frames": 924,
+            "labels": 2903,
+            "predictions": 2738,
+            "matches": 2595,
+            "false_positives": 143,
+            "false_negatives": 308,
+            "precision": 0.947772,
+            "recall": 0.893903,
+            "f1": 0.92005,
+            "mean_matched_iou": 0.936092
+          },
+          "9:traffic sign": {
+            "frames": 1122,
+            "labels": 1901,
+            "predictions": 1928,
+            "matches": 1376,
+            "false_positives": 552,
+            "false_negatives": 525,
+            "precision": 0.713693,
+            "recall": 0.72383,
+            "f1": 0.718726,
+            "mean_matched_iou": 0.911554
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.7,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 8509,
+          "matches": 6879,
+          "false_positives": 1630,
+          "false_negatives": 2009,
+          "precision": 0.808438,
+          "recall": 0.773965,
+          "f1": 0.790826,
+          "mean_matched_iou": 0.917049
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 176,
+            "labels": 1254,
+            "predictions": 1234,
+            "matches": 1141,
+            "false_positives": 93,
+            "false_negatives": 113,
+            "precision": 0.924635,
+            "recall": 0.909888,
+            "f1": 0.917203,
+            "mean_matched_iou": 0.936569
+          },
+          "weak_tracked": {
+            "frames": 1028,
+            "labels": 7634,
+            "predictions": 7275,
+            "matches": 5738,
+            "false_positives": 1537,
+            "false_negatives": 1896,
+            "precision": 0.788729,
+            "recall": 0.751637,
+            "f1": 0.769736,
+            "mean_matched_iou": 0.913167
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 41,
+            "false_positives": 43,
+            "false_negatives": 96,
+            "precision": 0.488095,
+            "recall": 0.29927,
+            "f1": 0.371041,
+            "mean_matched_iou": 0.881629
+          },
+          "2:car": {
+            "frames": 1166,
+            "labels": 3905,
+            "predictions": 3734,
+            "matches": 2968,
+            "false_positives": 766,
+            "false_negatives": 937,
+            "precision": 0.794858,
+            "recall": 0.760051,
+            "f1": 0.777065,
+            "mean_matched_iou": 0.89296
+          },
+          "3:truck": {
+            "frames": 24,
+            "labels": 15,
+            "predictions": 11,
+            "matches": 2,
+            "false_positives": 9,
+            "false_negatives": 13,
+            "precision": 0.181818,
+            "recall": 0.133333,
+            "f1": 0.153846,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 9,
+            "false_positives": 5,
+            "false_negatives": 18,
+            "precision": 0.642857,
+            "recall": 0.333333,
+            "f1": 0.439024,
+            "mean_matched_iou": 0.7927
+          },
+          "8:traffic light": {
+            "frames": 924,
+            "labels": 2903,
+            "predictions": 2738,
+            "matches": 2545,
+            "false_positives": 193,
+            "false_negatives": 358,
+            "precision": 0.929511,
+            "recall": 0.876679,
+            "f1": 0.902322,
+            "mean_matched_iou": 0.942466
+          },
+          "9:traffic sign": {
+            "frames": 1122,
+            "labels": 1901,
+            "predictions": 1928,
+            "matches": 1314,
+            "false_positives": 614,
+            "false_negatives": 587,
+            "precision": 0.681535,
+            "recall": 0.691215,
+            "f1": 0.686341,
+            "mean_matched_iou": 0.924113
+          }
+        }
+      }
+    ],
+    "high_low_yolo_flow": [
+      {
+        "iou_threshold": 0.3,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 9068,
+          "matches": 7466,
+          "false_positives": 1602,
+          "false_negatives": 1422,
+          "precision": 0.823335,
+          "recall": 0.840009,
+          "f1": 0.831588,
+          "mean_matched_iou": 0.887163
+        },
+        "by_flow_frame_source": {
+          "high_flow_primary": {
+            "frames": 936,
+            "labels": 7566,
+            "predictions": 7428,
+            "matches": 6678,
+            "false_positives": 750,
+            "false_negatives": 888,
+            "precision": 0.899031,
+            "recall": 0.882633,
+            "f1": 0.890756,
+            "mean_matched_iou": 0.900111
+          },
+          "low_flow_fill": {
+            "frames": 268,
+            "labels": 1322,
+            "predictions": 1640,
+            "matches": 788,
+            "false_positives": 852,
+            "false_negatives": 534,
+            "precision": 0.480488,
+            "recall": 0.596067,
+            "f1": 0.532073,
+            "mean_matched_iou": 0.777432
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 47,
+            "false_positives": 37,
+            "false_negatives": 90,
+            "precision": 0.559524,
+            "recall": 0.343066,
+            "f1": 0.425339,
+            "mean_matched_iou": 0.825635
+          },
+          "2:car": {
+            "frames": 1172,
+            "labels": 3905,
+            "predictions": 3787,
+            "matches": 3454,
+            "false_positives": 333,
+            "false_negatives": 451,
+            "precision": 0.912068,
+            "recall": 0.884507,
+            "f1": 0.898076,
+            "mean_matched_iou": 0.85044
+          },
+          "3:truck": {
+            "frames": 19,
+            "labels": 15,
+            "predictions": 6,
+            "matches": 2,
+            "false_positives": 4,
+            "false_negatives": 13,
+            "precision": 0.333333,
+            "recall": 0.133333,
+            "f1": 0.190476,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 10,
+            "false_positives": 4,
+            "false_negatives": 17,
+            "precision": 0.714286,
+            "recall": 0.37037,
+            "f1": 0.487805,
+            "mean_matched_iou": 0.781578
+          },
+          "8:traffic light": {
+            "frames": 929,
+            "labels": 2903,
+            "predictions": 2749,
+            "matches": 2573,
+            "false_positives": 176,
+            "false_negatives": 330,
+            "precision": 0.935977,
+            "recall": 0.886324,
+            "f1": 0.910474,
+            "mean_matched_iou": 0.934376
+          },
+          "9:traffic sign": {
+            "frames": 1140,
+            "labels": 1901,
+            "predictions": 2428,
+            "matches": 1380,
+            "false_positives": 1048,
+            "false_negatives": 521,
+            "precision": 0.568369,
+            "recall": 0.725934,
+            "f1": 0.637561,
+            "mean_matched_iou": 0.893791
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.5,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 9068,
+          "matches": 7388,
+          "false_positives": 1680,
+          "false_negatives": 1500,
+          "precision": 0.814733,
+          "recall": 0.831233,
+          "f1": 0.8229,
+          "mean_matched_iou": 0.892114
+        },
+        "by_flow_frame_source": {
+          "high_flow_primary": {
+            "frames": 936,
+            "labels": 7566,
+            "predictions": 7428,
+            "matches": 6646,
+            "false_positives": 782,
+            "false_negatives": 920,
+            "precision": 0.894723,
+            "recall": 0.878403,
+            "f1": 0.886488,
+            "mean_matched_iou": 0.902476
+          },
+          "low_flow_fill": {
+            "frames": 268,
+            "labels": 1322,
+            "predictions": 1640,
+            "matches": 742,
+            "false_positives": 898,
+            "false_negatives": 580,
+            "precision": 0.452439,
+            "recall": 0.561271,
+            "f1": 0.501013,
+            "mean_matched_iou": 0.799299
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 46,
+            "false_positives": 38,
+            "false_negatives": 91,
+            "precision": 0.547619,
+            "recall": 0.335766,
+            "f1": 0.41629,
+            "mean_matched_iou": 0.833077
+          },
+          "2:car": {
+            "frames": 1172,
+            "labels": 3905,
+            "predictions": 3787,
+            "matches": 3402,
+            "false_positives": 385,
+            "false_negatives": 503,
+            "precision": 0.898336,
+            "recall": 0.871191,
+            "f1": 0.884555,
+            "mean_matched_iou": 0.856922
+          },
+          "3:truck": {
+            "frames": 19,
+            "labels": 15,
+            "predictions": 6,
+            "matches": 2,
+            "false_positives": 4,
+            "false_negatives": 13,
+            "precision": 0.333333,
+            "recall": 0.133333,
+            "f1": 0.190476,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 10,
+            "false_positives": 4,
+            "false_negatives": 17,
+            "precision": 0.714286,
+            "recall": 0.37037,
+            "f1": 0.487805,
+            "mean_matched_iou": 0.781578
+          },
+          "8:traffic light": {
+            "frames": 929,
+            "labels": 2903,
+            "predictions": 2749,
+            "matches": 2561,
+            "false_positives": 188,
+            "false_negatives": 342,
+            "precision": 0.931611,
+            "recall": 0.882191,
+            "f1": 0.906228,
+            "mean_matched_iou": 0.936716
+          },
+          "9:traffic sign": {
+            "frames": 1140,
+            "labels": 1901,
+            "predictions": 2428,
+            "matches": 1367,
+            "false_positives": 1061,
+            "false_negatives": 534,
+            "precision": 0.563015,
+            "recall": 0.719095,
+            "f1": 0.631555,
+            "mean_matched_iou": 0.898819
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.7,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 9068,
+          "matches": 6792,
+          "false_positives": 2276,
+          "false_negatives": 2096,
+          "precision": 0.749007,
+          "recall": 0.764176,
+          "f1": 0.756516,
+          "mean_matched_iou": 0.916267
+        },
+        "by_flow_frame_source": {
+          "high_flow_primary": {
+            "frames": 936,
+            "labels": 7566,
+            "predictions": 7428,
+            "matches": 6219,
+            "false_positives": 1209,
+            "false_negatives": 1347,
+            "precision": 0.837237,
+            "recall": 0.821967,
+            "f1": 0.829532,
+            "mean_matched_iou": 0.921978
+          },
+          "low_flow_fill": {
+            "frames": 268,
+            "labels": 1322,
+            "predictions": 1640,
+            "matches": 573,
+            "false_positives": 1067,
+            "false_negatives": 749,
+            "precision": 0.34939,
+            "recall": 0.433434,
+            "f1": 0.386901,
+            "mean_matched_iou": 0.85428
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 151,
+            "labels": 137,
+            "predictions": 84,
+            "matches": 36,
+            "false_positives": 48,
+            "false_negatives": 101,
+            "precision": 0.428571,
+            "recall": 0.262774,
+            "f1": 0.325792,
+            "mean_matched_iou": 0.892005
+          },
+          "2:car": {
+            "frames": 1172,
+            "labels": 3905,
+            "predictions": 3787,
+            "matches": 2946,
+            "false_positives": 841,
+            "false_negatives": 959,
+            "precision": 0.777924,
+            "recall": 0.754417,
+            "f1": 0.765991,
+            "mean_matched_iou": 0.89452
+          },
+          "3:truck": {
+            "frames": 19,
+            "labels": 15,
+            "predictions": 6,
+            "matches": 2,
+            "false_positives": 4,
+            "false_negatives": 13,
+            "precision": 0.333333,
+            "recall": 0.133333,
+            "f1": 0.190476,
+            "mean_matched_iou": 0.967621
+          },
+          "4:bus": {
+            "frames": 31,
+            "labels": 27,
+            "predictions": 14,
+            "matches": 9,
+            "false_positives": 5,
+            "false_negatives": 18,
+            "precision": 0.642857,
+            "recall": 0.333333,
+            "f1": 0.439024,
+            "mean_matched_iou": 0.7927
+          },
+          "8:traffic light": {
+            "frames": 929,
+            "labels": 2903,
+            "predictions": 2749,
+            "matches": 2504,
+            "false_positives": 245,
+            "false_negatives": 399,
+            "precision": 0.910877,
+            "recall": 0.862556,
+            "f1": 0.886058,
+            "mean_matched_iou": 0.944234
+          },
+          "9:traffic sign": {
+            "frames": 1140,
+            "labels": 1901,
+            "predictions": 2428,
+            "matches": 1295,
+            "false_positives": 1133,
+            "false_negatives": 606,
+            "precision": 0.533361,
+            "recall": 0.68122,
+            "f1": 0.598291,
+            "mean_matched_iou": 0.913113
+          }
+        }
+      }
+    ],
+    "low_yolo_flow_internal": [
+      {
+        "iou_threshold": 0.3,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 6820,
+          "matches": 4966,
+          "false_positives": 1854,
+          "false_negatives": 3922,
+          "precision": 0.728152,
+          "recall": 0.558731,
+          "f1": 0.632289,
+          "mean_matched_iou": 0.803983
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 184,
+            "labels": 1344,
+            "predictions": 1105,
+            "matches": 797,
+            "false_positives": 308,
+            "false_negatives": 547,
+            "precision": 0.721267,
+            "recall": 0.593006,
+            "f1": 0.650878,
+            "mean_matched_iou": 0.831177
+          },
+          "interpolated": {
+            "frames": 16,
+            "labels": 51,
+            "predictions": 24,
+            "matches": 7,
+            "false_positives": 17,
+            "false_negatives": 44,
+            "precision": 0.291667,
+            "recall": 0.137255,
+            "f1": 0.186667,
+            "mean_matched_iou": 0.513061
+          },
+          "weak_tracked": {
+            "frames": 1004,
+            "labels": 7493,
+            "predictions": 5691,
+            "matches": 4162,
+            "false_positives": 1529,
+            "false_negatives": 3331,
+            "precision": 0.73133,
+            "recall": 0.555452,
+            "f1": 0.631371,
+            "mean_matched_iou": 0.799264
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 130,
+            "labels": 137,
+            "predictions": 40,
+            "matches": 24,
+            "false_positives": 16,
+            "false_negatives": 113,
+            "precision": 0.6,
+            "recall": 0.175182,
+            "f1": 0.271186,
+            "mean_matched_iou": 0.720395
+          },
+          "2:car": {
+            "frames": 1171,
+            "labels": 3905,
+            "predictions": 2718,
+            "matches": 2466,
+            "false_positives": 252,
+            "false_negatives": 1439,
+            "precision": 0.907285,
+            "recall": 0.631498,
+            "f1": 0.744678,
+            "mean_matched_iou": 0.795221
+          },
+          "3:truck": {
+            "frames": 15,
+            "labels": 15,
+            "predictions": 0,
+            "matches": 0,
+            "false_positives": 0,
+            "false_negatives": 15,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "4:bus": {
+            "frames": 29,
+            "labels": 27,
+            "predictions": 4,
+            "matches": 2,
+            "false_positives": 2,
+            "false_negatives": 25,
+            "precision": 0.5,
+            "recall": 0.074074,
+            "f1": 0.129032,
+            "mean_matched_iou": 0.492991
+          },
+          "8:traffic light": {
+            "frames": 921,
+            "labels": 2903,
+            "predictions": 1871,
+            "matches": 1727,
+            "false_positives": 144,
+            "false_negatives": 1176,
+            "precision": 0.923036,
+            "recall": 0.594902,
+            "f1": 0.723502,
+            "mean_matched_iou": 0.83927
+          },
+          "9:traffic sign": {
+            "frames": 1177,
+            "labels": 1901,
+            "predictions": 2187,
+            "matches": 747,
+            "false_positives": 1440,
+            "false_negatives": 1154,
+            "precision": 0.341564,
+            "recall": 0.392951,
+            "f1": 0.36546,
+            "mean_matched_iou": 0.754843
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.5,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 6820,
+          "matches": 4863,
+          "false_positives": 1957,
+          "false_negatives": 4025,
+          "precision": 0.71305,
+          "recall": 0.547142,
+          "f1": 0.619175,
+          "mean_matched_iou": 0.812034
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 184,
+            "labels": 1344,
+            "predictions": 1105,
+            "matches": 791,
+            "false_positives": 314,
+            "false_negatives": 553,
+            "precision": 0.715837,
+            "recall": 0.588542,
+            "f1": 0.645978,
+            "mean_matched_iou": 0.834086
+          },
+          "interpolated": {
+            "frames": 16,
+            "labels": 51,
+            "predictions": 24,
+            "matches": 4,
+            "false_positives": 20,
+            "false_negatives": 47,
+            "precision": 0.166667,
+            "recall": 0.078431,
+            "f1": 0.106667,
+            "mean_matched_iou": 0.549311
+          },
+          "weak_tracked": {
+            "frames": 1004,
+            "labels": 7493,
+            "predictions": 5691,
+            "matches": 4068,
+            "false_positives": 1623,
+            "false_negatives": 3425,
+            "precision": 0.714813,
+            "recall": 0.542907,
+            "f1": 0.617112,
+            "mean_matched_iou": 0.808004
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 130,
+            "labels": 137,
+            "predictions": 40,
+            "matches": 21,
+            "false_positives": 19,
+            "false_negatives": 116,
+            "precision": 0.525,
+            "recall": 0.153285,
+            "f1": 0.237288,
+            "mean_matched_iou": 0.75877
+          },
+          "2:car": {
+            "frames": 1171,
+            "labels": 3905,
+            "predictions": 2718,
+            "matches": 2404,
+            "false_positives": 314,
+            "false_negatives": 1501,
+            "precision": 0.884474,
+            "recall": 0.615621,
+            "f1": 0.725955,
+            "mean_matched_iou": 0.804776
+          },
+          "3:truck": {
+            "frames": 15,
+            "labels": 15,
+            "predictions": 0,
+            "matches": 0,
+            "false_positives": 0,
+            "false_negatives": 15,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "4:bus": {
+            "frames": 29,
+            "labels": 27,
+            "predictions": 4,
+            "matches": 0,
+            "false_positives": 4,
+            "false_negatives": 27,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "8:traffic light": {
+            "frames": 921,
+            "labels": 2903,
+            "predictions": 1871,
+            "matches": 1714,
+            "false_positives": 157,
+            "false_negatives": 1189,
+            "precision": 0.916088,
+            "recall": 0.590424,
+            "f1": 0.718056,
+            "mean_matched_iou": 0.842422
+          },
+          "9:traffic sign": {
+            "frames": 1177,
+            "labels": 1901,
+            "predictions": 2187,
+            "matches": 724,
+            "false_positives": 1463,
+            "false_negatives": 1177,
+            "precision": 0.331047,
+            "recall": 0.380852,
+            "f1": 0.354207,
+            "mean_matched_iou": 0.765735
+          }
+        }
+      },
+      {
+        "iou_threshold": 0.7,
+        "overall": {
+          "frames": 1204,
+          "labels": 8888,
+          "predictions": 6820,
+          "matches": 4107,
+          "false_positives": 2713,
+          "false_negatives": 4781,
+          "precision": 0.602199,
+          "recall": 0.462084,
+          "f1": 0.522918,
+          "mean_matched_iou": 0.846112
+        },
+        "by_flow_frame_source": {
+          "detected": {
+            "frames": 184,
+            "labels": 1344,
+            "predictions": 1105,
+            "matches": 718,
+            "false_positives": 387,
+            "false_negatives": 626,
+            "precision": 0.649774,
+            "recall": 0.534226,
+            "f1": 0.586362,
+            "mean_matched_iou": 0.854412
+          },
+          "interpolated": {
+            "frames": 16,
+            "labels": 51,
+            "predictions": 24,
+            "matches": 0,
+            "false_positives": 24,
+            "false_negatives": 51,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "weak_tracked": {
+            "frames": 1004,
+            "labels": 7493,
+            "predictions": 5691,
+            "matches": 3389,
+            "false_positives": 2302,
+            "false_negatives": 4104,
+            "precision": 0.595502,
+            "recall": 0.452289,
+            "f1": 0.514108,
+            "mean_matched_iou": 0.844354
+          }
+        },
+        "by_class": {
+          "0:person": {
+            "frames": 130,
+            "labels": 137,
+            "predictions": 40,
+            "matches": 12,
+            "false_positives": 28,
+            "false_negatives": 125,
+            "precision": 0.3,
+            "recall": 0.087591,
+            "f1": 0.135593,
+            "mean_matched_iou": 0.851513
+          },
+          "2:car": {
+            "frames": 1171,
+            "labels": 3905,
+            "predictions": 2718,
+            "matches": 1931,
+            "false_positives": 787,
+            "false_negatives": 1974,
+            "precision": 0.710449,
+            "recall": 0.494494,
+            "f1": 0.583119,
+            "mean_matched_iou": 0.850907
+          },
+          "3:truck": {
+            "frames": 15,
+            "labels": 15,
+            "predictions": 0,
+            "matches": 0,
+            "false_positives": 0,
+            "false_negatives": 15,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "4:bus": {
+            "frames": 29,
+            "labels": 27,
+            "predictions": 4,
+            "matches": 0,
+            "false_positives": 4,
+            "false_negatives": 27,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "mean_matched_iou": 0.0
+          },
+          "8:traffic light": {
+            "frames": 921,
+            "labels": 2903,
+            "predictions": 1871,
+            "matches": 1655,
+            "false_positives": 216,
+            "false_negatives": 1248,
+            "precision": 0.884554,
+            "recall": 0.5701,
+            "f1": 0.693339,
+            "mean_matched_iou": 0.850517
+          },
+          "9:traffic sign": {
+            "frames": 1177,
+            "labels": 1901,
+            "predictions": 2187,
+            "matches": 509,
+            "false_positives": 1678,
+            "false_negatives": 1392,
+            "precision": 0.232739,
+            "recall": 0.267754,
+            "f1": 0.249022,
+            "mean_matched_iou": 0.813475
+          }
+        }
+      }
+    ]
+  },
+  "artifacts": {
+    "full_yolo_response": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/full_yolo_infer_video_response.json",
+    "high_yolo_flow_response": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/high_yolo_flow_infer_video_response.json",
+    "low_yolo_flow_response": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/low_yolo_flow_infer_video_response.json",
+    "high_low_yolo_flow_response": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/high_low_yolo_flow_infer_video_response.json",
+    "full_yolo_pseudo_labels": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/full_yolo_pseudo_labels.jsonl",
+    "full_yolo_video": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/full_yolo_detections.mp4",
+    "high_yolo_flow_video": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/high_yolo_flow_detections.mp4",
+    "high_low_yolo_flow_video": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/dynamic_onnx_flow_detections_yolo_high_low_flow_20260630_003953/high_low_yolo_flow_detections.mp4"
+  }
+}

@@ -55,6 +55,13 @@ std::string unquote(const std::string& value) {
     return trimmed;
 }
 
+std::string toLower(std::string value) {
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return value;
+}
+
 int parseInt(const std::string& key, const std::string& value) {
     try {
         size_t parsed = 0;
@@ -96,6 +103,10 @@ bool parseBool(const std::string& key, std::string value) {
     throw std::runtime_error("Invalid bool for " + key + ": " + value);
 }
 
+bool invalidOptionalThreshold(float value) {
+    return (value < 0.0F && value != -1.0F) || value > 1.0F;
+}
+
 std::vector<std::string> parseInlineList(const std::string& value) {
     const std::string trimmed = trim(value);
     if (trimmed.size() < 2 || trimmed.front() != '[' || trimmed.back() != ']') {
@@ -119,6 +130,10 @@ void setScalar(AppConfig& config, const std::string& key, const std::string& val
 
     if (key == "model_path") {
         config.model_path = parsed;
+    } else if (key == "model_backend") {
+        config.model_backend = toLower(parsed);
+    } else if (key == "openvino_device") {
+        config.openvino_device = parsed;
     } else if (key == "input_width") {
         config.input_width = parseInt(key, parsed);
     } else if (key == "input_height") {
@@ -127,6 +142,16 @@ void setScalar(AppConfig& config, const std::string& key, const std::string& val
         config.conf_threshold = parseFloat(key, parsed);
     } else if (key == "iou_threshold") {
         config.iou_threshold = parseFloat(key, parsed);
+    } else if (key == "low_res_model_path") {
+        config.low_res_model_path = parsed;
+    } else if (key == "low_res_input_width") {
+        config.low_res_input_width = parseInt(key, parsed);
+    } else if (key == "low_res_input_height") {
+        config.low_res_input_height = parseInt(key, parsed);
+    } else if (key == "low_res_conf_threshold") {
+        config.low_res_conf_threshold = parseFloat(key, parsed);
+    } else if (key == "low_res_iou_threshold") {
+        config.low_res_iou_threshold = parseFloat(key, parsed);
     } else if (key == "num_classes") {
         config.num_classes = parseInt(key, parsed);
     } else if (key == "thread_num") {
@@ -137,8 +162,10 @@ void setScalar(AppConfig& config, const std::string& key, const std::string& val
         config.video_detect_fps = parseFloat(key, parsed);
     } else if (key == "video_stride_mode") {
         config.video_stride_mode = parsed;
-    } else if (key == "video_onnx_async") {
-        config.video_onnx_async = parseBool(key, parsed);
+    } else if (key == "video_model_async" || key == "video_onnx_async") {
+        const bool async_enabled = parseBool(key, parsed);
+        config.video_model_async = async_enabled;
+        config.video_onnx_async = async_enabled;
     } else if (key == "client_max_body_mb") {
         config.client_max_body_mb = parseInt(key, parsed);
     }
@@ -156,6 +183,14 @@ void validateConfig(AppConfig& config) {
     if (config.model_path.empty()) {
         throw std::runtime_error("model_path cannot be empty");
     }
+    if (config.model_backend != "auto"
+        && config.model_backend != "onnx"
+        && config.model_backend != "openvino") {
+        throw std::runtime_error("model_backend must be auto, onnx, or openvino");
+    }
+    if (config.openvino_device.empty()) {
+        throw std::runtime_error("openvino_device cannot be empty");
+    }
     if (config.input_width <= 0 || config.input_height <= 0) {
         throw std::runtime_error("input_width and input_height must be positive");
     }
@@ -164,6 +199,18 @@ void validateConfig(AppConfig& config) {
     }
     if (config.iou_threshold < 0.0F || config.iou_threshold > 1.0F) {
         throw std::runtime_error("iou_threshold must be in [0, 1]");
+    }
+    if (invalidOptionalThreshold(config.low_res_conf_threshold)) {
+        throw std::runtime_error("low_res_conf_threshold must be unset or in [0, 1]");
+    }
+    if (invalidOptionalThreshold(config.low_res_iou_threshold)) {
+        throw std::runtime_error("low_res_iou_threshold must be unset or in [0, 1]");
+    }
+    if (!config.low_res_model_path.empty()
+        && (config.low_res_input_width <= 0 || config.low_res_input_height <= 0)) {
+        throw std::runtime_error(
+            "low_res_input_width and low_res_input_height must be positive"
+        );
     }
     if (config.thread_num <= 0) {
         throw std::runtime_error("thread_num must be positive");
@@ -252,7 +299,38 @@ AppConfig loadAppConfig(const std::string& config_path) {
     }
     config.model_path = model_path.lexically_normal().string();
 
+    if (!config.low_res_model_path.empty()) {
+        std::filesystem::path low_res_model_path(config.low_res_model_path);
+        if (low_res_model_path.is_relative()) {
+            low_res_model_path = path.parent_path() / low_res_model_path;
+        }
+        config.low_res_model_path = low_res_model_path.lexically_normal().string();
+    }
+
     return config;
+}
+
+bool hasLowResModelConfig(const AppConfig& config) {
+    return !config.low_res_model_path.empty();
+}
+
+AppConfig makeLowResAppConfig(const AppConfig& config) {
+    AppConfig low_res = config;
+    low_res.model_path = config.low_res_model_path;
+    low_res.input_width = config.low_res_input_width;
+    low_res.input_height = config.low_res_input_height;
+    low_res.conf_threshold = config.low_res_conf_threshold >= 0.0F
+        ? config.low_res_conf_threshold
+        : config.conf_threshold;
+    low_res.iou_threshold = config.low_res_iou_threshold >= 0.0F
+        ? config.low_res_iou_threshold
+        : config.iou_threshold;
+    low_res.low_res_model_path.clear();
+    low_res.low_res_input_width = 0;
+    low_res.low_res_input_height = 0;
+    low_res.low_res_conf_threshold = -1.0F;
+    low_res.low_res_iou_threshold = -1.0F;
+    return low_res;
 }
 
 }  // namespace yolo
