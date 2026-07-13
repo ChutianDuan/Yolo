@@ -1,724 +1,333 @@
-# yolo 目标识别
+# 把一段交通视频摊开来看：VisionTrack 的架构与实现
 
-预测效果：
+道路视频检测真正困难的部分，不是让 YOLO 在一张图片上画出框，而是让一段视频在有限 CPU 资源上持续产生可信、可解释、可部署的结果。
 
-<video src="Readme/dynamic_onnx_flow_detections.mp4" controls muted playsinline>
-  浏览器不支持直接播放视频时，可打开 `Readme/dynamic_onnx_flow_detections.mp4` 查看预测效果。
-</video>
+每帧都运行高分辨率模型，精度基线清楚，但吞吐和延迟很快成为瓶颈；简单抽帧，车辆、行人和交通灯的轨迹又会在检测帧之间断开。异步推理还会带来另一个问题：模型返回的是过去某一帧的结果，系统必须把它校正到当前时间线，才能避免轨迹回跳。
 
-## 环境配置
+VisionTrack 围绕这个工程矛盾展开：
 
-本项目建议把环境拆成两套维护：
+- 用 YOLO26 完成图片和视频强检测；
+- 用动态 stride 控制模型调用频率；
+- 在跳过的帧上使用 LK 光流和 ByteTrack 续轨；
+- 用高低分辨率模型协同处理速度与精度的取舍；
+- 将训练环境与 C++ 部署环境分开；
+- 通过 Drogon HTTP 接口、Web 工作台和 Qt 客户端交付结果。
 
-- `conda` 训练环境：运行 YOLO 训练、验证、ONNX 导出、INT8 量化和 Python 测试脚本。
-- `CMake + vcpkg` 部署环境：编译并运行 `yolo_onnx_cpp/` 下的 Drogon HTTP 服务，默认使用 ONNX Runtime CPU 后端推理，也可启用 OpenVINO 后端。
+项目当前面向 BDD100K 道路场景，识别人、车辆、交通灯和交通标志等 10 类目标。
 
-两套环境边界要保持清晰：训练环境可以使用 CUDA/PyTorch；C++ 部署服务默认只依赖 CMake/vcpkg 提供的 OpenCV、Drogon、ONNX Runtime CPU，不依赖 Python 运行时。启用 C++ OpenVINO 后端时，OpenVINO 也必须来自 `/root/vcpkg`。
+## 系统边界
 
-### Conda：YOLO 训练与导出环境
+开发环境中，浏览器首先访问 Vite。Vite 只代理推理请求，真正的 Gateway、API 和视频 worker 都位于同一个 **yolo_api** 进程中。curl 或其它客户端可以绕过 Vite，直接访问 Drogon 的 8080 端口。
 
-用途：
+~~~mermaid
+flowchart LR
+    Browser[Browser / React workbench]
+    Client[curl / other client]
+    Vite[Vite dev server<br/>UI and reverse proxy]
 
-- 运行 `model/train.py` 训练 YOLO 检测模型。
-- 运行 `model/onnx.py` 导出 `best.onnx` / `best_int8.onnx` 到 `yolo_onnx_cpp/deploy/`。
-- 运行 `model/data/` 下的数据转换、切片、评估和对比脚本。
-- 运行 `yolo_onnx_cpp/test/*.py` 做 HTTP 端到端测试和视频对比实验。
+    subgraph Service[yolo_api process]
+        Gateway[ApiGateway<br/>routes and limits]
+        ImageAPI[Image handler]
+        VideoAPI[Video handler]
+        Temp[Temporary video]
+        CV[OpenCV preprocess]
+        Scheduler[Dynamic scheduler]
+        Worker[AsyncInferWorker<br/>in-process thread]
+        Tracking[LK flow and trackers]
+        Engine[YoloEngine<br/>ORT or OpenVINO]
+        JSON[response_json]
+    end
 
-本机已经整理出两个环境规格文件：
+    Models[(Models, classes and config)]
 
-- `envs/yolo.yml`：YOLO 训练、验证、ONNX 导出和 Python 实验脚本。
-- `envs/rag-api.yml`：RAG/FastAPI 服务依赖。
+    Browser --> Vite --> Gateway
+    Client --> Gateway
+    Gateway --> ImageAPI --> CV --> Engine
+    Gateway --> VideoAPI --> Temp --> Scheduler
+    Scheduler --> Worker --> Engine
+    Scheduler --> Tracking
+    Models --> Engine
+    Engine --> JSON
+    Tracking --> JSON
+    JSON --> Gateway --> Browser
+~~~
 
-二者不要合并：`yolo` 当前使用 PyTorch `2.5.1+cu121`、NumPy `2.2.6`；`rag-api` 当前使用 PyTorch `2.6.0+cu124`、NumPy `1.26.4`，并补了 `datasets 2.21.0`，避免仓库根目录的 `datasets/` 数据目录影响 `sentence_transformers` 导入。
+这里没有数据库、Redis、消息队列或向量库：
 
-创建或重建环境：
+- 模型、类别文件和 YAML 配置是磁盘上的持久化输入；
+- 上传视频会写入系统临时目录，请求结束后删除；
+- 帧、轨迹、异步队列、动态 stride 和指标都是单次请求内的内存状态；
+- HTTP 响应返回后，服务端不保存任务或检测结果；
+- **yolo_onnx_cpp/test_outputs/** 保存本地生成的大型运行产物；纳入版本管理的历史验证快照集中在 **docs/test-results/**。它们都不是在线数据库。
 
-```bash
+因此，Gateway 是进程内 HTTP 边界，不是独立微服务；Worker 是内存工作线程，也不是可恢复的队列消费者。
+
+## 关键架构取舍
+
+### 训练与部署环境分开
+
+训练、验证和 ONNX 导出使用 **yolo** Conda 环境，可以使用 PyTorch 和 CUDA。在线服务使用 CMake、GCC15 和 **/root/vcpkg** 中的 Drogon、OpenCV、ONNX Runtime 或 OpenVINO，不依赖 Python 运行时。
+
+仓库中的 **rag-api** 环境不参与 VisionTrack 推理链路。
+
+### 强检测与弱跟踪分工
+
+模型强检测负责重新确认类别和几何位置；光流只负责短间隔传播已有框；ByteTrack 负责轨迹 ID 和生命周期。稳定场景不必每帧调用模型，光流质量下降、尺度或速度突变时则提前触发强检测。
+
+光流不是检测器，它只承担检测帧之间的时间连续性。
+
+### 结构体先行，JSON 只出现在边界
+
+推理过程使用 **InferResult**、**VideoFrameTracks** 和 **VideoInferResult** 等 C++ 结构体。逐帧循环不构造 JSON；请求完成后，**response_json.cpp** 才生成外部响应。
+
+### 外部请求同步，内部模型调用异步
+
+视频接口对调用方仍是同步 HTTP：客户端上传完整视频，等待处理完毕，再一次性接收 JSON。内部 **AsyncInferWorker** 可以并行执行强检测；旧帧结果返回时，系统先做运动补偿，再校正当前轨迹。
+
+这提高了流水线利用率，但不等于异步任务 API。
+
+## 真实数据流
+
+### 图片
+
+~~~text
+multipart image
+-> ApiGateway
+-> ImageInferenceHandler
+-> OpenCV decode and letterbox
+-> NCHW float tensor
+-> YoloEngine
+-> InferResult
+-> response_json
+-> HTTP JSON
+~~~
+
+图片请求不会创建后台任务。响应包含检测框、输出 shape、阶段耗时、CPU 利用率和 RSS 内存。
+
+### 普通视频
+
+~~~text
+multipart video
+-> temporary file
+-> OpenCV VideoCapture
+-> calculate base stride
+-> LK optical flow on readable frames
+-> schedule model detection when due or quality degrades
+-> compensate completed async detections
+-> update ByteTrack
+-> interpolate only when no tracking result is usable
+-> collect VideoInferResult
+-> serialize one HTTP response
+-> delete temporary file
+~~~
+
+以 24 FPS 视频和目标检测帧率 4 FPS 为例，基础 stride 是 6。稳定阶段大约每 6 帧调度一次模型；复杂运动或光流质量下降时，动态策略会缩短间隔。
+
+每帧通过 **tracks_source** 说明来源：
+
+- **async_corrected**：异步模型结果已经过时间补偿；
+- **detected**：同步或兼容路径的强检测结果；
+- **weak_tracked**：使用 LK 光流传播；
+- **interpolated**：相邻检测帧之间的插值兜底；
+- **empty**：没有可用结果。
+
+### 高低分辨率协同
+
+**/infer_video_high_low** 使用高分辨率模型维护权威状态，低分辨率模型承担更频繁的轻量刷新。AuthorityTracker 在 high-res、low-res、flow 及异步 replay 后更新 stable、provisional、去重和生命周期状态。
+
+最终三场景回归中，pooled precision 从 0.5048 提高到 0.7249，F1 从 0.6384 提高到 0.7726，FP 减少约 63%。完整记录见 [优化计划](docs/reports/优化计划.md) 和 [视频算法对比报告](docs/reports/video_algorithm_comparison_20260710.md)。
+
+预测视频：[dynamic_onnx_flow_detections.mp4](Readme/dynamic_onnx_flow_detections.mp4)。
+
+## 当前工作台
+
+![VisionTrack workbench overview](docs/assets/visiontrack-workbench-overview.png)
+
+截图由当前 **front/** 代码正式构建后，在 1440 × 900 视口生成，使用内置 BDD100K Demo replay。它展示的是真实界面状态，但不是一次真实 Drogon 响应，因此明确标记了 Demo、Not checked 和 not reported。
+
+界面可以观察：
+
+- endpoint、multipart 字段和请求状态；
+- 强检测、跳帧、光流、动态 stride、ByteTrack 和 JSON 节点；
+- 当前帧目标框、类别、置信度与结果来源；
+- 轨迹生命周期和可见状态；
+- 模型、光流、跟踪及端到端指标；
+- 当前响应未提供的字段，而不是前端生成的虚构数据。
+
+前端当前调用 **/infer** 和 **/infer_video**。High/Low endpoint 已由后端提供，但尚未加入工作台模式选择。
+
+## 状态、可观测性与失败语义
+
+项目没有 SSE 或 WebSocket，也没有 event ID、Last-Event-ID 和断线续传：
+
+- 连接断开后不能从某一帧继续；
+- 客户端重试会创建新的完整推理请求；
+- 服务没有幂等键，不能复用上次内存状态；
+- HTTP 2xx 且 JSON 中 code 为 0 表示成功；
+- 上传、媒体或参数错误返回 HTTP 400；
+- 模型和内部异常返回 HTTP 500；
+- 没有 done 事件，HTTP 响应结束就是终止边界。
+
+服务日志写到标准输出和标准错误，包含 route、文件名、字节数、耗时、检测数、队列长度、丢帧数、CPU 和 RSS。响应中的 timing、metrics、帧计数与 high_low_diagnostics 用于请求级诊断。
+
+当前没有 **/health**。下面只能确认 Gateway 可达，不能证明真实模型推理成功：
+
+~~~bash
+ss -ltn | grep ':8080'
+curl -i -X POST http://127.0.0.1:8080/infer
+~~~
+
+第二条命令应返回 HTTP 400 和 multipart 解析错误。
+
+## 最短运行路径
+
+以下路径假设 **/root/vcpkg** 已按仓库约束准备好。项目没有 .env、数据库初始化或一键整栈脚本。
+
+### 1. 确认本地模型
+
+项目不会自动下载权重：
+
+~~~bash
+ls -lh yolo_onnx_cpp/deploy/best.onnx yolo_onnx_cpp/deploy/best_640x384.onnx yolo_onnx_cpp/deploy/classes.json
+~~~
+
+### 2. 构建并启动后端
+
+~~~bash
+cd yolo_onnx_cpp
+cmake --preset vcpkg-gcc15-release
+cmake --build --preset vcpkg-gcc15-release
+../build/yolo_api config.yaml
+~~~
+
+服务监听 0.0.0.0:8080，日志直接输出到终端。项目不创建 PID 文件或固定日志目录；使用 Ctrl-C 停止。
+
+### 3. 安装并启动前端
+
+在另一个终端运行：
+
+~~~bash
+cd front
+npm ci
+npm run dev -- --host 0.0.0.0
+~~~
+
+Vite 默认代理图片和视频接口到 127.0.0.1:8080。连接其它后端时使用：
+
+~~~bash
+VITE_API_BASE_URL=http://127.0.0.1:8080 npm run dev -- --host 0.0.0.0
+~~~
+
+前后端分别运行在两个前台终端，可以独立使用 Ctrl-C 重启或停止。当前没有统一 PID、日志和服务编排脚本。
+
+### 4. 直接验证 API
+
+~~~bash
+curl -X POST http://127.0.0.1:8080/infer -F "image=@/path/to/image.jpg"
+
+curl -X POST "http://127.0.0.1:8080/infer_video?include_frames=false" -F "video=@/path/to/video.mp4"
+~~~
+
+在线请求不写数据库；视频只会短暂写入系统临时目录。训练、导出和对比脚本会写入 runs、deploy 或显式输出目录，执行前应单独确认。
+
+## 代码分层
+
+~~~text
+front/                         React 工作台、HTTP client 和 Demo replay
+model/                         YOLO26 训练、BDD100K 工具和 ONNX 导出
+yolo_onnx_cpp/
+  main.cpp                     配置、模型加载和启动
+  config/                      YAML 配置解析
+  drogon/api_contract.h        路由与上传字段契约
+  drogon/api_gateway.*         路由注册、监听和请求限制
+  drogon/inference_handlers.*  图片和视频 HTTP 编排
+  drogon/request_utils.*       查询参数和临时文件
+  drogon/response_json.*       外部 JSON schema
+  image/                       解码、letterbox、tensor 和输出解析
+  model/                       ONNX Runtime / OpenVINO 推理
+  video/                       调度、worker、光流和 High/Low
+  tracking/                    ByteTrack
+  metrics/                     延迟、CPU、内存和队列指标
+  test_cpp/                    C++ 回归测试
+qt_ui/                         不经过 HTTP 的本地 Qt 图片客户端
+docs/                          文档索引、正式报告、测试快照和截图资源
+~~~
+
+推荐阅读顺序：**main.cpp → api_gateway.cpp → inference_handlers.cpp → video_inference.cpp → video_inference_detail.cpp → optical_flow_tracker.cpp / byte_tracker.cpp → yolo_engine.cpp**。
+
+## 常用 API
+
+| Method | Path | 上传字段 | 用途 |
+| --- | --- | --- | --- |
+| POST | /infer | image | 单张图片检测 |
+| POST | /infer_video | video | 动态 stride、异步强检测、光流和 ByteTrack |
+| POST | /infer_video_high_low | video | 高低分辨率协同与 AuthorityTracker |
+
+视频接口支持：
+
+- **include_frames=false**：只返回摘要和指标；
+- **frame_offset=N**：从第 N 个结果帧开始；
+- **frame_limit=N**：最多返回 N 帧，必须为正整数。
+
+这些参数只裁剪响应序列化范围，不会减少已经完成的视频推理工作。完整字段以 [response_json.cpp](yolo_onnx_cpp/drogon/response_json.cpp) 和 [Gateway 契约测试](yolo_onnx_cpp/test_cpp/api_gateway_contract_test.cpp) 为准。
+
+## 模型训练与导出
+
+训练环境规格位于 **envs/yolo.yml**：
+
+~~~bash
 conda env create -f envs/yolo.yml
-conda env create -f envs/rag-api.yml
-```
+conda run -n yolo python -m pip check
+~~~
 
-如果只需要修复当前已有环境，先验证依赖一致性：
+当前 **model/train.py** 会把物理 GPU 4、5 映射为进程内的逻辑设备 0、1：
 
-```bash
+~~~bash
+conda run -n yolo python model/train.py
+~~~
+
+导出不会由服务自动触发：
+
+~~~bash
+conda run -n yolo python model/onnx.py --pt model/runs/detect/bdd100k_yolo26s_det_1280x736/weights/best.pt --data model/data/bdd100k_yolo_det/data.yaml
+~~~
+
+当前 YOLO26 ONNX 输出为 **output0(1, 300, 6)**，每行按 **x1, y1, x2, y2, score, class_id** 解析。解码器同时保留旧 YOLO 原始候选输出的兼容路径。
+
+## 验证
+
+~~~bash
+cd yolo_onnx_cpp
+cmake --preset vcpkg-gcc15-release
+cmake --build --preset vcpkg-gcc15-release
+ctest --preset vcpkg-gcc15-release
+
+cd ../front
+npm run build
+~~~
+
+C++ 测试覆盖配置、图片处理、AuthorityTracker、视频对比、响应 JSON、Gateway 契约和 OpenVINO Python smoke test。
+
+历史报告和已纳入版本管理的验证结果统一从 [docs 文档索引](docs/README.md) 查阅。新的测试运行仍写入 **yolo_onnx_cpp/test_outputs/**，不会覆盖文档快照。
+
+环境检查：
+
+~~~bash
 conda run -n yolo python -m pip check
 conda run -n rag-api python -m pip check
-```
-
-如果需要 INT8 量化，`model/onnx.py` 会使用 `onnxruntime.quantization`。确认依赖可用：
-
-```bash
-conda run -n yolo python -c "import torch, ultralytics, onnx, onnxruntime, cv2; print('ok')"
-```
-
-本机训练默认建议只暴露物理 GPU 4 和 GPU 5：
-
-```bash
-export CUDA_VISIBLE_DEVICES=4,5
-python model/train.py
-```
-
-此时训练脚本里的 `device: 0,1` 对应可见设备 `cuda:0,cuda:1`，也就是物理 GPU 4、5。单卡调试时使用：
-
-```bash
-export CUDA_VISIBLE_DEVICES=4
-python model/train.py
-```
-
-常用命令：
-
-```bash
-# 训练
-python model/train.py
-
-# 导出 FP32 ONNX，并可选生成 INT8 ONNX
-python model/onnx.py --pt model/runs/detect/bdd100k_yolo26s_det_1280x736/weights/best.pt --data model/data/bdd100k_yolo_det/data.yaml
-
-# 只导出 FP32，不做 INT8
-python model/onnx.py --skip-int8
-```
-
-导出后 C++ 服务默认读取：
-
-```text
-yolo_onnx_cpp/deploy/best.onnx
-yolo_onnx_cpp/deploy/classes.json
-```
-
-### CMake：Drogon + ONNX Runtime/OpenVINO CPU 部署环境
-
-用途：
-
-- 编译 `yolo_onnx_cpp/` 下的 C++ HTTP 推理服务 `build/yolo_api`。
-- 使用 Drogon 提供 `/infer` 和 `/infer_video` 接口。
-- 使用 ONNX Runtime CPU 加载 `deploy/best.onnx`。
-- 使用 OpenCV 做图片/视频读取、预处理、光流弱跟踪和坐标还原。
-
-当前项目按 vcpkg 管理 C++ 依赖，主要依赖：
-
-```text
-Drogon
-ONNX Runtime CPU
-OpenCV core/imgproc/imgcodecs/video/videoio
-OpenCV ffmpeg feature（用于读取 mp4/mov/qt 等常见视频容器）
-JsonCpp
-```
-
-如果重建 C++ 部署环境，建议统一安装到 `/root/vcpkg/installed/x64-linux-gcc15`，不要在子目录生成 `vcpkg_installed/`。当前 vcpkg 环境对应命令示例：
-
-```bash
-export PATH=/root/vcpkg/downloads/tools/gperf-3.1/bin:/root/vcpkg/downloads/tools/flex-2.6.4/bin:/root/vcpkg/downloads/tools/bison-3.8.2/bin:/root/vcpkg/downloads/tools/autotools/bin:/root/vcpkg/downloads/tools/nasm-3.01/bin:/root/vcpkg/.toolchains/gcc15/bin:/root/vcpkg:${PATH}
-export ACLOCAL_PATH=/root/vcpkg/installed/x64-linux-gcc15/share/aclocal:/root/vcpkg/downloads/tools/autotools/share/aclocal
-export LD_LIBRARY_PATH=/root/vcpkg/downloads/tools/autotools/lib:/root/vcpkg/.toolchains/gcc15/lib:${LD_LIBRARY_PATH:-}
-/root/vcpkg/vcpkg install 'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon jsoncpp 'ffmpeg[ffmpeg,ffprobe,x264]' \
-  --classic \
-  --triplet x64-linux-gcc15 \
-  --host-triplet x64-linux-gcc15 \
-  --overlay-triplets=/root/vcpkg/custom-triplets \
-  --overlay-ports=/root/vcpkg/custom-ports \
-  --recurse
-```
-
-当前 VSCode/CMake 配置使用 `/root/vcpkg` 下的 GCC15 toolchain 和 vcpkg triplet。命令行可直接使用 preset：
-
-```bash
-cd yolo_onnx_cpp
-cmake --preset vcpkg-gcc15-release
-cmake --build --preset vcpkg-gcc15-release
-```
-
-`YOLO_CONFIG_PROFILE` 控制编译进二进制的默认配置文件：
-
-- `default`：默认使用 `yolo_onnx_cpp/config.yaml`，适合正常服务运行。
-- `reference`：默认使用 `yolo_onnx_cpp/config.reference.yaml`，适合全帧 ONNX reference 测试。
-
-即使编译时选择了默认配置，运行时也可以通过第一个启动参数覆盖配置文件：
-
-```bash
-./build/yolo_api yolo_onnx_cpp/config.yaml
-./build/yolo_api yolo_onnx_cpp/config.reference.yaml
-```
-
-部署服务不需要激活 `yolo` conda 环境；只要 `build/yolo_api` 能找到 vcpkg 依赖并且 `model_path` 指向存在的模型文件即可。
-
-构建完成后建议确认：
-
-```bash
-./build/yolo_api yolo_onnx_cpp/config.yaml
-```
-
-服务启动后监听 `0.0.0.0:8080`。如果 `model_path` 是相对路径，会按配置文件所在目录解析，例如 `./deploy/best.onnx` 会解析到 `yolo_onnx_cpp/deploy/best.onnx`。
-
-### OpenVINO 转换与对比
-
-Python 侧 OpenVINO 工具放在 `yolo` conda 环境中，用于环境检查、ONNX 转 IR、以及同一帧的 ONNX Runtime/OpenVINO 输出差异对比：
-
-```bash
-conda run -n yolo python yolo_onnx_cpp/tools/check_openvino_env.py
-
-conda run -n yolo python yolo_onnx_cpp/tools/convert_to_openvino.py \
-  --model yolo_onnx_cpp/deploy/best_640x384.onnx \
-  --output /tmp/yolo_openvino_test/best_640x384.xml \
-  --copy-classes --overwrite
-
-conda run -n yolo python yolo_onnx_cpp/tools/compare_openvino_onnx.py \
-  --onnx yolo_onnx_cpp/deploy/best_640x384.onnx \
-  --ir /tmp/yolo_openvino_test/best_640x384.xml \
-  --video Readme/dynamic_onnx_flow_detections.mp4 \
-  --input-width 640 --input-height 384
-```
-
-转换脚本默认保存 FP32 IR，便于和 ONNX Runtime 做精度对齐；只有明确接受精度差异时再加 `--fp16`。
-
-C++ 服务通过配置选择后端：
-
-```yaml
-model_path: ./deploy/best.xml
-model_backend: auto      # auto: .xml 使用 OpenVINO，.onnx 使用 ONNX Runtime
-openvino_device: CPU
-```
-
-默认 preset 不编译 OpenVINO。要启用 C++ OpenVINO 后端，先把 OpenVINO 安装进 `/root/vcpkg`，再使用 OpenVINO preset：
-
-```bash
-/root/vcpkg/vcpkg install 'openvino[core,cpu,ir,onnx]:x64-linux-gcc15' \
-  --overlay-triplets=/root/vcpkg/custom-triplets \
-  --overlay-ports=/root/vcpkg/custom-ports
-
-cd yolo_onnx_cpp
-cmake --preset vcpkg-gcc15-openvino
-cmake --build --preset vcpkg-gcc15-openvino
-```
-
-当前 `/root/vcpkg/custom-ports/openvino` overlay port 会以 `-DENABLE_MLAS_FOR_CPU=OFF` 构建 OpenVINO CPU plugin，避免静态链接时 OpenVINO `libmlas.a` 和 ONNX Runtime `libonnxruntime_mlas.a` 重复符号冲突。
-
-### Qt 桌面界面
-
-Qt 界面放在独立目录 `qt_ui/`，只复用 `yolo_onnx_cpp/` 中的配置解析、图像预处理和 ONNX 推理代码，不依赖 Drogon HTTP 服务。
-
-Qt 通过 vcpkg 安装。沿用当前 `/root/vcpkg` 与 `x64-linux-gcc15` triplet 时，依赖安装命令示例：
-
-```bash
 bash qt_ui/check_env.sh
-```
-
-```bash
-export PATH=/root/vcpkg/downloads/tools/gperf-3.1/bin:/root/vcpkg/downloads/tools/flex-2.6.4/bin:/root/vcpkg/downloads/tools/bison-3.8.2/bin:/root/vcpkg/downloads/tools/autotools/bin:/root/vcpkg/downloads/tools/nasm-3.01/bin:/root/vcpkg/.toolchains/gcc15/bin:/root/vcpkg:${PATH}
-export ACLOCAL_PATH=/root/vcpkg/installed/x64-linux-gcc15/share/aclocal:/root/vcpkg/downloads/tools/autotools/share/aclocal
-export LD_LIBRARY_PATH=/root/vcpkg/downloads/tools/autotools/lib:/root/vcpkg/.toolchains/gcc15/lib:${LD_LIBRARY_PATH:-}
-/root/vcpkg/vcpkg install 'qtbase[core,widgets,xcb,xrender,fontconfig,png,jpeg]' \
-  'opencv4[core,ffmpeg,jpeg,png,tiff,webp]' onnxruntime drogon jsoncpp 'ffmpeg[ffmpeg,ffprobe,x264]' \
-  --classic \
-  --triplet x64-linux-gcc15 \
-  --host-triplet x64-linux-gcc15 \
-  --overlay-triplets=/root/vcpkg/custom-triplets \
-  --overlay-ports=/root/vcpkg/custom-ports \
-  --recurse
-```
-
-构建和运行：
-
-```bash
-cd qt_ui
-cmake --preset vcpkg-gcc15-release
-cmake --build --preset vcpkg-gcc15-release
-../build-qt/yolo_qt
-```
-
-如果不用 preset，也可以在仓库根目录手动配置：
-
-```bash
-cmake -S qt_ui -B build-qt -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake \
-  -DVCPKG_MANIFEST_MODE=OFF \
-  -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 \
-  -DVCPKG_HOST_TRIPLET=x64-linux-gcc15 \
-  -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets \
-  -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc \
-  -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ \
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-cmake --build build-qt
-./build-qt/yolo_qt
-```
-
-界面默认尝试查找 `yolo_onnx_cpp/config.yaml`，也可以在窗口中手动选择配置文件。Linux 服务器如果没有图形会话，需要在桌面环境或 SSH X11 转发下运行。
-
-
-## 数据
-
-## yolo train
-
-
-## yolo 部署
-部署目录为 `yolo_onnx_cpp/`，整体方案采用：
-
-- `Drogon`：提供 HTTP 推理接口。
-- `ONNX Runtime`：加载并执行 ONNX 模型。
-- `OpenCV`：读取图片/视频帧、预处理图片/帧、坐标还原，并在视频跳过帧上执行 LK 光流弱跟踪。
-- `ByteTrack`：轨迹管理，根据检测框或光流弱跟踪框分配并维护 `track_id`。
-
-当前服务端代码按职责拆分为：
-
-- `drogon/api_server.cpp`：只处理 HTTP 路由、multipart 上传、临时视频文件和错误响应。
-- `video/video_inference.cpp`：执行视频推理主流程，保留 `inferVideoFile` 入口、异步结果应用、检测调度、同步检测和逐帧循环。
-- `video/video_inference_detail.cpp` / `video/video_inference_detail.h`：封装视频推理的内部支撑逻辑，包括异步模型推理 worker、动态 stride 状态、轨迹变化质量评估、检测帧插值和 summary 统计填充。
-- `video/optical_flow_tracker.cpp` / `video/optical_flow_tracker.h`：封装 LK 光流弱跟踪、帧间运动估计、运动补偿和光流质量判断。
-- `drogon/response_json.cpp`：统一把 `InferResult` / `VideoInferResult` 转成 API JSON 响应。
-- `model/inference_types.h`：定义内部推理结构体，例如 `Detection`、`TrackedDetection` 和 `InferResult`。
-
-推理过程内部不把每帧结果当作 JSON 传递。单图检测、视频帧 tracks、统计信息都先保存在结构体中；只有最终 `/infer` 或 `/infer_video` 返回 HTTP 响应时才序列化为 JSON。测试脚本生成的 `full_onnx_infer_video_response.json`、`onnx_flow_infer_video_response.json`、`comparison.json`、JSONL 和 Markdown 仍是实验产物，不是服务端内部数据格式。
-
-当前 C++ 推理适配的 ONNX 输入输出为：
-
-- input: `images(1, 3, 736, 1280): float32`
-- output: `output0(1, 300, 6): float32`
-- `output0` 每行按 `[x1, y1, x2, y2, score, class_id]` 解析。
-
-### High/Low 去重与光流质量优化（2026-07-10）
-
-`/infer_video_high_low` 已完成重复状态、光流漂移和质量触发调度优化，详细实施记录和验收数据见 [优化计划.md](优化计划.md)。核心行为如下：
-
-- tracker 每次 high-res、low-res、flow 和异步 replay 更新后都会合并重复 stable/provisional 状态；输出阶段另有只读去重安全网。
-- 普通 provisional 连续 3 次 low-res 命中才输出；`score >= 0.60` 时允许 2 次命中。连续 2 次 low-res miss 停止输出，12 帧未更新删除。
-- low-res 匹配最大面积比为 2，fresh/stale 分别使用收紧的 IoU、中心距离和面积门控；异常尺度只触发 authority refresh，不污染 stable geometry。
-- LK 光流逐轨迹要求至少 4 个有效点、有效率不低于 0.50、median forward-backward error 不高于 2 px，并限制位移离散度和单帧位移。
-- detector score 与 flow confidence/age 分开保存；flow-only 超过 16 帧停止输出，24 帧删除，连续两帧边界裁剪的轨迹停止输出。
-- global motion 只使用检测框外背景角点，背景点或 inlier 不足时禁用 fallback。
-- dynamic stride 可缩短到 urgent 2 帧/complex 3 帧；重复突增、flow 质量下降、尺度/速度跳变、geometry 拒绝和类别冲突会请求 low/high refresh，并带去抖和最短 cadence。
-
-视频响应新增 `high_low_diagnostics` 对象，只增加字段，不改变原字段。该对象包含 stable/provisional 当前及峰值数量、provisional 创建/晋升/过期/去重、三类重复合并、geometry/class conflict、逐原因 flow rejection、flow-only TTL、direct/global flow 更新和 urgent low/high detection 计数。普通 `/infer_video` 响应也会保留该对象，其计数默认为 0。
-
-最终三场景回归使用 full high-res 结果作为伪标签，IoU=0.5 pooled 结果如下：
-
-| 指标 | 优化前 | 优化后 |
-| --- | ---: | ---: |
-| precision | 0.5048 | 0.7249 |
-| recall | 0.8684 | 0.8269 |
-| F1 | 0.6384 | 0.7726 |
-| predictions/labels | 1.72 | 1.141 |
-| FP | 29,307 | 10,773 |
-| weak-tracked precision | 0.5025 | 0.7274 |
-| weak-tracked mean IoU | 0.8588 | 0.8614 |
-| pooled FPS | 31.34 | 24.71 |
-
-精度、召回、F1、输出量、FP 和三场景最低 recall 目标已达到；weak-tracked mean IoU 目标 0.88 与 pooled FPS 目标 28 尚未达到。最终结果目录为 `yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_optimization_20260710/`，三个固定参数回归分别使用 `final_day_20260710_113056`、`final_night_20260710_113211` 和 `final_rain_20260710_113304`。
-
-### 配置文件
-
-默认配置文件为 `yolo_onnx_cpp/config.yaml`，可通过启动参数指定其它配置文件。
-
-```yaml
-model_path: ./deploy/best.onnx
-input_width: 1280
-input_height: 736
-conf_threshold: 0.25
-iou_threshold: 0.45
-num_classes: 10
-class_names:
-  - person
-  - rider
-  - car
-  - truck
-  - bus
-  - train
-  - motor
-  - bike
-  - traffic light
-  - traffic sign
-thread_num: 4
-use_letterbox: true
-# 0 disables video frame sampling and runs detection on every frame.
-video_detect_fps: 4.0
-client_max_body_mb: 256
-```
-
-字段说明：
-
-- `model_path`：ONNX 模型路径。相对路径按配置文件所在目录解析。
-- `input_width` / `input_height`：模型输入宽高，对应 NCHW 中的 `W/H`。
-- `conf_threshold`：检测置信度阈值。
-- `iou_threshold`：NMS IoU 阈值。
-- `num_classes`：类别数量，应与 `class_names` 数量一致。
-- `class_names`：类别名称，接口返回时会根据 `class_id` 增加 `class_name`。
-- `thread_num`：ONNX Runtime intra-op 线程数，同时用于 Drogon 服务线程数。
-- `use_letterbox`：为 `true` 时自动将上传图片 letterbox 到模型输入尺寸；为 `false` 时要求上传图片尺寸严格等于 `input_width x input_height`。
-- `video_detect_fps`：视频强检测目标帧率。大于 `0` 时按源视频 FPS 自动计算抽帧间隔，例如 24 FPS 输入、`video_detect_fps: 4.0` 时每 6 帧跑一次 YOLO；跳过帧使用光流弱跟踪补齐。设为 `0` 时每帧都跑 YOLO。
-- `client_max_body_mb`：Drogon 接收上传请求体的最大大小，视频上传较大时需要调高。
-
-### 构建
-
-项目使用 CMake。当前 VSCode 配置中使用的是 `/root/vcpkg` 的 GCC15/vcpkg 环境：
-
-```bash
-cmake -S yolo_onnx_cpp -B build -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE=/root/vcpkg/scripts/buildsystems/vcpkg.cmake \
-  -DVCPKG_MANIFEST_MODE=OFF \
-  -DVCPKG_TARGET_TRIPLET=x64-linux-gcc15 \
-  -DVCPKG_HOST_TRIPLET=x64-linux-gcc15 \
-  -DVCPKG_OVERLAY_TRIPLETS=/root/vcpkg/custom-triplets \
-  -DCMAKE_C_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-gcc \
-  -DCMAKE_CXX_COMPILER=/root/vcpkg/.toolchains/gcc15/bin/x86_64-conda-linux-gnu-g++ \
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-cmake --build build
-```
-
-也可以直接使用 VSCode CMake Tools，配置来源见 `.vscode/settings.json`。做速度测试时建议确认 `build/CMakeCache.txt` 中 `CMAKE_BUILD_TYPE=Release`，否则 Debug 构建会显著拖慢视频推理。
-
-### 启动
-
-使用默认配置：
-
-```bash
-./build/yolo_api
-```
-
-指定配置文件：
-
-```bash
-./build/yolo_api yolo_onnx_cpp/config.yaml
-```
-
-服务默认监听：
-
-```text
-0.0.0.0:8080
-```
-
-### HTTP 推理接口
-
-#### 图片推理
-
-接口：
-
-```text
-POST /infer
-Content-Type: multipart/form-data
-form field: image
-```
-
-示例：
-
-```bash
-curl -X POST http://127.0.0.1:8080/infer \
-  -F "image=@/path/to/image.jpg"
-```
-
-返回示例：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "output_shapes": [[1, 300, 6]],
-  "detections": [
-    {
-      "class_id": 2,
-      "class_name": "car",
-      "score": 0.91,
-      "box": {
-        "x1": 100.0,
-        "y1": 120.0,
-        "x2": 260.0,
-        "y2": 220.0
-      }
-    }
-  ]
-}
-```
-
-错误返回：
-
-- `400`：表单解析失败、没有上传图片、图片解码失败，或在 `use_letterbox: false` 时图片尺寸不匹配。
-- `500`：模型推理或服务端内部异常。
-
-#### 视频抽帧强检测 + 光流弱跟踪
-
-接口：
-
-```text
-POST /infer_video
-Content-Type: multipart/form-data
-form field: video
-```
-
-示例：
-
-```bash
-curl -X POST http://127.0.0.1:8080/infer_video \
-  -F "video=@/path/to/video.mp4"
-```
-
-默认响应仍返回全部 `frames`，兼容已有测试脚本和调用方。长视频如果只需要统计信息，或只需要一段帧结果，可以通过查询参数裁剪响应体：
-
-- `include_frames`：`true` / `false`，默认 `true`。为 `false` 时仍返回统计、timing 和 `output_shapes`，但 `frames` 为空数组。
-- `frame_offset`：从 0 开始的返回帧偏移，默认 `0`。
-- `frame_limit`：返回帧数上限，必须为正整数；未传时返回 offset 之后全部帧。
-
-响应会额外包含分页元数据：
-
-- `frames_returned`：本次响应实际返回的帧数。
-- `frame_offset`：本次请求使用的帧偏移。
-- `frame_limit`：本次请求使用的帧数上限；未传时为 `null`。
-- `has_more_frames`：当前响应后是否还有未返回帧；`include_frames: false` 时，只要视频有帧就为 `true`。
-
-只取视频摘要：
-
-```bash
-curl -X POST "http://127.0.0.1:8080/infer_video?include_frames=false" \
-  -F "video=@/path/to/video.mp4"
-```
-
-只取第 10 帧开始的 5 帧结果：
-
-```bash
-curl -X POST "http://127.0.0.1:8080/infer_video?frame_offset=10&frame_limit=5" \
-  -F "video=@/path/to/video.mp4"
-```
-
-当前视频处理不是简单逐帧 YOLO，而是采用“异步模型强检测 + 弱跟踪 + 动态抽帧 + 兜底插值”：
-
-```text
-C++ OpenCV 读取原始视频每一帧
-        ↓
-按 source_fps / video_detect_fps 计算 base_frame_stride
-        ↓
-根据光流质量、轨迹变化和 base_frame_stride 动态决定是否调度模型强检测
-        ↓
-非强检测帧：LK 光流弱跟踪上一帧 track 框，并用 ByteTrack updateTracked 续轨
-        ↓
-异步模型推理返回后：根据帧间运动补偿检测框，再用 ByteTrack update 校正轨迹
-        ↓
-光流失败帧：检测关键帧之间 bbox 插值兜底
-        ↓
-生成 VideoInferResult，最终由 response_json.cpp 序列化为 JSON
-```
-
-例如源视频为 24 FPS，`video_detect_fps: 4.0` 时，基础间隔为 6 帧。稳定场景会接近每 6 帧调度一次模型推理；复杂运动、光流质量下降或轨迹突变时会临时缩短间隔，尽快用模型检测校正。这样可以保持最终展示仍为原始 24 FPS，同时避免每帧都跑完整模型。
-
-视频主流程在 `video/video_inference.cpp`，内部支撑逻辑在 `video/video_inference_detail.cpp`，LK 光流弱跟踪细节在 `video/optical_flow_tracker.cpp`。建议阅读顺序：
-
-- 先看 `inferVideoFile` 前半段：打开视频、计算 `base_frame_stride`、决定 `async_dynamic` / `sync_fixed` / `full_model` 等模式。
-- 再看 `inferVideoFile` 中部三个 lambda：`applyAsyncInferResult` 负责异步模型推理回来后的运动补偿和 ByteTrack 校正，`scheduleAsyncDetection` 负责把检测帧丢给后台 worker，`runSyncDetection` 是非异步模式下的直接模型检测。
-- 然后看主 `while (capture.read(frame))` 循环：每帧先做光流弱跟踪，再消费已完成的异步检测结果，最后决定是否调度下一次强检测。
-- 最后看 `video_inference_detail.cpp`：动态 stride、轨迹变化质量、插值兜底和结果统计都放在这里，主流程只调用这些结论。
-
-- `inferVideoFile` 是视频推理入口，返回结构体 `VideoInferResult`。
-- 每帧先调用 `weakTrackWithOpticalFlow(previous_gray, current_gray, previous_frame_tracks, ...)` 尝试快速续轨。
-- `weakTrackWithOpticalFlow` 在上一帧每个 track 框内用 `cv::goodFeaturesToTrack` 选角点，再用 `cv::calcOpticalFlowPyrLK` 追踪到当前帧。
-- 对每个 track 的角点位移取中位数，平移 bbox，生成带原 `track_id` 的弱跟踪框。
-- `ByteTracker::updateTracked` 按 `track_id` 更新已有轨迹状态，不创建新 ID。
-- `shouldRunScheduledDetection` 和光流质量评估决定是否调用 `scheduleAsyncDetection` 调度强检测。
-- 异步强检测完成后，`motionCompensatedDetections` 将检测框补偿到当前帧，再调用 `ByteTracker::update` 校正轨迹。
-
-响应 JSON 中的 `onnx_async`、`onnx_inference_ms`、`onnx_decode_nms_ms` 是历史兼容字段名；启用 OpenVINO 后也会继续填充这些字段，内部实现已使用 `model_*` 语义。
-
-返回示例：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "tracking_status": "active",
-  "fps": 24.0,
-  "source_fps": 24.0,
-  "target_detect_fps": 4.0,
-  "effective_detect_fps": 4.0,
-  "frame_stride": 6,
-  "stride_mode": "async_dynamic",
-  "onnx_async": true,
-  "base_frame_stride": 6,
-  "min_frame_stride_used": 2,
-  "max_frame_stride_used": 8,
-  "final_frame_stride": 6,
-  "width": 1280,
-  "height": 720,
-  "frame_count": 962,
-  "source_frame_count": 962,
-  "processed_frame_count": 161,
-  "display_frame_count": 962,
-  "detected_frame_count": 161,
-  "async_infer_request_count": 161,
-  "async_correction_count": 161,
-  "async_corrected_frame_count": 161,
-  "forced_detection_count": 12,
-  "scheduled_detection_count": 149,
-  "skipped_detection_count": 0,
-  "weak_tracked_frame_count": 801,
-  "interpolated_frame_count": 0,
-  "empty_frame_count": 0,
-  "output_shapes": [[1, 300, 6]],
-  "frames": [
-    {
-      "frame_index": 0,
-      "timestamp_ms": 0.0,
-      "is_detection_frame": true,
-      "tracks_source": "async_corrected",
-      "tracks": [
-        {
-          "track_id": 1,
-          "class_id": 2,
-          "class_name": "car",
-          "score": 0.91,
-          "box": {
-            "x1": 100.0,
-            "y1": 120.0,
-            "x2": 260.0,
-            "y2": 220.0
-          }
-        }
-      ]
-    },
-    {
-      "frame_index": 1,
-      "timestamp_ms": 41.67,
-      "is_detection_frame": false,
-      "tracks_source": "weak_tracked",
-      "tracks": []
-    }
-  ]
-}
-```
-
-`tracks_source` 取值说明：
-
-- `async_corrected`：该帧已用异步模型推理结果校正。
-- `detected`：兼容保留的强检测来源标记；当前异步视频流程通常使用 `async_corrected`。
-- `weak_tracked`：该帧没有跑完整模型，使用 LK 光流弱跟踪更新框。
-- `interpolated`：光流没有可用结果时，用相邻检测帧做 bbox 插值兜底。
-- `empty`：没有检测、弱跟踪或插值结果。
-
-错误返回：
-
-- `400`：表单解析失败、没有上传视频、视频无法打开、没有可读帧、没有采样帧被处理，或在 `use_letterbox: false` 时视频帧尺寸不匹配。
-- `500`：模型推理、临时视频文件写入或服务端内部异常。
-
-### 全帧模型推理与模型 + 光流对比实验
-
-对比实验入口为 `yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py`。脚本名和输出文件名里的 `onnx` 是历史命名；当前配置为 `.xml` + `model_backend: openvino` 时，同一套流程也可以用于 OpenVINO 后端。脚本会对同一个视频连续跑三次 `/infer_video`：
-
-- `full_onnx`：临时配置 `video_detect_fps: 0`，每一帧都跑模型推理，结果作为伪标签。
-- `dynamic_onnx_flow`：临时配置 `video_detect_fps: --flow-detect-fps`、`video_stride_mode: dynamic`，强检测帧跑模型推理，跳过帧使用 LK 光流弱跟踪，并允许运行时调整 stride。
-- `fixed_onnx_flow`：临时配置 `video_detect_fps: --fixed-flow-detect-fps`、`video_stride_mode: fixed`，用固定 stride 跑模型推理 + 光流；未显式传入时复用 `--flow-detect-fps`。
-- 对比方式：按帧、按类别做贪心 IoU 匹配，输出 precision、recall、F1、mean matched IoU、FP/FN，并按 `tracks_source` 和类别拆分统计。
-
-示例命令：
-
-```bash
-python3 yolo_onnx_cpp/test/compare_full_onnx_vs_flow.py \
-  --video yolo_onnx_cpp/test_outputs/video_tracking/00a0f008-3c67908e_fullfps24_20260608_003610/00a0f008-3c67908e_24fps_mjpeg.avi \
-  --flow-detect-fps 4 \
-  --iou-thresholds 0.3,0.5,0.7
-```
-
-注意：如果输入视频本身 FPS 不高，且 `source_fps <= --flow-detect-fps`，服务端会得到 `frame_stride=1`，此时模型 + 光流实际不会跳帧，无法体现光流方案的性能收益。24 FPS 视频配 `--flow-detect-fps 4` 时会每 6 帧跑一次模型推理，其余帧走光流弱跟踪。
-
-脚本默认输出到 `yolo_onnx_cpp/test_outputs/video_compare/<video_stem>_full_dynamic_fixed_onnx_flow_<timestamp>/`，主要产物包括：
-
-- `full_onnx_infer_video_response.json`：全帧模型推理原始响应。
-- `full_onnx_pseudo_labels.jsonl`：由全帧模型推理生成的逐帧伪标签，便于后续复用。
-- `dynamic_onnx_flow_infer_video_response.json`：动态 stride 模型 + 光流原始响应。
-- `fixed_onnx_flow_infer_video_response.json`：固定 stride 模型 + 光流原始响应。
-- `comparison.json`：机器可读的效果和性能指标。
-- `comparison.md`：便于阅读的实验摘要。
-- `full_onnx_config.yaml` / `dynamic_onnx_flow_config.yaml` / `fixed_onnx_flow_config.yaml`：本次实验实际使用的临时配置。
-- `full_onnx_detections.mp4` / `dynamic_onnx_flow_detections.mp4` / `fixed_onnx_flow_detections.mp4`：逐帧画框和 track id 的可视化视频；传入 `--no-save-videos` 时不会自动生成，但可用已保存响应补渲染。
-
-`comparison.json` 中需要重点看：
-
-- `runs.<run>.unique_track_count`：该 run 内出现过的唯一 track id 数量，便于观察 ID 碎片化是否下降。
-- `performance_vs_full_onnx.<run>.elapsed_speedup_full_over_run`：全帧模型推理耗时 / 指定模型 + 光流 run 耗时，大于 1 表示该 run 更快。
-- `performance_vs_full_onnx.<run>.onnx_frame_reduction_ratio`：指定 run 少跑完整模型推理的帧比例。
-- `performance_vs_full_onnx.<run>.full_onnx_display_fps` / `run_display_fps`：端到端展示帧吞吐，包含上传、服务端处理和 JSON 响应读取。
-- `quality_vs_full_onnx_labels.<run>[].overall`：以全帧模型推理为伪标签的总体 precision、recall、F1 和 IoU。
-- `quality_vs_full_onnx_labels.<run>[].by_flow_frame_source`：分别查看强检测帧、光流帧、插值帧的匹配质量。
-- `quality_vs_full_onnx_labels.<run>[].by_class`：按类别查看误差来源。
-
-这里的全帧模型推理只是伪标签，不等价于人工标注真值；该实验用于衡量“少跑完整模型 + 光流补帧”相对全帧模型推理的一致性和端到端性能收益。
-
-#### 2026-06-15 ByteTrack 升级验证
-
-使用 `yolo_onnx_cpp/test_outputs/video_inputs/02a46296-f95ec53f_full_mjpeg.avi` 重新跑 `compare_full_onnx_vs_flow.py --flow-detect-fps 4 --iou-thresholds 0.3,0.5,0.7 --no-save-videos`，输出目录为：
-
-`yolo_onnx_cpp/test_outputs/video_compare/02a46296-f95ec53f_full_mjpeg_full_dynamic_fixed_onnx_flow_20260615_083955/`
-
-本次推理阶段使用了 `--no-save-videos`，随后用已保存的 `*_infer_video_response.json` 补渲染了可视化视频，并回填到 `comparison.json` / `comparison.md`：
-
-- `full_onnx_detections.mp4`
-- `dynamic_onnx_flow_detections.mp4`
-- `fixed_onnx_flow_detections.mp4`
-
-与 `20260608_121415` 的旧结果相比，唯一 track id 数量明显下降：
-
-| run | 旧 unique track ids | 新 unique track ids | 变化 |
-| --- | ---: | ---: | ---: |
-| `full_onnx` | 774 | 395 | -379 (-48.97%) |
-| `dynamic_onnx_flow` | 517 | 286 | -231 (-44.68%) |
-| `fixed_onnx_flow` | 420 | 272 | -148 (-35.24%) |
-
-这说明完整 ByteTrack 匹配逻辑后，ID 碎片化有明显改善。需要注意的是，质量指标仍以当前 `full_onnx` 作为伪标签，因此跨版本比较 precision/recall 时要同时看伪标签本身是否变化。
-
-### 代码流程
-
-#### image / OpenCV
-
-- `preprocessImageContent`：读取上传图片内容，按配置决定是否 letterbox，并生成 `TensorInput`。
-- `preprocessImageMat`：处理已读取的 `cv::Mat`，供图片解码后和视频逐帧推理共用。
-- `preprocessImage`：执行 `BGR -> RGB`、归一化到 `[0, 1]`、转 NCHW float tensor。
-- `decode`：解析 ONNX 输出。当前优先匹配 `output0(1, 300, 6)`，并按 `[x1, y1, x2, y2, score, class_id]` 转成 `Detection`；同时保留旧 YOLO 原始输出的兼容解析。
-
-#### ONNX Runtime
-
-- `YoloEngine` 初始化时根据配置加载 `model_path`。
-- `infer` 执行 ONNX Runtime 推理，记录 `output_shapes`，并将输出解码成检测框。
-- `conf_threshold` 和 `iou_threshold` 均来自配置文件。
-
-#### Drogon / response_json
-
-- `runApiServer` 注册 `/infer` 和 `/infer_video` 接口并启动 HTTP 服务。
-- `/infer` 接收图片文件，`/infer_video` 接收视频文件；接口接收的是上传文件内容，不是本地路径字符串。
-- `api_server.cpp` 不承载视频推理细节，只负责请求解析、临时文件管理、调用 `inferVideoFile` 和返回响应。
-- `response_json.cpp` 负责最终序列化：`InferResult` 转 `/infer` 响应，`VideoInferResult` 转 `/infer_video` 响应。
-- `/infer_video` 默认序列化全部 `frames`；也支持 `include_frames`、`frame_offset` 和 `frame_limit` 查询参数，用于只返回摘要或一段帧结果。
-- 响应中的 `detections` 包含 `class_id`、可选 `class_name`、`score` 和 `box`。
-- 视频响应中的 `frames[].tracks` 包含 `track_id`、`class_id`、可选 `class_name`、`score` 和 `box`。
-- 视频响应中的 `frames[].is_detection_frame` 和 `frames[].tracks_source` 用于区分强检测帧、光流弱跟踪帧和插值兜底帧。
-
-#### video / 内部结构体
-
-- `VideoFrameTracks` 保存单帧视频结果：`frame_index`、`timestamp_ms`、检测帧标记、校正延迟、`tracks_source` 和 `std::vector<TrackedDetection>`。
-- `VideoInferResult` 保存视频响应所需的全部统计信息、`output_shapes` 和逐帧 `VideoFrameTracks`。
-- `video_inference.cpp` 只负责把这些状态串成流程：读帧、弱跟踪、消费异步结果、调度强检测、收尾汇总。
-- `video_inference_detail.cpp` 负责不直接表达主流程的辅助逻辑：`AsyncInferWorker`、`DynamicStrideState`、`TrackChangeQuality`、检测帧间插值和 `fillVideoSummary`。
-- 视频推理过程中不构造逐帧 JSON；`frames` 和 `tracks` 都是结构体容器，直到 HTTP 响应阶段才由 `response_json.cpp` 转 JSON。
-
-#### tracking / ByteTrack 与光流弱跟踪
-
-- `ByteTracker::update` 维护视频请求内的强检测轨迹状态，当前已升级为完整 ByteTrack 风格流程：Kalman 状态为 `[cx, cy, a, h, vx, vy, va, vh]`，每帧先预测 `Tracked/Lost` 轨迹，再把检测按高低置信度分段匹配。
-- 第一阶段用 Hungarian 匹配 `Tracked + Lost` 轨迹和高置信检测，并融合检测分数；第二阶段只用仍未匹配的 active 轨迹匹配低置信检测。
-- 未确认轨迹会单独和剩余高置信检测匹配；仍未匹配的高置信检测才创建新 `track_id`。
-- 轨迹生命周期包含 `Tracked`、`Lost`、`Removed`，并通过 `track_buffer` 保留短暂丢失轨迹；同类高 IoU 重复轨迹会按轨迹寿命移除较短的一条。
-- 匹配仍保留类别约束，避免不同类别之间抢占同一个 ID。
-- `ByteTracker::updateTracked` 接收已经带有 `track_id` 的弱跟踪框，只更新已有轨迹的 Kalman 状态和生命周期，不创建新轨迹。它用于跳过帧的光流弱跟踪结果。
-- `weakTrackWithOpticalFlow` 在上一帧 track 框内选角点，使用双向 LK 光流计算逐轨迹有效点率、FB error、位移中位数、位移离散度、运动比例和边界裁剪；只有通过逐轨迹门控的结果才平移 bbox，宽高保持不变。
-- 光流弱跟踪只负责短间隔平移，detector score 不会被旧光流结果当作当前置信度复用；flow-only age、边界退出和背景 global motion 都有独立门控，强检测帧仍由 YOLO 定期或按质量紧急校正。
-
-### 后续优化方向
-
-- 长视频生产接口可继续演进为异步任务、结果文件分页读取或流式 JSON，避免服务端和客户端都等待一次性完整响应。
-- 可补充 `preprocess_ms`、`json_serialization_ms`、响应字节数等指标，把非 ONNX 耗时拆清楚。
-- 可评估 worker-local tensor scratch buffer，减少每帧 `std::vector<float>` 分配；需要先明确并发推理模型。
-- 后端加速建议单独推进 INT8、CUDA/TensorRT 或其它 ONNX Runtime execution provider，和当前 CPU 部署边界分开验证。
-- 视频质量参数可继续用 `compare_full_onnx_vs_flow.py` 扫描不同 `video_detect_fps`、dynamic/fixed stride 和类别跟踪策略。
-
-### 注意事项
-
-- `model/onnx.py` 当前导出参数里 `nms=False`，这种导出通常不是 `output0(1, 300, 6)`。如果部署使用 `[1,300,6]` 输出的模型，需要确认导出的 ONNX 已包含 NMS 或经过后处理导出。
-- `model_path` 指向的模型文件需要存在，例如 `yolo_onnx_cpp/deploy/best.onnx`。
-- 如果 `num_classes` 和 `class_names` 同时配置，两者数量必须一致。
-- `/infer_video` 默认会把原始展示帧都放进一次 JSON 响应，即使 ONNX 只处理抽帧点，长视频响应体仍会较大；只需要摘要或局部帧时应使用 `include_frames=false` 或 `frame_offset` / `frame_limit`。
-- `.mov` / `.qt` 视频会优先尝试 OpenCV FFmpeg 后端；如果仍无法打开，先确认 vcpkg 中安装的是 `opencv4[ffmpeg]`，或将输入转码为当前 OpenCV 后端可读的 mp4/avi。
-- LK 光流弱跟踪适合短间隔跳过帧。若 `video_detect_fps` 过低、目标快速形变、严重遮挡或相机剧烈运动，仍可能出现漂移；此时应提高强检测帧率或只对 `car/truck/bus/person/rider/motor/bike` 等动态类别做跟踪。
+~~~
+
+Qt 检查失败时应阅读输出；不要改用系统 Qt，也不要在 qt_ui 下生成独立 vcpkg_installed。
+
+## 当前限制与开放问题
+
+1. **视频 HTTP 请求仍是同步的。** 内部 worker 异步不改变外部等待方式。
+2. **默认响应可能很大。** 摘要模式减少响应大小，但不减少推理工作。
+3. **没有任务持久化和续传。** 进程退出、断线或重试都不能恢复任务。
+4. **没有独立健康检查。** 端口可达不等于模型 ready。
+5. **前端尚未选择 High/Low endpoint。**
+6. **YOLO26 端到端输出后仍执行兼容 NMS。** 需要用拥挤交通场景 A/B 回归后再决定是否跳过。
+7. **两个性能目标尚未达到。** weak-tracked mean IoU 为 0.8614，目标 0.88；pooled FPS 为 24.71，目标 28。
+8. **全帧模型结果只是伪标签。** 它不能替代人工标注评估。
+下一步最有价值的演进不是继续增加字段，而是把长视频改为可查询的异步任务，明确结果持久化边界，再决定是否增加 SSE 进度流、任务恢复和结果分页存储。

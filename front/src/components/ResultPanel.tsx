@@ -2,224 +2,222 @@ import type {
   DetectionResult,
   EventLogEntry,
   FrameResult,
+  HighLowDiagnostics,
+  RuntimeDetails,
   TrackResult,
   VisionTaskStatus,
 } from "../types/vision";
+import { EventLog } from "./EventLog";
 
 interface ResultPanelProps {
   frame: FrameResult;
   tracks: TrackResult[];
   events: EventLogEntry[];
+  runtime: RuntimeDetails;
   selectedTrackId: number;
   confidenceThreshold: number;
   status: VisionTaskStatus;
   onSelectTrack: (trackId: number) => void;
 }
 
-function formatConfidence(value: number) {
-  return value.toFixed(2);
+const formatTrackId = (trackId?: number) =>
+  trackId === undefined ? "#--" : "#" + trackId.toString().padStart(2, "0");
+
+const notReported = (value: string | number | undefined) =>
+  value === undefined || value === "" ? "not reported" : String(value);
+
+function TraceField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[95px_minmax(0,1fr)] gap-2 py-1.5 text-[9px]">
+      <dt className="text-[#8a93a3]">{label}</dt>
+      <dd className="min-w-0 break-words font-mono text-[#3d485b]">{value}</dd>
+    </div>
+  );
 }
 
-function formatTrackId(trackId?: number) {
-  return trackId === undefined ? "#--" : "#" + trackId.toString().padStart(2, "0");
-}
-
-function getTrackColor(tracks: TrackResult[], trackId?: number) {
-  return tracks.find((track) => track.trackId === trackId)?.color ?? "#0f766e";
-}
-
-function findSelectedDetection(
-  detections: DetectionResult[],
-  selectedTrackId: number,
-) {
-  return detections.find((detection) => detection.trackId === selectedTrackId);
-}
+const diagnosticLabels: Partial<Record<keyof HighLowDiagnostics, string>> = {
+  stableTrackCount: "stable",
+  provisionalTrackCount: "provisional",
+  maxStableTrackCount: "peak stable",
+  maxProvisionalTrackCount: "peak provisional",
+  provisionalCreatedCount: "provisional created",
+  provisionalPromotedCount: "provisional promoted",
+  provisionalExpiredCount: "provisional expired",
+  provisionalDeduplicatedCount: "provisional deduplicated",
+  stableStableDuplicateCount: "stable/stable merged",
+  stableProvisionalDuplicateCount: "stable/provisional merged",
+  provisionalProvisionalDuplicateCount: "provisional/provisional merged",
+  lowResGeometryRejectionCount: "geometry conflict",
+  lowResClassConflictCount: "class conflict",
+  flowRejectedTrackCount: "flow rejected",
+  flowLowPointRejectionCount: "flow low points",
+  flowForwardBackwardRejectionCount: "flow FB rejection",
+  flowMotionDispersionRejectionCount: "flow dispersion",
+  flowMotionJumpRejectionCount: "flow jump",
+  flowBoundaryRejectionCount: "flow boundary",
+  directFlowUpdateCount: "direct flow updates",
+  globalFlowUpdateCount: "global flow updates",
+  urgentLowResDetectionCount: "urgent low detection",
+  urgentHighResDetectionCount: "urgent high detection",
+};
 
 export function ResultPanel({
   frame,
   tracks,
   events,
+  runtime,
   selectedTrackId,
   confidenceThreshold,
   status,
   onSelectTrack,
 }: ResultPanelProps) {
-  const sortedDetections = [...frame.detections].sort((a, b) => b.confidence - a.confidence);
-  const selectedDetection = findSelectedDetection(frame.detections, selectedTrackId);
-  const selectedTrack = tracks.find((track) => track.trackId === selectedTrackId);
-  const visibleTrackIds = new Set(
-    frame.detections.flatMap((detection) =>
-      detection.trackId === undefined ? [] : [detection.trackId],
-    ),
+  const detections = [...frame.detections].sort((a, b) => b.confidence - a.confidence);
+  const selectedDetection: DetectionResult | undefined = frame.detections.find(
+    (item) => item.trackId === selectedTrackId,
   );
-  const isProcessing = status === "detecting" || status === "tracking";
+  const selectedTrack = tracks.find((item) => item.trackId === selectedTrackId);
+  const visible = selectedDetection !== undefined;
+  const diagnostics = runtime.highLowDiagnostics;
+  const diagnosticEntries = diagnostics
+    ? (Object.entries(diagnostics) as [keyof HighLowDiagnostics, number][])
+        .filter(([key]) => diagnosticLabels[key] !== undefined)
+    : [];
+
   const emptyMessage =
-    status === "uploading"
-      ? "Run inference to populate detections."
-      : status === "failed"
-        ? "Inference failed. Check the canvas message."
-        : isProcessing
-          ? "Waiting for inference output."
-          : "No detections above threshold.";
+    status === "idle"
+      ? "No response mapped."
+      : status === "uploading"
+        ? "Media staged. Run inference to map objects."
+        : status === "failed"
+          ? "Request failed. Inspect the run event."
+          : status === "detecting" || status === "tracking"
+            ? "Awaiting the HTTP response."
+            : "No detections above the UI score filter.";
 
   return (
-    <aside className="flex min-h-0 w-full flex-col border-t border-slate-200 bg-white lg:w-[320px] lg:border-l lg:border-t-0">
-      <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-950">Objects</h2>
-          <p className="text-[11px] text-slate-500">
-            conf {confidenceThreshold.toFixed(2)} · frame {frame.frameIndex}
-          </p>
+    <aside className="vision-scrollbar min-h-0 overflow-y-auto border-l border-[#d9dde5] bg-[#fbfcfd]">
+      <section className="border-b border-[#d9dde5]">
+        <div className="flex h-10 items-center justify-between px-3">
+          <h2 className="text-[11px] font-semibold text-[#263247]">Objects</h2>
+          <span className="font-mono text-[8px] text-[#8a93a3]">
+            frame {frame.frameIndex} / conf {confidenceThreshold.toFixed(2)}
+          </span>
         </div>
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-medium text-slate-700">
-          {frame.objectCount} / {frame.tracks.length}
-        </div>
-      </div>
-
-      <div className="vision-scrollbar min-h-0 flex-1 overflow-y-auto">
-        {sortedDetections.length === 0 ? (
-          <div className="m-4 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
+        {detections.length === 0 ? (
+          <p className="border-t border-[#e4e7ec] px-3 py-4 text-[9px] leading-4 text-[#8490a2]">
             {emptyMessage}
-          </div>
+          </p>
         ) : (
-          <div className="divide-y divide-slate-100">
-            {sortedDetections.map((detection) => {
+          <div className="border-t border-[#e4e7ec]">
+            {detections.map((detection) => {
               const selected = detection.trackId === selectedTrackId;
-              const trackColor = getTrackColor(tracks, detection.trackId);
-
               return (
                 <button
                   key={detection.id}
                   type="button"
-                  onClick={() =>
-                    detection.trackId !== undefined && onSelectTrack(detection.trackId)
-                  }
+                  onClick={() => detection.trackId !== undefined && onSelectTrack(detection.trackId)}
                   className={
-                    "flex w-full items-center gap-2 px-4 py-2.5 text-left transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-600 active:translate-y-px " +
-                    (selected ? "bg-teal-50" : "hover:bg-slate-50")
+                    "grid w-full grid-cols-[4px_42px_minmax(0,1fr)_42px] items-center gap-2 border-b border-[#eceef2] px-3 py-2 text-left transition-colors hover:bg-[#f5f7fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3559a8] active:translate-y-px " +
+                    (selected ? "border-l-[#3559a8]" : "border-l-transparent")
                   }
                 >
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: trackColor }}
-                  />
-                  <span className="w-9 shrink-0 font-mono text-[11px] font-semibold text-slate-700">
+                  <span className={selected ? "h-full bg-[#3559a8]" : "h-full bg-transparent"} />
+                  <span className="font-mono text-[9px] font-semibold text-[#3d485b]">
                     {formatTrackId(detection.trackId)}
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-800">
-                    {detection.className}
+                  <span className="min-w-0">
+                    <span className="block truncate text-[9px] font-medium text-[#3b4659]">
+                      {detection.className}
+                    </span>
+                    <span className="block truncate font-mono text-[8px] text-[#8a93a3]">
+                      {frame.tracksSource} / visible
+                    </span>
                   </span>
-                  <span className="font-mono text-[11px] font-medium text-teal-700">
-                    {formatConfidence(detection.confidence)}
+                  <span className="text-right font-mono text-[9px] text-[#3559a8]">
+                    {detection.confidence.toFixed(2)}
                   </span>
                 </button>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="border-t border-slate-200 bg-slate-50 p-4">
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold text-slate-950">Run log</h3>
-            <span className="font-mono text-[10px] text-slate-500">{events.length} entries</span>
-          </div>
-          <div className="space-y-1.5">
-            {events.slice(0, 3).map((event) => (
-              <article
-                key={event.id}
-                className="rounded-md border border-slate-200 bg-white px-2.5 py-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={
-                      "h-1.5 w-1.5 rounded-full " +
-                      (event.level === "warning"
-                        ? "bg-amber-500"
-                        : event.level === "success"
-                          ? "bg-emerald-500"
-                          : "bg-sky-500")
-                    }
-                  />
-                  <span className="font-mono text-[10px] text-slate-500">{event.time}</span>
-                  <span className="min-w-0 truncate text-[11px] font-semibold text-slate-800">
-                    {event.message}
-                  </span>
-                </div>
-                <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-500">
-                  {event.detail}
-                </p>
-              </article>
-            ))}
-          </div>
+      <section className="border-b border-[#d9dde5] px-3 py-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[11px] font-semibold text-[#263247]">Track Trace</h3>
+          {selectedTrack && (
+            <span className="font-mono text-[9px] font-semibold text-[#3559a8]">
+              {formatTrackId(selectedTrack.trackId)}
+            </span>
+          )}
         </div>
-
         {selectedTrack ? (
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex min-w-0 items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: selectedTrack.color }}
-                />
-                <span className="truncate text-xs font-semibold text-slate-950">
-                  {formatTrackId(selectedTrack.trackId)} {selectedTrack.className}
-                </span>
-              </div>
-              <span
-                className={
-                  "rounded-md border px-1.5 py-0.5 font-mono text-[10px] " +
-                  (visibleTrackIds.has(selectedTrack.trackId)
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 bg-white text-slate-500")
-                }
-              >
-                {visibleTrackIds.has(selectedTrack.trackId) ? "live" : "off"}
-              </span>
-            </div>
-
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
-              <div>
-                <dt className="text-slate-500">frames</dt>
-                <dd className="font-mono font-medium text-slate-800">
-                  {selectedTrack.firstFrame}-{selectedTrack.lastFrame}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">speed</dt>
-                <dd className="font-mono font-medium text-slate-800">{selectedTrack.speedKmh} km/h</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">region</dt>
-                <dd className="truncate font-medium text-slate-800">{selectedTrack.region}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">status</dt>
-                <dd className="font-mono font-medium text-slate-800">{selectedTrack.status}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="text-slate-500">bbox</dt>
-                <dd className="truncate font-mono font-medium text-slate-800">
-                  {selectedDetection
-                    ? "[" +
-                      selectedDetection.bbox.x.toFixed(0) +
-                      ", " +
-                      selectedDetection.bbox.y.toFixed(0) +
-                      ", " +
-                      selectedDetection.bbox.width.toFixed(0) +
-                      ", " +
-                      selectedDetection.bbox.height.toFixed(0) +
-                      "]"
-                    : "not visible on frame"}
-                </dd>
-              </div>
-            </dl>
-          </div>
+          <dl className="mt-2">
+            <TraceField label="class" value={selectedTrack.className} />
+            <TraceField label="first_frame" value={String(selectedTrack.firstFrame)} />
+            <TraceField label="last_frame" value={String(selectedTrack.lastFrame)} />
+            <TraceField label="current frame" value={String(frame.frameIndex)} />
+            <TraceField label="average conf" value={selectedTrack.averageConfidence.toFixed(3)} />
+            <TraceField label="status" value={visible ? "active" : selectedTrack.status} />
+            <TraceField label="visibility" value={visible ? "visible" : "not visible"} />
+            <TraceField label="tracks_source" value={notReported(frame.tracksSource)} />
+            <TraceField
+              label="provided by"
+              value={
+                frame.tracksSource === "weak_tracked"
+                  ? "LK Optical Flow + ByteTrack"
+                  : frame.tracksSource === "interpolated"
+                    ? "bbox interpolation"
+                    : frame.tracksSource === "detected" || frame.tracksSource === "async_corrected"
+                      ? "model detection + ByteTrack"
+                      : "not reported"
+              }
+            />
+            <TraceField
+              label="bbox"
+              value={
+                selectedDetection
+                  ? "[" +
+                    selectedDetection.bbox.x.toFixed(1) + ", " +
+                    selectedDetection.bbox.y.toFixed(1) + ", " +
+                    selectedDetection.bbox.width.toFixed(1) + ", " +
+                    selectedDetection.bbox.height.toFixed(1) + "] %"
+                  : "not visible on current frame"
+              }
+            />
+          </dl>
         ) : (
-          <p className="text-xs text-slate-500">Select a detection to inspect its track.</p>
+          <p className="mt-3 text-[9px] leading-4 text-[#8992a2]">
+            Select a detection box or object row to inspect its lifecycle.
+          </p>
         )}
-      </div>
+      </section>
+
+      <section id="diagnostics" className="border-b border-[#d9dde5] px-3 py-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[11px] font-semibold text-[#263247]">High/Low diagnostics</h3>
+          <span className="font-mono text-[8px] text-[#8a93a3]">
+            {diagnostics ? "response" : "optional"}
+          </span>
+        </div>
+        {diagnosticEntries.length > 0 ? (
+          <dl className="mt-2 grid grid-cols-2 gap-x-3">
+            {diagnosticEntries.map(([key, value]) => (
+              <div key={key} className="border-b border-[#eceef2] py-1.5">
+                <dt className="truncate text-[8px] text-[#8a93a3]">{diagnosticLabels[key]}</dt>
+                <dd className="mt-0.5 font-mono text-[9px] text-[#3d485b]">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="mt-3 text-[9px] leading-4 text-[#8992a2]">
+            high_low_diagnostics not reported in the current response.
+          </p>
+        )}
+      </section>
+
+      <EventLog events={events} />
     </aside>
   );
 }

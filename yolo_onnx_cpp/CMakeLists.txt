@@ -79,7 +79,10 @@ message(STATUS "YOLO resolved config path: ${YOLO_RESOLVED_CONFIG_PATH}")
 
 add_executable(yolo_api
     config/app_config.cpp
+    drogon/api_gateway.cpp
     drogon/api_server.cpp
+    drogon/inference_handlers.cpp
+    drogon/request_utils.cpp
     drogon/response_json.cpp
     image/image_processing.cpp
     main.cpp
@@ -288,4 +291,21 @@ if(BUILD_TESTING)
     )
 
     add_test(NAME response_json_test COMMAND response_json_test)
+
+    add_executable(api_gateway_contract_test
+        drogon/request_utils.cpp
+        test_cpp/api_gateway_contract_test.cpp
+    )
+
+    target_include_directories(api_gateway_contract_test PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    target_compile_options(api_gateway_contract_test PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+    add_test(NAME api_gateway_contract_test COMMAND api_gateway_contract_test)
 endif()

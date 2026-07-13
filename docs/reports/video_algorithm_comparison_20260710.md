@@ -33,15 +33,15 @@
 - `00268999-cb063914`：夜间城市/低照度，1194 帧，约 39.723 秒。
 - `012fdff1-9d1d0d1d`：雨天/挡风玻璃干扰，1207 帧，约 40.202 秒。
 
-## 3. VS Code 可直接播放的视频
+## 3. 场景结果与本地视频
 
-全部视频均经 FFprobe 验证为 H.264、`yuv420p`、`faststart` MP4。六宫格布局依次为：原视频、全帧高分辨率、高分辨率动态、高分辨率固定、低分辨率动态、集成 High/Low。
+大型 MP4 不进入 `docs/` 或版本管理，仍由测试脚本保存在 `yolo_onnx_cpp/test_outputs/`。这里保留可复核的 Markdown 和 JSON 摘要：
 
-| 场景 | 六宫格 | full_high | high_dynamic | high_fixed | low_dynamic | High/Low |
-| --- | --- | --- | --- | --- | --- | --- |
-| 白天高速/常规车流 | [六宫格](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/all_modes_comparison_grid.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/full_high_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/high_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/high_fixed_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/low_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/integrated_high_low_flow_detections.mp4) |
-| 夜间城市/低照度 | [六宫格](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/all_modes_comparison_grid.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/full_high_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/high_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/high_fixed_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/low_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/integrated_high_low_flow_detections.mp4) |
-| 雨天/挡风玻璃干扰 | [六宫格](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/all_modes_comparison_grid.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/full_high_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/high_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/high_fixed_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/low_dynamic_flow_detections.mp4) | [视频](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/integrated_high_low_flow_detections.mp4) |
+| 场景 | 版本化结果 |
+| --- | --- |
+| 白天高速/常规车流 | [comparison.md](../test-results/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/comparison.md) |
+| 夜间城市/低照度 | [comparison.md](../test-results/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/comparison.md) |
+| 雨天/挡风玻璃干扰 | [comparison.md](../test-results/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/comparison.md) |
 
 ## 4. 总体性能
 
@@ -207,10 +207,10 @@ precision、recall、F1 都是相对 `full_high` 的一致性指标，继承了�
 
 ## 10. 产物与复现
 
-- 聚合 JSON：[aggregate_comparison.json](test_outputs/video_compare/video_algorithm_report_20260710/aggregate_comparison.json)
-- 白天高速/常规车流：[comparison.md](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/comparison.md) / [comparison.json](test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/comparison.json)
-- 夜间城市/低照度：[comparison.md](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/comparison.md) / [comparison.json](test_outputs/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/comparison.json)
-- 雨天/挡风玻璃干扰：[comparison.md](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/comparison.md) / [comparison.json](test_outputs/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/comparison.json)
+- 聚合 JSON：[aggregate_comparison.json](../test-results/video_compare/video_algorithm_report_20260710/aggregate_comparison.json)
+- 白天高速/常规车流：[comparison.md](../test-results/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/comparison.md) / [comparison.json](../test-results/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/comparison.json)
+- 夜间城市/低照度：[comparison.md](../test-results/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/comparison.md) / [comparison.json](../test-results/video_compare/video_algorithm_report_20260710/00268999-cb063914_20260710_063010/comparison.json)
+- 雨天/挡风玻璃干扰：[comparison.md](../test-results/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/comparison.md) / [comparison.json](../test-results/video_compare/video_algorithm_report_20260710/012fdff1-9d1d0d1d_20260710_064015/comparison.json)
 - 构建：`cd yolo_onnx_cpp && cmake --preset vcpkg-gcc15-release && cmake --build --preset vcpkg-gcc15-release`
 - 测试：`ctest --test-dir build --output-on-failure`
 - 对比脚本：`conda run -n yolo python yolo_onnx_cpp/test/compare_yolo_high_low_flow.py --video <raw.mov>`

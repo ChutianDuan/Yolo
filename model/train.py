@@ -8,7 +8,7 @@ from pathlib import Path
 from statistics import median
 from typing import Dict, List, Optional, Sequence, Tuple
 
-CUDA_VISIBLE_DEVICES = "3,4"
+CUDA_VISIBLE_DEVICES = "4,5"
 os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
 
 import torch
@@ -64,7 +64,7 @@ class TrainConfig:
     epochs: int = 100
     imgsz: Tuple[int, int] = IMG_SIZE
     batch: int = 64
-    device: str = "0,1"  # Logical devices mapped to physical GPUs 3 and 4.
+    device: str = "0,1"  # Logical devices mapped to physical GPUs 4 and 5.
     workers: int = min(8, os.cpu_count() or 8)
     seed: int = 42
 

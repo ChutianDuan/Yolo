@@ -1,172 +1,147 @@
-import { Rows, Waveform } from "@phosphor-icons/react";
-import type { FrameResult, TrackResult } from "../types/vision";
+import { Pause, Play, SkipBack, SkipForward } from "@phosphor-icons/react";
+import type { FrameResult, TrackResult, VisionTaskStatus } from "../types/vision";
 
 interface TrackingTimelineProps {
   frameResults: FrameResult[];
   tracks: TrackResult[];
   currentFrame: number;
   selectedTrackId: number;
+  isPlaying: boolean;
+  status: VisionTaskStatus;
   onFrameChange: (frameIndex: number) => void;
-  onSelectTrack: (trackId: number) => void;
+  onTogglePlayback: () => void;
 }
 
-const formatTrackId = (trackId: number) =>
-  "#" + trackId.toString().padStart(2, "0");
+const sourceStyle: Record<FrameResult["tracksSource"], string> = {
+  async_corrected: "border-t-2 border-solid border-[#526f9e] bg-[#526f9e]/25",
+  detected: "border-t-2 border-solid border-[#6a7588] bg-[#6a7588]/20",
+  weak_tracked: "border-t-2 border-dashed border-[#7b879a] bg-[#7b879a]/10",
+  interpolated: "border-t-2 border-dotted border-[#8791a2] bg-transparent",
+  empty: "border-t border-[#cfd5df] bg-transparent opacity-50",
+  not_reported: "border-t border-[#b9c0cc] bg-transparent",
+};
+
+const control =
+  "inline-flex h-7 items-center justify-center rounded-md border border-[#cfd5df] bg-white px-2 text-[#4d596d] transition-colors hover:bg-[#f1f3f6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3559a8] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40";
 
 export function TrackingTimeline({
   frameResults,
   tracks,
   currentFrame,
   selectedTrackId,
+  isPlaying,
+  status,
   onFrameChange,
-  onSelectTrack,
+  onTogglePlayback,
 }: TrackingTimelineProps) {
   const frameCount = frameResults.length;
-  const maxObjects = Math.max(...frameResults.map((frame) => frame.objectCount), 1);
-  const currentPercent = (currentFrame / Math.max(frameCount - 1, 1)) * 100;
-  const rulerFrames = [0, Math.floor((frameCount - 1) * 0.25), Math.floor((frameCount - 1) * 0.5), Math.floor((frameCount - 1) * 0.75), frameCount - 1];
+  const frame = frameResults[currentFrame] ?? frameResults[0];
+  const selectedTrack = tracks.find((track) => track.trackId === selectedTrackId);
+  const canStep = frameCount > 1;
+  const busy = status === "detecting" || status === "tracking";
+  const maxObjects = frameResults.reduce(
+    (maximum, item) => Math.max(maximum, item.objectCount),
+    1,
+  );
+  const position = (currentFrame / Math.max(frameCount - 1, 1)) * 100;
+  const lastFrameIndex = frameResults[frameResults.length - 1]?.frameIndex ?? 0;
+  const trackStart = selectedTrack
+    ? (selectedTrack.firstFrame / Math.max(lastFrameIndex, 1)) * 100
+    : 0;
+  const trackWidth = selectedTrack
+    ? ((selectedTrack.lastFrame - selectedTrack.firstFrame + 1) /
+        Math.max(lastFrameIndex + 1, 1)) * 100
+    : 0;
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-[#0c1117] p-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-50">
-            <Waveform size={17} className="text-teal-300" />
-            Frame timeline
+    <section id="timeline" className="border-t border-[#d9dde5] bg-[#fbfcfd] px-3 py-2.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className={control}
+          onClick={() => onFrameChange(Math.max(currentFrame - 1, 0))}
+          disabled={!canStep || busy}
+          aria-label="Previous frame"
+        >
+          <SkipBack size={12} />
+        </button>
+        <button
+          type="button"
+          className={control + " min-w-[64px] gap-1.5 border-[#9dadce] text-[#3559a8]"}
+          onClick={onTogglePlayback}
+          disabled={!canStep || busy || status === "failed" || status === "uploading"}
+        >
+          {isPlaying ? <Pause size={11} weight="fill" /> : <Play size={11} weight="fill" />}
+          <span className="text-[9px] font-semibold">{isPlaying ? "Pause" : "Play"}</span>
+        </button>
+        <button
+          type="button"
+          className={control}
+          onClick={() => onFrameChange(Math.min(currentFrame + 1, frameCount - 1))}
+          disabled={!canStep || busy}
+          aria-label="Next frame"
+        >
+          <SkipForward size={12} />
+        </button>
+
+        <div className="ml-1 min-w-0 flex-1">
+          <div className="relative h-8 border-b border-[#cfd5df]">
+            <div className="absolute inset-x-0 bottom-0 flex h-7 items-end gap-px overflow-hidden">
+              {frameResults.map((item, index) => (
+                <button
+                  key={item.frameIndex + "-" + index}
+                  type="button"
+                  onClick={() => onFrameChange(index)}
+                  className={
+                    "min-w-[1px] flex-1 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#3559a8] " +
+                    sourceStyle[item.tracksSource] +
+                    (index === currentFrame ? " opacity-100" : " opacity-65")
+                  }
+                  style={{ height: Math.max(5, (item.objectCount / maxObjects) * 24) + "px" }}
+                  aria-label={
+                    "Frame " + item.frameIndex + ", " + item.tracksSource + ", " +
+                    item.objectCount + " objects"
+                  }
+                  title={
+                    "frame_index " + item.frameIndex + "\n" +
+                    "timestamp_ms " + item.timestampMs.toFixed(2) + "\n" +
+                    "tracks_source " + item.tracksSource + "\n" +
+                    "objects " + item.objectCount
+                  }
+                />
+              ))}
+            </div>
+            <span
+              className="pointer-events-none absolute inset-y-0 w-px bg-[#3559a8]"
+              style={{ left: position + "%" }}
+            />
           </div>
-          <p className="mt-1 text-xs text-slate-500">
-            Frame {currentFrame.toString().padStart(3, "0")} · {frameCount} total frames
+          {selectedTrack && (
+            <div className="relative mt-1 h-1.5 bg-[#edf0f4]" title={"Selected track #" + selectedTrack.trackId + " lifespan"}>
+              <span
+                className="absolute inset-y-0 bg-[#3559a8]/55"
+                style={{ left: trackStart + "%", width: trackWidth + "%" }}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="w-[136px] shrink-0 text-right">
+          <p className="font-mono text-[9px] text-[#354155]">
+            f{String(frame?.frameIndex ?? 0).padStart(3, "0")} / {Math.max(frameCount, 1)}
+          </p>
+          <p className="mt-0.5 truncate font-mono text-[8px] text-[#8992a2]">
+            {frame?.timestampMs.toFixed(1) ?? "0.0"} ms / {frame?.tracksSource ?? "empty"}
           </p>
         </div>
-        <div className="grid grid-cols-2 overflow-hidden rounded-md border border-slate-800 bg-slate-950 text-center font-mono text-xs">
-          <div className="border-r border-slate-800 px-3 py-2 text-slate-300">
-            peak {maxObjects}
-          </div>
-          <div className="px-3 py-2 text-teal-300">
-            {tracks.length} tracks
-          </div>
-        </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
-        <span className="font-mono text-[11px] text-slate-500">0</span>
-        <input
-          type="range"
-          min={0}
-          max={frameCount - 1}
-          value={currentFrame}
-          onChange={(event) => onFrameChange(Number(event.target.value))}
-          className="range-control"
-          aria-label="Timeline scrubber"
-        />
-        <span className="font-mono text-[11px] text-slate-500">{frameCount - 1}</span>
-      </div>
-
-      <div className="mt-4 rounded-md border border-slate-800 bg-slate-950 p-3">
-        <div className="relative h-24">
-          <div
-            className="absolute bottom-0 top-0 z-10 w-px bg-slate-50"
-            style={{ left: currentPercent + "%" }}
-          >
-            <span className="absolute -top-2 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-slate-50" />
-          </div>
-          <div className="absolute inset-x-0 top-0 flex justify-between font-mono text-[10px] text-slate-600">
-            {rulerFrames.map((frame) => (
-              <span key={frame}>{frame}</span>
-            ))}
-          </div>
-          <div className="absolute inset-x-0 bottom-0 flex h-[72px] items-end gap-px">
-            {frameResults.map((frame) => {
-              const active = frame.frameIndex === currentFrame;
-              const height = Math.max(10, (frame.objectCount / maxObjects) * 100) + "%";
-
-              return (
-                <button
-                  key={frame.frameIndex}
-                  type="button"
-                  aria-label={"Go to frame " + frame.frameIndex}
-                  onClick={() => onFrameChange(frame.frameIndex)}
-                  className={
-                    "min-w-0 flex-1 rounded-sm transition " +
-                    (active ? "bg-slate-50" : "bg-teal-400/45 hover:bg-teal-300")
-                  }
-                  style={{ height }}
-                />
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-md border border-slate-800 bg-slate-950/70 p-3">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            <Rows size={14} />
-            Track spans
-          </div>
-          <span className="font-mono text-[11px] text-slate-500">
-            marker {currentFrame.toString().padStart(3, "0")}
-          </span>
-        </div>
-        <div className="space-y-2">
-          {tracks.map((track) => {
-            const start = (track.firstFrame / Math.max(frameCount - 1, 1)) * 100;
-            const width =
-              ((track.lastFrame - track.firstFrame + 1) / Math.max(frameCount, 1)) * 100;
-            const selected = track.trackId === selectedTrackId;
-            const visible = currentFrame >= track.firstFrame && currentFrame <= track.lastFrame;
-
-            return (
-              <button
-                key={track.trackId}
-                type="button"
-                onClick={() => onSelectTrack(track.trackId)}
-                className={
-                  "grid w-full grid-cols-[82px_minmax(0,1fr)_54px] items-center gap-3 rounded-md border px-2 py-2 text-left transition active:translate-y-px " +
-                  (selected
-                    ? "border-teal-400 bg-teal-400/10"
-                    : "border-transparent hover:border-slate-700 hover:bg-slate-900")
-                }
-              >
-                <span className="min-w-0">
-                  <span className="block font-mono text-[11px] font-semibold text-slate-300">
-                    {formatTrackId(track.trackId)}
-                  </span>
-                  <span className="block truncate text-[10px] text-slate-600">
-                    {track.className}
-                  </span>
-                </span>
-                <span className="relative h-5 overflow-hidden rounded-full bg-slate-800">
-                  <span
-                    className="absolute inset-y-0 w-px bg-white/70"
-                    style={{ left: currentPercent + "%" }}
-                  />
-                  <span
-                    className={
-                      "absolute top-1/2 h-3 -translate-y-1/2 rounded-full " +
-                      (selected ? "ring-2 ring-white/80" : "")
-                    }
-                    style={{
-                      left: start + "%",
-                      width: width + "%",
-                      backgroundColor: track.color,
-                    }}
-                  />
-                </span>
-                <span
-                  className={
-                    "rounded-sm border px-1.5 py-1 text-center font-mono text-[10px] " +
-                    (visible
-                      ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-200"
-                      : "border-slate-700 bg-slate-900 text-slate-500")
-                  }
-                >
-                  {visible ? "live" : "off"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[8px] text-[#7d8798]">
+        <span className="border-t-2 border-solid border-[#526f9e] pt-0.5">async_corrected</span>
+        <span className="border-t-2 border-solid border-[#6a7588] pt-0.5">detected</span>
+        <span className="border-t-2 border-dashed border-[#7b879a] pt-0.5">weak_tracked</span>
+        <span className="border-t-2 border-dotted border-[#8791a2] pt-0.5">interpolated</span>
+        <span className="border-t border-[#cfd5df] pt-0.5">empty</span>
       </div>
     </section>
   );

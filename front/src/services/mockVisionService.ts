@@ -69,14 +69,15 @@ export const runTracking = async (
 
   const frames = getFrameResults(confidenceThreshold);
   const trackerPenalty = tracker === "DeepSORT" ? 3.8 : tracker === "SORT" ? -1.7 : 0;
+  const mockFps = mockMetrics.fps ?? 0;
   const frameMetrics = summarizeFrameMetrics(frames);
 
   return {
     frames,
     metrics: {
       ...mockMetrics,
-      fps: Number((mockMetrics.fps - trackerPenalty).toFixed(1)),
-      latencyMs: Number((1000 / Math.max(mockMetrics.fps - trackerPenalty, 1)).toFixed(1)),
+      fps: Number((mockFps - trackerPenalty).toFixed(1)),
+      latencyMs: Number((1000 / Math.max(mockFps - trackerPenalty, 1)).toFixed(1)),
       ...frameMetrics,
     },
   };

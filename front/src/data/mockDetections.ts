@@ -3,30 +3,11 @@ import type {
   EventLogEntry,
   FrameResult,
   InferenceMetrics,
-  ModelOption,
   TrackResult,
 } from "../types/vision";
 
 export const TOTAL_FRAMES = 120;
 export const DEFAULT_FRAME = 42;
-
-export const modelOptions: ModelOption[] = [
-  {
-    id: "yolo26s-int8",
-    label: "YOLO26s INT8 ONNX",
-    runtime: "ONNX Runtime CPU",
-  },
-  {
-    id: "yolo26s-fp16",
-    label: "YOLO26s FP16 TensorRT",
-    runtime: "TensorRT CUDA",
-  },
-  {
-    id: "yolo11n-edge",
-    label: "YOLO11n Edge",
-    runtime: "OpenCV DNN",
-  },
-];
 
 interface ObjectTemplate {
   trackId: number;
@@ -47,8 +28,6 @@ interface ObjectTemplate {
     height: number;
   };
   color: string;
-  speedKmh: number;
-  region: string;
   phase: number;
 }
 
@@ -62,8 +41,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 55, y: 48, width: 15, height: 18 },
     drift: { x: -8, y: 7, width: 2.5, height: 2 },
     color: "#38bdf8",
-    speedKmh: 46,
-    region: "center lane",
     phase: 1,
   },
   {
@@ -75,8 +52,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 18, y: 39, width: 19, height: 25 },
     drift: { x: 5, y: 3, width: 1.5, height: 1.5 },
     color: "#f59e0b",
-    speedKmh: 34,
-    region: "left lane",
     phase: 3,
   },
   {
@@ -88,8 +63,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 72, y: 44, width: 5.8, height: 20 },
     drift: { x: -4, y: 2, width: 0.5, height: 0.8 },
     color: "#22c55e",
-    speedKmh: 5,
-    region: "right shoulder",
     phase: 6,
   },
   {
@@ -101,8 +74,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 38, y: 35, width: 13.5, height: 19 },
     drift: { x: 8, y: 4, width: 2.8, height: 2.4 },
     color: "#fb7185",
-    speedKmh: 39,
-    region: "far lane",
     phase: 9,
   },
   {
@@ -114,8 +85,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 83, y: 12, width: 4.5, height: 12 },
     drift: { x: -1, y: 0.5, width: 0.1, height: 0.1 },
     color: "#a3e635",
-    speedKmh: 0,
-    region: "intersection signal",
     phase: 12,
   },
   {
@@ -127,8 +96,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 64, y: 63, width: 7.5, height: 14 },
     drift: { x: -11, y: 4, width: 1, height: 1.4 },
     color: "#60a5fa",
-    speedKmh: 51,
-    region: "right lane",
     phase: 15,
   },
   {
@@ -140,8 +107,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 9, y: 58, width: 8.2, height: 17 },
     drift: { x: 12, y: 1.2, width: 0.8, height: 1 },
     color: "#2dd4bf",
-    speedKmh: 18,
-    region: "curb lane",
     phase: 18,
   },
   {
@@ -153,8 +118,6 @@ export const objectTemplates: ObjectTemplate[] = [
     bbox: { x: 31, y: 57, width: 10.2, height: 15 },
     drift: { x: 3, y: 6, width: 2, height: 2 },
     color: "#f97316",
-    speedKmh: 42,
-    region: "merge lane",
     phase: 21,
   },
 ];
@@ -177,8 +140,6 @@ export const mockTracks: TrackResult[] = objectTemplates.map((item) => ({
   averageConfidence: item.confidence,
   status: item.lastFrame >= TOTAL_FRAMES - 4 ? "active" : "exited",
   color: item.color,
-  speedKmh: item.speedKmh,
-  region: item.region,
 }));
 
 const createDetection = (
@@ -231,6 +192,8 @@ const createFrameResult = (frameIndex: number): FrameResult => {
     tracks,
     objectCount: detections.length,
     classCounts: summarizeClasses(detections),
+    isDetectionFrame: frameIndex % 6 === 0,
+    tracksSource: frameIndex % 6 === 0 ? "async_corrected" : "weak_tracked",
   };
 };
 
@@ -244,7 +207,8 @@ export const mockMetrics: InferenceMetrics = {
   latencyMs: 33.6,
   preprocessMs: 4.4,
   inferenceMs: 21.8,
-  postprocessMs: 7.4,
+  modelPostprocessMs: 7.4,
+  opticalFlowMs: 5.2,
   objectCount: 0,
   activeTracks: 0,
 };
@@ -254,6 +218,7 @@ export const initialEventLog: EventLogEntry[] = [
     id: "event-001",
     time: "00:00.000",
     level: "info",
+    kind: "demo_replay",
     message: "Demo media loaded",
     detail: "120-frame urban traffic sequence is ready for local inference replay.",
   },
@@ -261,6 +226,7 @@ export const initialEventLog: EventLogEntry[] = [
     id: "event-002",
     time: "00:00.118",
     level: "success",
+    kind: "response_parsed",
     message: "Detection pass completed",
     detail: "car #12, person #03, truck #07, and five additional objects passed model confidence checks.",
   },
@@ -268,6 +234,7 @@ export const initialEventLog: EventLogEntry[] = [
     id: "event-003",
     time: "00:00.174",
     level: "info",
+    kind: "frames_mapped",
     message: "Track matching updated",
     detail: "ByteTrack associated detections with active trajectories using IoU and motion continuity.",
   },
@@ -275,6 +242,7 @@ export const initialEventLog: EventLogEntry[] = [
     id: "event-004",
     time: "00:01.452",
     level: "warning",
+    kind: "overlay_ready",
     message: "Track #07 temporarily lost",
     detail: "truck #07 was occluded for 6 frames near the far lane boundary.",
   },
@@ -282,6 +250,7 @@ export const initialEventLog: EventLogEntry[] = [
     id: "event-005",
     time: "00:01.658",
     level: "success",
+    kind: "overlay_ready",
     message: "Track #07 recovered",
     detail: "truck #07 was matched again after Kalman prediction and confidence recovery.",
   },

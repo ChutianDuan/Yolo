@@ -7,16 +7,11 @@
 
 #include <drogon/drogon.h>
 
+#include "drogon/api_contract.h"
 #include "model/inference_types.h"
 #include "video/video_inference.h"
 
 namespace yolo {
-
-struct VideoFrameJsonOptions {
-    bool include_frames = true;
-    size_t frame_offset = 0;
-    size_t frame_limit = 0;
-};
 
 drogon::HttpResponsePtr makeJsonResponse(
     int code,

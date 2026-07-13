@@ -19,7 +19,7 @@ DEFAULT_RESULTS_ROOT = (
     / "video_compare"
     / "video_algorithm_report_20260710"
 )
-DEFAULT_REPORT = REPO_ROOT / "yolo_onnx_cpp" / "video_algorithm_comparison_20260710.md"
+DEFAULT_REPORT = REPO_ROOT / "docs" / "reports" / "video_algorithm_comparison_20260710.md"
 
 RUN_ORDER = [
     "full_high",
@@ -289,28 +289,17 @@ def make_report(aggregate: dict[str, Any], report_path: Path) -> str:
 
     lines.extend([
         "",
-        "## 3. VS Code 可直接播放的视频",
+        "## 3. 本地视频产物",
         "",
-        "全部视频均经 FFprobe 验证为 H.264、`yuv420p`、`faststart` MP4。六宫格布局依次为：原视频、全帧高分辨率、高分辨率动态、高分辨率固定、低分辨率动态、集成 High/Low。",
+        "大型 MP4 不写入 `docs/` 或版本管理，仍保存在本次运行的 `yolo_onnx_cpp/test_outputs/` 目录。",
         "",
-        "| 场景 | 六宫格 | full_high | high_dynamic | high_fixed | low_dynamic | High/Low |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| 场景 | 本地输出目录 |",
+        "| --- | --- |",
     ])
     for scenario in aggregate["scenarios"]:
         output_dir = Path(scenario["output_dir"])
-        links = {
-            "grid": relative_link(report_path, output_dir / "all_modes_comparison_grid.mp4"),
-            **{
-                mode: relative_link(report_path, output_dir / f"{mode}_detections.mp4")
-                for mode in RUN_ORDER
-            },
-        }
-        lines.append(
-            f"| {scenario['scenario']} | [六宫格]({links['grid']}) | "
-            f"[视频]({links['full_high']}) | [视频]({links['high_dynamic_flow']}) | "
-            f"[视频]({links['high_fixed_flow']}) | [视频]({links['low_dynamic_flow']}) | "
-            f"[视频]({links['integrated_high_low_flow']}) |"
-        )
+        local_path = output_dir.relative_to(REPO_ROOT).as_posix()
+        lines.append(f"| {scenario['scenario']} | `{local_path}` |")
 
     lines.extend([
         "",

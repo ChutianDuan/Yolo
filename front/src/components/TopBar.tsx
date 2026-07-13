@@ -1,163 +1,150 @@
 import { useState } from "react";
 import {
   FileArrowUp,
-  Gauge,
+  GearSix,
   Play,
   Scan,
 } from "@phosphor-icons/react";
-import type {
-  InferenceMetrics,
-  VisionTaskStatus,
-} from "../types/vision";
-import { DROGON_API, apiBaseLabel } from "../services/visionApi";
+import type { DrogonRequestState, VisionTaskStatus } from "../types/vision";
+import { apiBaseLabel } from "../services/visionApi";
 
 interface TopBarProps {
   status: VisionTaskStatus;
-  mediaName: string;
+  requestState: DrogonRequestState;
+  responseStatus?: number;
+  endpoint: string;
   isBusy: boolean;
-  confidenceThreshold: number;
-  metrics: InferenceMetrics;
+  canRun: boolean;
   onUploadClick: () => void;
   onRun: () => void;
-  onConfidenceChange: (value: number) => void;
+  onNavigate: (target: string) => void;
 }
 
-const statusText: Record<VisionTaskStatus, string> = {
-  idle: "ready",
-  uploading: "loaded",
-  detecting: "detecting",
-  tracking: "tracking",
-  completed: "complete",
-  failed: "failed",
+const navItems = [
+  { label: "Workspace", target: "workspace" },
+  { label: "Runs", target: "runs" },
+  { label: "Compare", target: "timeline" },
+  { label: "Diagnostics", target: "diagnostics" },
+];
+
+const requestLabel = (
+  requestState: DrogonRequestState,
+  responseStatus?: number,
+) => {
+  if (requestState === "requesting") return "Requesting";
+  if (requestState === "responded") return "Responded" + (responseStatus ? " " + responseStatus : "");
+  if (requestState === "failed") return "Failed" + (responseStatus ? " " + responseStatus : "");
+  return "Not checked";
 };
 
-const buttonClass =
-  "inline-flex h-9 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap";
-
-function MetricRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-5 py-1.5 text-xs">
-      <span className="text-slate-500">{label}</span>
-      <span className="font-mono font-medium text-slate-900">{value}</span>
-    </div>
-  );
-}
+const actionClass =
+  "inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 text-[11px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3559a8] focus-visible:ring-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45";
 
 export function TopBar({
   status,
-  mediaName,
+  requestState,
+  responseStatus,
+  endpoint,
   isBusy,
-  confidenceThreshold,
-  metrics,
+  canRun,
   onUploadClick,
   onRun,
-  onConfidenceChange,
+  onNavigate,
 }: TopBarProps) {
-  const [metricsOpen, setMetricsOpen] = useState(false);
-  const totalPipeline =
-    metrics.preprocessMs + metrics.inferenceMs + metrics.postprocessMs;
+  const [activeTarget, setActiveTarget] = useState("workspace");
+
+  const navigate = (target: string) => {
+    setActiveTarget(target);
+    onNavigate(target);
+  };
 
   return (
-    <header className="z-40 rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex min-w-0 flex-wrap items-center gap-2 px-3 py-2">
-        <div className="flex min-w-0 items-center gap-2 pr-1 sm:pr-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white shadow-sm">
-            <Scan size={16} weight="bold" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold text-slate-950">VisionTrack</h1>
-            <p className="hidden max-w-[300px] truncate text-[11px] text-slate-500 md:block">
-              Drogon API via {apiBaseLabel} · {mediaName}
-            </p>
-          </div>
+    <header className="z-30 flex h-16 shrink-0 items-center border-b border-[#d9dde5] bg-[#fbfcfd] px-4">
+      <div className="flex min-w-[235px] items-center gap-2.5">
+        <span className="flex h-8 w-8 items-center justify-center rounded-md border border-[#cfd5df] bg-white text-[#1d2b44]">
+          <Scan size={17} weight="regular" />
+        </span>
+        <div className="leading-tight">
+          <h1 className="text-[13px] font-semibold tracking-[-0.01em] text-[#182235]">
+            VisionTrack Console
+          </h1>
+          <p className="mt-0.5 text-[10px] text-[#778195]">Drogon vision runtime</p>
         </div>
+      </div>
 
-        <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+      <nav className="hidden h-full items-center xl:flex" aria-label="Workspace navigation">
+        {navItems.map((item) => (
+          <button
+            key={item.target}
+            type="button"
+            onClick={() => navigate(item.target)}
+            className={
+              "relative h-full px-3 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#3559a8] " +
+              (activeTarget === item.target
+                ? "text-[#1d2b44] after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-[#3559a8]"
+                : "text-[#6e788b] hover:text-[#263247]")
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <div className="ml-auto flex min-w-0 items-center gap-3">
+        <dl className="hidden items-center gap-3 xl:flex">
+          <div>
+            <dt className="text-[9px] text-[#8a93a3]">API Base</dt>
+            <dd className="mt-0.5 max-w-[120px] truncate font-mono text-[10px] text-[#3e495d]">
+              {apiBaseLabel}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[9px] text-[#8a93a3]">Drogon</dt>
+            <dd
+              className={
+                "mt-0.5 font-mono text-[10px] " +
+                (requestState === "failed"
+                  ? "text-[#b43c45]"
+                  : requestState === "requesting"
+                    ? "text-[#9a641d]"
+                    : "text-[#3e495d]")
+              }
+            >
+              {status === "demo" ? "Not checked (Demo)" : requestLabel(requestState, responseStatus)}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[9px] text-[#8a93a3]">Endpoint</dt>
+            <dd className="mt-0.5 font-mono text-[10px] text-[#3e495d]">{endpoint}</dd>
+          </div>
+        </dl>
 
         <button
           type="button"
-          className={buttonClass + " border-slate-200 bg-white text-slate-800 hover:border-slate-300 hover:bg-slate-50"}
+          className={actionClass + " border-[#cfd5df] bg-white text-[#344054] hover:bg-[#f3f5f8]"}
+          onClick={() => navigate("runtime-parameters")}
+        >
+          <GearSix size={14} />
+          <span className="hidden 2xl:inline">Settings</span>
+        </button>
+        <button
+          type="button"
+          className={actionClass + " border-[#cfd5df] bg-white text-[#344054] hover:bg-[#f3f5f8]"}
           onClick={onUploadClick}
           disabled={isBusy}
         >
-          <FileArrowUp size={14} weight="bold" />
+          <FileArrowUp size={14} />
           Upload
         </button>
-
         <button
           type="button"
-          className={buttonClass + " border-teal-700 bg-teal-700 text-white hover:border-teal-800 hover:bg-teal-800"}
+          className={actionClass + " border-[#3559a8] bg-[#3559a8] text-white hover:bg-[#2f4f95]"}
           onClick={onRun}
-          disabled={isBusy}
+          disabled={isBusy || !canRun || status === "demo"}
         >
-          <Play size={14} weight="bold" />
+          <Play size={14} weight="fill" />
           {isBusy ? "Running" : "Run"}
         </button>
-
-        <label className="hidden min-w-[158px] items-center gap-2 text-[11px] font-medium text-slate-500 md:flex">
-          UI filter
-          <input
-            type="range"
-            min={0.35}
-            max={0.95}
-            step={0.01}
-            value={confidenceThreshold}
-            onChange={(event) => onConfidenceChange(Number(event.target.value))}
-            disabled={isBusy}
-            className="range-control h-1.5"
-          />
-          <span className="w-9 font-mono text-slate-700">{confidenceThreshold.toFixed(2)}</span>
-        </label>
-
-        <div className="hidden items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 font-mono text-[10px] text-slate-500 lg:flex">
-          <span className="font-semibold text-slate-700">Drogon</span>
-          <span>{DROGON_API.image.path}:{DROGON_API.image.fieldName}</span>
-          <span className="text-slate-300">·</span>
-          <span>{DROGON_API.video.path}:{DROGON_API.video.fieldName}</span>
-        </div>
-
-        <div className="relative ml-auto">
-          <button
-            type="button"
-            className={buttonClass + " border-slate-200 bg-slate-50 text-slate-800 hover:border-slate-300 hover:bg-white"}
-            onClick={() => setMetricsOpen((open) => !open)}
-            aria-expanded={metricsOpen}
-          >
-            <Gauge size={14} weight="bold" />
-            Metrics
-          </button>
-          {metricsOpen && (
-            <div className="absolute right-0 top-11 z-50 w-64 rounded-md border border-slate-200 bg-white p-3 shadow-panel">
-              <div className="mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-xs font-semibold text-slate-950">Inference metrics</span>
-                <span className="font-mono text-[10px] text-slate-500">
-                  {totalPipeline.toFixed(1)}ms
-                </span>
-              </div>
-              <MetricRow label="FPS" value={metrics.fps.toFixed(1)} />
-              <MetricRow label="Latency" value={metrics.latencyMs.toFixed(1) + "ms"} />
-              <MetricRow label="Preprocess" value={metrics.preprocessMs.toFixed(1) + "ms"} />
-              <MetricRow label="Inference" value={metrics.inferenceMs.toFixed(1) + "ms"} />
-              <MetricRow label="Postprocess" value={metrics.postprocessMs.toFixed(1) + "ms"} />
-              <MetricRow label="Objects" value={String(metrics.objectCount)} />
-              <MetricRow label="Tracks" value={String(metrics.activeTracks)} />
-            </div>
-          )}
-        </div>
-
-        <div className="flex h-9 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700">
-          <span
-            className={
-              "h-1.5 w-1.5 rounded-full " +
-              (status === "failed"
-                ? "bg-rose-500"
-                : isBusy
-                  ? "bg-amber-500"
-                  : "bg-emerald-500")
-            }
-          />
-          {statusText[status]}
-        </div>
       </div>
     </header>
   );
