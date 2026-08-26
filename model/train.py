@@ -5,7 +5,6 @@ import random
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from statistics import median
 from typing import Dict, List, Optional, Sequence, Tuple
 
 CUDA_VISIBLE_DEVICES = "4,5"
@@ -21,7 +20,7 @@ SPLITS = ("train", "val", "test")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 384  # Reduced, stride-aligned input for CPU-friendly inference.
-IMG_SIZE = (IMAGE_HEIGHT, IMAGE_WIDTH)  # Ultralytics uses (height, width).
+TRAIN_IMGSZ = IMAGE_WIDTH  # Ultralytics train accepts one integer; rect keeps 16:9 batches.
 BDD100K_NAMES = (
     "person",
     "rider",
@@ -61,8 +60,12 @@ class TrainConfig:
     num_classes: int = len(BDD100K_NAMES)
 
     # 训练配置
+    stage: str = "base"
     epochs: int = 100
-    imgsz: Tuple[int, int] = IMG_SIZE
+    imgsz: int = TRAIN_IMGSZ
+    input_width: int = IMAGE_WIDTH
+    input_height: int = IMAGE_HEIGHT
+    rect: bool = True
     batch: int = 64
     device: str = "0,1"  # Logical devices mapped to physical GPUs 4 and 5.
     workers: int = min(8, os.cpu_count() or 8)
@@ -77,11 +80,11 @@ class TrainConfig:
     warmup_epochs: float = 3.0
 
     # 数据增强
-    mosaic: float = 0.8
-    close_mosaic: int = 10
-    mixup: float = 0.03
+    mosaic: float = 0.0
+    close_mosaic: int = 0
+    mixup: float = 0.0
     cutmix: float = 0.0
-    copy_paste: float = 0.02
+    copy_paste: float = 0.0
     fliplr: float = 0.5
     flipud: float = 0.0
     degrees: float = 0.0
@@ -94,11 +97,17 @@ class TrainConfig:
     hsv_v: float = 0.4
     erasing: float = 0.15
 
-    # 长尾类别平衡采样。生成重复图片路径列表，不复制图片或标签。
+    # 基于类别图片频率的 repeat-factor sampling，不复制图片或标签。
     balance_long_tail: bool = True
     balance_repeat_power: float = 0.5
     balance_max_repeat: int = 4
-    balance_target_count: int = 5000  # car 优先：只轻量补齐极少数长尾类。
+    balance_frequency_threshold: float = 0.05
+    balance_max_growth: float = 1.5
+
+    # 困难样本二阶段微调。
+    base_weights: str = ""
+    hard_sample_list: str = ""
+    hard_sample_repeat: int = 2
 
     # 损失权重
     box: float = 7.5
@@ -119,7 +128,7 @@ class TrainConfig:
 
     # 输出
     project: str = "runs/detect"
-    name: str = "bdd100k_yolo26s_det_640x384_car_primary_tail_light_aug"
+    name: str = "bdd100k_yolo26s_det_640x384_stage1"
 
     # 训练前检查
     check_labels: bool = True
@@ -153,20 +162,11 @@ def resolve_path(path_value: str, root: Path) -> str:
     return str(root / path)
 
 
-def format_imgsz(imgsz: Tuple[int, int]) -> str:
-    height, width = imgsz
-    return f"{width}x{height}"
-
-
-def parse_imgsz_arg(values: Optional[Sequence[int]]) -> Optional[Tuple[int, int]]:
-    if values is None:
-        return None
-    if len(values) == 1:
-        return values[0], values[0]
-    if len(values) == 2:
-        width, height = values
-        return height, width
-    raise ValueError("--imgsz 只支持一个值，或两个值：宽 高，例如 640 384")
+def format_imgsz(cfg: TrainConfig) -> str:
+    return (
+        f"{cfg.input_width}x{cfg.input_height} deployment target "
+        f"(train imgsz={cfg.imgsz}, rect={cfg.rect})"
+    )
 
 
 def normalize_cfg_paths(cfg: TrainConfig) -> TrainConfig:
@@ -185,7 +185,61 @@ def normalize_cfg_paths(cfg: TrainConfig) -> TrainConfig:
     if fallback_model_yaml.parent != Path(".") or fallback_model_yaml.is_absolute():
         cfg.fallback_model_yaml = resolve_path(cfg.fallback_model_yaml, root)
 
+    if cfg.base_weights:
+        cfg.base_weights = resolve_path(cfg.base_weights, root)
+    if cfg.hard_sample_list:
+        cfg.hard_sample_list = resolve_path(cfg.hard_sample_list, root)
+
     return cfg
+
+
+def validate_training_config(cfg: TrainConfig) -> None:
+    if cfg.stage not in {"base", "hard"}:
+        raise ValueError("stage 必须是 base 或 hard")
+    if cfg.imgsz <= 0:
+        raise ValueError("imgsz 必须为正整数")
+    if cfg.input_width <= 0 or cfg.input_height <= 0:
+        raise ValueError("input_width 和 input_height 必须为正整数")
+    if cfg.input_width % 32 != 0 or cfg.input_height % 32 != 0:
+        raise ValueError("部署输入尺寸必须按模型 stride=32 对齐")
+    rectangular_incompatible = {
+        "mosaic": cfg.mosaic,
+        "mixup": cfg.mixup,
+        "cutmix": cfg.cutmix,
+        "copy_paste": cfg.copy_paste,
+    }
+    enabled_incompatible = [
+        name for name, probability in rectangular_incompatible.items() if probability != 0.0
+    ]
+    if cfg.rect and enabled_incompatible:
+        raise ValueError(
+            "rect=True 时必须关闭会破坏矩形 batch 的增强: "
+            + ", ".join(enabled_incompatible)
+        )
+    if not 0.0 < cfg.balance_frequency_threshold <= 1.0:
+        raise ValueError("balance_frequency_threshold 必须在 (0, 1] 范围内")
+    if cfg.balance_repeat_power <= 0.0:
+        raise ValueError("balance_repeat_power 必须为正数")
+    if cfg.balance_max_repeat < 1:
+        raise ValueError("balance_max_repeat 不能小于 1")
+    if cfg.balance_max_growth < 1.0:
+        raise ValueError("balance_max_growth 不能小于 1")
+    if cfg.hard_sample_repeat < 1:
+        raise ValueError("hard_sample_repeat 不能小于 1")
+
+    if cfg.stage == "hard":
+        if cfg.resume:
+            raise ValueError("hard 阶段不支持 --resume，请从第一阶段 best.pt 开始微调")
+        if not cfg.balance_long_tail:
+            raise ValueError("hard 阶段必须保留长尾平衡基础训练集")
+        if not cfg.base_weights:
+            raise ValueError("hard 阶段必须提供 --base-weights")
+        if not Path(cfg.base_weights).is_file():
+            raise FileNotFoundError(f"第一阶段权重不存在: {cfg.base_weights}")
+        if not cfg.hard_sample_list:
+            raise ValueError("hard 阶段必须提供 --hard-sample-list")
+        if not Path(cfg.hard_sample_list).is_file():
+            raise FileNotFoundError(f"困难样本清单不存在: {cfg.hard_sample_list}")
 
 
 def available_splits(cfg: TrainConfig) -> Tuple[str, ...]:
@@ -277,12 +331,13 @@ def print_env(device: str, workers: int, amp: bool) -> None:
 
 def print_config_summary(cfg: TrainConfig) -> None:
     print("\n========== Train Config ==========")
+    print("stage:", cfg.stage)
     print("dataset_dir:", cfg.dataset_dir)
     print("data_yaml:", cfg.data_yaml)
     print("model_path:", cfg.model_path)
     print("fallback_model_yaml:", cfg.fallback_model_yaml)
     print("epochs:", cfg.epochs)
-    print("imgsz:", format_imgsz(cfg.imgsz))
+    print("imgsz:", format_imgsz(cfg))
     print("batch:", cfg.batch)
     print("optimizer:", cfg.optimizer)
     print("lr0:", cfg.lr0)
@@ -294,8 +349,13 @@ def print_config_summary(cfg: TrainConfig) -> None:
         "erasing": cfg.erasing,
     })
     print("balance_long_tail:", cfg.balance_long_tail)
-    print("balance_target_count:", cfg.balance_target_count)
+    print("balance_frequency_threshold:", cfg.balance_frequency_threshold)
     print("balance_max_repeat:", cfg.balance_max_repeat)
+    print("balance_max_growth:", cfg.balance_max_growth)
+    if cfg.stage == "hard":
+        print("base_weights:", cfg.base_weights)
+        print("hard_sample_list:", cfg.hard_sample_list)
+        print("hard_sample_repeat:", cfg.hard_sample_repeat)
     print("resume:", cfg.resume)
     print("name:", cfg.name)
 
@@ -360,7 +420,8 @@ def build_long_tail_train_list(cfg: TrainConfig, run_dir: Path) -> Tuple[Path, d
         raise FileNotFoundError(f"train 图片为空: {image_dir}")
 
     image_classes: Dict[Path, List[int]] = {}
-    class_counts = Counter()
+    class_box_counts = Counter()
+    class_image_counts = Counter()
     missing_label_count = 0
 
     for image_path in images:
@@ -369,57 +430,110 @@ def build_long_tail_train_list(cfg: TrainConfig, run_dir: Path) -> Tuple[Path, d
             missing_label_count += 1
         classes = read_label_class_ids(label_path, cfg.num_classes)
         image_classes[image_path] = classes
-        class_counts.update(classes)
+        class_box_counts.update(classes)
+        class_image_counts.update(set(classes))
 
-    nonzero_counts = [class_counts[i] for i in range(cfg.num_classes) if class_counts[i] > 0]
-    if not nonzero_counts:
+    if not any(class_box_counts.values()):
         raise RuntimeError("train labels 中没有有效 box，无法做长尾平衡采样。")
 
-    target_count = cfg.balance_target_count or int(median(nonzero_counts))
-    class_repeats = {}
+    class_frequencies = {
+        class_id: class_image_counts[class_id] / len(images)
+        for class_id in range(cfg.num_classes)
+    }
+    class_repeat_factors = {}
     for class_id in range(cfg.num_classes):
-        count = class_counts[class_id]
-        if count <= 0 or count >= target_count:
-            repeat = 1
+        frequency = class_frequencies[class_id]
+        if frequency <= 0.0 or frequency >= cfg.balance_frequency_threshold:
+            repeat_factor = 1.0
         else:
-            raw_repeat = (target_count / count) ** cfg.balance_repeat_power
-            repeat = max(1, min(cfg.balance_max_repeat, int(math.ceil(raw_repeat))))
-        class_repeats[class_id] = repeat
+            raw_factor = (
+                cfg.balance_frequency_threshold / frequency
+            ) ** cfg.balance_repeat_power
+            repeat_factor = min(float(cfg.balance_max_repeat), max(1.0, raw_factor))
+        class_repeat_factors[class_id] = repeat_factor
 
-    balanced_paths: List[str] = []
-    image_repeat_distribution = Counter()
-    effective_class_counts = Counter()
-
+    rng = random.Random(cfg.seed)
+    extra_candidates = []
     for image_path in images:
         classes = image_classes[image_path]
         unique_classes = set(classes)
-        repeat = max((class_repeats[cls] for cls in unique_classes), default=1)
-        image_repeat_distribution[repeat] += 1
-        balanced_paths.extend([str(image_path)] * repeat)
-        for cls in classes:
-            effective_class_counts[cls] += repeat
+        repeat_factor = max(
+            (class_repeat_factors[cls] for cls in unique_classes),
+            default=1.0,
+        )
+
+        whole_repeat = min(cfg.balance_max_repeat, int(math.floor(repeat_factor)))
+        repeat = max(1, whole_repeat)
+        fractional = repeat_factor - whole_repeat
+        if repeat < cfg.balance_max_repeat and rng.random() < fractional:
+            repeat += 1
+
+        for _ in range(repeat - 1):
+            extra_candidates.append((repeat_factor, rng.random(), image_path))
+
+    max_balanced_images = max(
+        len(images),
+        int(math.floor(len(images) * cfg.balance_max_growth)),
+    )
+    max_extra_images = max_balanced_images - len(images)
+    extra_candidates.sort(key=lambda item: (-item[0], item[1], str(item[2])))
+    selected_extras = extra_candidates[:max_extra_images]
+
+    balanced_image_paths = list(images)
+    balanced_image_paths.extend(item[2] for item in selected_extras)
+    random.Random(cfg.seed + 1).shuffle(balanced_image_paths)
+
+    image_repeats = Counter(balanced_image_paths)
+    image_repeat_distribution = Counter(image_repeats.values())
+    effective_class_box_counts = Counter()
+    effective_class_image_counts = Counter()
+    for image_path, repeat in image_repeats.items():
+        classes = image_classes[image_path]
+        effective_class_box_counts.update(
+            {cls: count * repeat for cls, count in Counter(classes).items()}
+        )
+        effective_class_image_counts.update({cls: repeat for cls in set(classes)})
 
     run_dir.mkdir(parents=True, exist_ok=True)
     train_list_path = run_dir / "train_long_tail_balanced.txt"
     with open(train_list_path, "w", encoding="utf-8") as f:
-        for image_path in balanced_paths:
+        for image_path in balanced_image_paths:
             f.write(f"{image_path}\n")
+
+    class_summary = {}
+    rare_class_warnings = []
+    for class_id in range(cfg.num_classes):
+        positive_images = int(class_image_counts[class_id])
+        warning = positive_images < 500
+        key = class_key(cfg, class_id)
+        if warning:
+            rare_class_warnings.append(key)
+        class_summary[key] = {
+            "original_images": positive_images,
+            "effective_images": int(effective_class_image_counts[class_id]),
+            "original_boxes": int(class_box_counts[class_id]),
+            "effective_boxes": int(effective_class_box_counts[class_id]),
+            "image_frequency": round(class_frequencies[class_id], 8),
+            "repeat_factor": round(class_repeat_factors[class_id], 6),
+            "overfitting_warning": warning,
+        }
 
     summary = {
         "enabled": True,
-        "method": "image_repeat_by_rarest_class_sqrt_ratio",
-        "note": "car 优先：所有原始 train 图片至少保留 1 次；不下采样 car，只轻量重复极少数长尾类图片。",
+        "method": "repeat_factor_sampling_by_class_image_frequency",
+        "note": "所有原始 train 图片至少保留一次；验证集和测试集不参与重复采样。",
         "train_list": str(train_list_path),
         "original_images": len(images),
-        "balanced_images": len(balanced_paths),
-        "growth_ratio": round(len(balanced_paths) / len(images), 6),
+        "balanced_images": len(balanced_image_paths),
+        "growth_ratio": round(len(balanced_image_paths) / len(images), 6),
         "missing_label_count": missing_label_count,
-        "target_count": target_count,
+        "frequency_threshold": cfg.balance_frequency_threshold,
         "repeat_power": cfg.balance_repeat_power,
         "max_repeat": cfg.balance_max_repeat,
-        "class_box_counts": {class_key(cfg, i): int(class_counts[i]) for i in range(cfg.num_classes)},
-        "class_repeats": {class_key(cfg, i): int(class_repeats[i]) for i in range(cfg.num_classes)},
-        "effective_class_box_counts": {class_key(cfg, i): int(effective_class_counts[i]) for i in range(cfg.num_classes)},
+        "max_growth": cfg.balance_max_growth,
+        "growth_cap_applied": len(extra_candidates) > max_extra_images,
+        "classes": class_summary,
+        "rare_class_overfitting_warnings": rare_class_warnings,
         "image_repeat_distribution": {int(k): int(v) for k, v in sorted(image_repeat_distribution.items())},
     }
 
@@ -430,8 +544,107 @@ def build_long_tail_train_list(cfg: TrainConfig, run_dir: Path) -> Tuple[Path, d
     print("\n========== Long-tail Balanced Sampling ==========")
     print(f"train list: {train_list_path}")
     print(f"summary: {summary_path}")
-    print(f"images: {len(images)} -> {len(balanced_paths)} ({summary['growth_ratio']}x)")
-    print("class repeats:", summary["class_repeats"])
+    print(f"images: {len(images)} -> {len(balanced_image_paths)} ({summary['growth_ratio']}x)")
+    if rare_class_warnings:
+        print("过拟合警告：以下类别少于 500 张正样本:", ", ".join(rare_class_warnings))
+
+    return train_list_path, summary
+
+
+def read_image_path_list(list_path: Path) -> List[Path]:
+    paths = []
+    with open(list_path, "r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if line and not line.startswith("#"):
+                paths.append(Path(line).expanduser())
+    return paths
+
+
+def validate_hard_sample_list(cfg: TrainConfig) -> List[Path]:
+    dataset_dir = Path(cfg.dataset_dir).resolve()
+    train_dir = (dataset_dir / "images" / "train").resolve()
+    label_dir = (dataset_dir / "labels" / "train").resolve()
+    manifest_path = Path(cfg.hard_sample_list).resolve()
+    accepted = []
+    seen = set()
+    errors = []
+
+    for listed_path in read_image_path_list(manifest_path):
+        candidate = listed_path if listed_path.is_absolute() else manifest_path.parent / listed_path
+        candidate = candidate.resolve()
+
+        if candidate in seen:
+            errors.append(f"重复项: {candidate}")
+            continue
+        seen.add(candidate)
+
+        try:
+            relative_path = candidate.relative_to(train_dir)
+        except ValueError:
+            errors.append(f"不属于 images/train: {candidate}")
+            continue
+
+        if candidate.suffix.lower() not in IMAGE_SUFFIXES or not candidate.is_file():
+            errors.append(f"图片不存在或扩展名不支持: {candidate}")
+            continue
+
+        label_path = label_dir / relative_path.with_suffix(".txt")
+        if not label_path.is_file():
+            errors.append(f"缺少对应 train 标签: {label_path}")
+            continue
+
+        accepted.append(candidate)
+
+    if errors:
+        details = "\n".join(f"  - {message}" for message in errors[:20])
+        remaining = len(errors) - 20
+        if remaining > 0:
+            details += f"\n  - 另有 {remaining} 个错误"
+        raise ValueError(f"困难样本清单校验失败:\n{details}")
+    if not accepted:
+        raise ValueError(f"困难样本清单为空: {manifest_path}")
+
+    return accepted
+
+
+def build_hard_stage_train_list(
+    cfg: TrainConfig,
+    balanced_list_path: Path,
+    run_dir: Path,
+) -> Tuple[Path, dict]:
+    balanced_paths = read_image_path_list(balanced_list_path)
+    hard_samples = validate_hard_sample_list(cfg)
+    weighted_paths = list(balanced_paths)
+    for image_path in hard_samples:
+        weighted_paths.extend([image_path] * cfg.hard_sample_repeat)
+    random.Random(cfg.seed + 2).shuffle(weighted_paths)
+
+    train_list_path = run_dir / "train_hard_weighted.txt"
+    with open(train_list_path, "w", encoding="utf-8") as f:
+        for image_path in weighted_paths:
+            f.write(f"{image_path}\n")
+
+    summary = {
+        "stage": "hard",
+        "base_train_list": str(balanced_list_path),
+        "hard_sample_list": cfg.hard_sample_list,
+        "train_list": str(train_list_path),
+        "balanced_base_entries": len(balanced_paths),
+        "unique_hard_samples": len(hard_samples),
+        "extra_repeats_per_hard_sample": cfg.hard_sample_repeat,
+        "hard_sample_extra_entries": len(hard_samples) * cfg.hard_sample_repeat,
+        "total_entries": len(weighted_paths),
+        "growth_over_balanced_base": round(len(weighted_paths) / len(balanced_paths), 6),
+    }
+    summary_path = run_dir / "hard_stage_sampling_summary.yaml"
+    with open(summary_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(summary, f, allow_unicode=True, sort_keys=False)
+
+    print("\n========== Hard-sample Weighted Sampling ==========")
+    print(f"train list: {train_list_path}")
+    print(f"summary: {summary_path}")
+    print(f"entries: {len(balanced_paths)} -> {len(weighted_paths)}")
 
     return train_list_path, summary
 
@@ -448,8 +661,19 @@ def write_data_yaml(cfg: TrainConfig) -> None:
     if cfg.balance_long_tail:
         data_config_dir = Path(cfg.project) / "_data_configs" / cfg.name
         train_list_path, _ = build_long_tail_train_list(cfg, data_config_dir)
+        if cfg.stage == "hard":
+            train_list_path, _ = build_hard_stage_train_list(
+                cfg,
+                train_list_path,
+                data_config_dir,
+            )
         train_value = str(train_list_path)
-        data_yaml = data_config_dir / "data_tail_balanced.yaml"
+        data_yaml_name = (
+            "data_hard_weighted.yaml"
+            if cfg.stage == "hard"
+            else "data_tail_balanced.yaml"
+        )
+        data_yaml = data_config_dir / data_yaml_name
         cfg.data_yaml = str(data_yaml)
 
     data = {
@@ -785,7 +1009,7 @@ def visualize_random_labels(cfg: TrainConfig) -> None:
 def choose_model_path(cfg: TrainConfig) -> str:
     """
     正式训练优先使用预训练 .pt。
-    如果没有权重，则回退到 yolo11n.yaml，从头训练检测模型。
+    如果没有权重，则回退到 yolo26s.yaml，从头训练检测模型。
     """
     model_path = Path(cfg.model_path)
 
@@ -811,7 +1035,7 @@ def choose_model_path(cfg: TrainConfig) -> str:
 def config_as_dict(cfg: TrainConfig) -> dict:
     data = asdict(cfg)
     data["names"] = list(cfg.names)
-    data["imgsz"] = list(cfg.imgsz)
+    data["inference_imgsz"] = [cfg.input_height, cfg.input_width]
     return data
 
 
@@ -849,6 +1073,7 @@ def choose_resume_checkpoint(cfg: TrainConfig) -> str:
 
 def train(cfg: TrainConfig):
     cfg = normalize_cfg_paths(cfg)
+    validate_training_config(cfg)
     set_seed(cfg.seed, cfg.deterministic)
     device, workers, amp = resolve_runtime(cfg)
 
@@ -869,7 +1094,13 @@ def train(cfg: TrainConfig):
         print("已完成环境、路径、数据和配置检查，未启动训练。")
         return None
 
-    model_path = choose_resume_checkpoint(cfg) if cfg.resume else choose_model_path(cfg)
+    if cfg.resume:
+        model_path = choose_resume_checkpoint(cfg)
+    elif cfg.stage == "hard":
+        model_path = cfg.base_weights
+        print(f"\n使用第一阶段最佳权重微调: {model_path}")
+    else:
+        model_path = choose_model_path(cfg)
     YOLO = get_yolo()
     model = YOLO(model_path)
 
@@ -879,6 +1110,7 @@ def train(cfg: TrainConfig):
         "data": cfg.data_yaml,
         "epochs": cfg.epochs,
         "imgsz": cfg.imgsz,
+        "rect": cfg.rect,
         "batch": cfg.batch,
         "device": device,
         "workers": workers,
@@ -952,6 +1184,7 @@ def validate_best(cfg: TrainConfig, split: str = "val"):
         data=cfg.data_yaml,
         split=split,
         imgsz=cfg.imgsz,
+        rect=cfg.rect,
         batch=cfg.batch,
         device=device,
         workers=workers,
@@ -987,7 +1220,8 @@ def predict_samples(cfg: TrainConfig, split: str = "test", conf: float = 0.25):
 
     return model.predict(
         source=str(image_dir),
-        imgsz=cfg.imgsz,
+        imgsz=(cfg.input_height, cfg.input_width),
+        rect=False,
         conf=conf,
         device=device,
         project=str(Path(cfg.project_root) / "runs" / "detect_predict"),
@@ -1007,6 +1241,12 @@ def predict_samples(cfg: TrainConfig, split: str = "test", conf: float = 0.25):
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Train YOLO detection on the BDD100K YOLO dataset.")
 
+    parser.add_argument(
+        "--stage",
+        choices=("base", "hard"),
+        default="base",
+        help="base 主训练或 hard 困难样本微调",
+    )
     parser.add_argument("--dataset-dir", type=str, help="数据集目录，默认 bdd100k_yolo_det")
     parser.add_argument("--data-yaml", type=str, help="data.yaml 路径")
     parser.add_argument("--model", type=str, help="本地权重路径或 Ultralytics 模型名")
@@ -1014,7 +1254,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--project", type=str, help="训练输出根目录")
 
     parser.add_argument("--epochs", type=int, help="训练 epoch 数")
-    parser.add_argument("--imgsz", type=int, nargs="+", help="输入图像尺寸：一个值表示正方形；两个值按 宽 高，例如 640 384")
+    parser.add_argument("--imgsz", type=int, help="训练最长边尺寸；矩形 batch 由 rect=True 控制")
+    parser.add_argument("--input-width", type=int, help="部署目标输入宽度，默认 640")
+    parser.add_argument("--input-height", type=int, help="部署目标输入高度，默认 384")
     parser.add_argument("--batch", type=int, help="batch size")
     parser.add_argument("--device", type=str, help="auto、cpu、0 或 0,1；默认 0,1 对应物理 GPU 3,4")
     parser.add_argument("--workers", type=int, help="DataLoader workers")
@@ -1044,7 +1286,12 @@ def build_parser() -> argparse.ArgumentParser:
     balance_group.add_argument("--no-balance-long-tail", dest="balance_long_tail", action="store_false", help="关闭长尾类重复采样")
     parser.add_argument("--balance-repeat-power", type=float, help="长尾重复强度，0.5 表示平方根比例")
     parser.add_argument("--balance-max-repeat", type=int, help="单张图片最大重复次数")
-    parser.add_argument("--balance-target-count", type=int, help="低于该 box 数的类别会被轻量上采样")
+    parser.add_argument("--balance-frequency-threshold", type=float, help="类别图片频率平衡阈值，默认 0.05")
+    parser.add_argument("--balance-max-growth", type=float, help="平衡清单相对原始图片数的最大增长倍数")
+
+    parser.add_argument("--base-weights", type=str, help="hard 阶段必需：第一阶段 best.pt")
+    parser.add_argument("--hard-sample-list", type=str, help="hard 阶段必需：困难样本图片清单")
+    parser.add_argument("--hard-sample-repeat", type=int, help="每个困难样本在基础清单上额外加入的次数")
 
     parser.add_argument("--max-check-images", type=int, help="每个 split 最多抽样检查多少张图，0 表示全部")
     parser.add_argument("--skip-checks", action="store_true", help="跳过图片、标签和可视化检查")
@@ -1069,6 +1316,18 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
     parser = build_parser()
     args = parser.parse_args(argv)
     cfg = TrainConfig()
+    cfg.stage = args.stage
+
+    if cfg.stage == "hard":
+        cfg.name = "bdd100k_yolo26s_det_640x384_stage2"
+        cfg.epochs = 30
+        cfg.optimizer = "AdamW"
+        cfg.lr0 = 1e-4
+        cfg.lrf = 0.1
+        cfg.warmup_epochs = 1.0
+        cfg.patience = 10
+        cfg.scale = 0.15
+        cfg.erasing = 0.05
 
     if args.dataset_dir is not None and args.data_yaml is None:
         cfg.data_yaml = str(Path(args.dataset_dir) / "data.yaml")
@@ -1080,7 +1339,9 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
         "name": args.name,
         "project": args.project,
         "epochs": args.epochs,
-        "imgsz": parse_imgsz_arg(args.imgsz),
+        "imgsz": args.imgsz,
+        "input_width": args.input_width,
+        "input_height": args.input_height,
         "batch": args.batch,
         "device": args.device,
         "workers": args.workers,
@@ -1097,7 +1358,11 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
         "close_mosaic": args.close_mosaic,
         "balance_repeat_power": args.balance_repeat_power,
         "balance_max_repeat": args.balance_max_repeat,
-        "balance_target_count": args.balance_target_count,
+        "balance_frequency_threshold": args.balance_frequency_threshold,
+        "balance_max_growth": args.balance_max_growth,
+        "base_weights": args.base_weights,
+        "hard_sample_list": args.hard_sample_list,
+        "hard_sample_repeat": args.hard_sample_repeat,
         "max_check_images": args.max_check_images,
         "predict_conf": args.predict_conf,
     }

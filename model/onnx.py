@@ -32,11 +32,11 @@ from ultralytics import YOLO
 
 ROOT = Path(__file__).resolve().parent
 
-IMAGE_WIDTH = 1280
-IMAGE_HEIGHT = 736
+IMAGE_WIDTH = 640
+IMAGE_HEIGHT = 384
 IMG_SIZE = (IMAGE_HEIGHT, IMAGE_WIDTH)  # Ultralytics: (h, w)
 
-DEFAULT_PT_PATH = ROOT / "runs/detect/bdd100k_yolo26s_det_1280x736/weights/best.pt"
+DEFAULT_PT_PATH = ROOT / "runs/detect/bdd100k_yolo26s_det_640x384_stage2/weights/best.pt"
 DEFAULT_DATA_YAML = ROOT / "data/bdd100k_yolo_det/data.yaml"
 DEFAULT_DEPLOY_DIR = ROOT.parent / "yolo_onnx_cpp" / "deploy"
 DEFAULT_CALIB_LIMIT = 200
@@ -64,12 +64,12 @@ class ImageCalibrationDataReader(CalibrationDataReader):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Export YOLO-seg ONNX and ONNX Runtime INT8 model.")
+    parser = argparse.ArgumentParser(description="Export YOLO detection ONNX and ONNX Runtime INT8 model.")
     parser.add_argument("--pt", default=str(DEFAULT_PT_PATH), help="YOLO .pt weight path")
     parser.add_argument("--data", default=str(DEFAULT_DATA_YAML), help="YOLO data.yaml for INT8 calibration")
     parser.add_argument("--deploy-dir", default=str(DEFAULT_DEPLOY_DIR), help="Directory for exported deploy files")
-    parser.add_argument("--fp32-name", default="best.onnx", help="FP32 ONNX filename under deploy dir")
-    parser.add_argument("--int8-name", default="best_int8.onnx", help="INT8 ONNX filename under deploy dir")
+    parser.add_argument("--fp32-name", default="best_640x384.onnx", help="FP32 ONNX filename under deploy dir")
+    parser.add_argument("--int8-name", default="best_640x384_int8.onnx", help="INT8 ONNX filename under deploy dir")
     parser.add_argument("--classes-name", default="classes.json", help="Class metadata filename under deploy dir")
     parser.add_argument("--imgsz", nargs=2, type=int, default=IMG_SIZE, metavar=("HEIGHT", "WIDTH"))
     parser.add_argument("--opset", type=int, default=12)
