@@ -122,6 +122,36 @@ target_compile_options(yolo_api PRIVATE
     -Wpedantic
 )
 
+add_executable(onnx_thread_benchmark
+    image/image_processing.cpp
+    model/yolo_engine.cpp
+    tools/onnx_thread_benchmark.cpp
+)
+
+target_include_directories(onnx_thread_benchmark PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(onnx_thread_benchmark PRIVATE
+    opencv_core
+    opencv_imgproc
+    opencv_imgcodecs
+    opencv_video
+    opencv_videoio
+    ${ORT_TARGET}
+    ${OPENVINO_RUNTIME_TARGET}
+    Drogon::Drogon
+)
+if(YOLO_ENABLE_OPENVINO)
+    target_compile_definitions(onnx_thread_benchmark PRIVATE YOLO_ENABLE_OPENVINO=1)
+endif()
+
+target_compile_options(onnx_thread_benchmark PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
 include(CTest)
 
 if(BUILD_TESTING)

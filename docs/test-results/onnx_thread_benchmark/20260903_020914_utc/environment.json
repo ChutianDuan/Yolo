@@ -1,0 +1,43 @@
+{
+  "timestamp_utc": "2026-09-03T02:22:53.612811+00:00",
+  "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+  "cpu_model": "Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz",
+  "logical_cpu_count": 64,
+  "physical_core_count": 32,
+  "onnxruntime_version": "1.23.2",
+  "openvino_version": "2026.1.0-000--",
+  "git_commit": "f7bd994b7a2dfa1b564f183e453e0d4ea2c92c33",
+  "git_status_summary": "M model/mine_hard_samples.py;  M model/train.py;  M yolo_onnx_cpp/CMakeLists.txt;  M yolo_onnx_cpp/model/yolo_engine.cpp; ?? docs/test-results/onnx_thread_benchmark/; ?? yolo_onnx_cpp/tools/onnx_thread_benchmark.cpp; ?? yolo_onnx_cpp/tools/run_onnx_thread_benchmark.py",
+  "binary_path": "/home/ubuntu/YOLO/build-openvino/onnx_thread_benchmark",
+  "video_path": "/home/ubuntu/YOLO/Readme/dynamic_onnx_flow_detections.mp4",
+  "video_sha256": "e4ed75ff4a3e4d993f1e5b75c621de4e4fb9e51dff537d258e621da44a1b7c72",
+  "parameters": {
+    "backends": [
+      "onnx",
+      "openvino"
+    ],
+    "threads": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "warmup": 10,
+    "iterations": 50,
+    "trials": 3,
+    "seed": 20260903
+  },
+  "artifacts": {
+    "large": {
+      "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best.onnx",
+      "size_bytes": 38399808,
+      "sha256": "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59"
+    },
+    "small": {
+      "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx",
+      "size_bytes": 38114065,
+      "sha256": "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf"
+    }
+  }
+}

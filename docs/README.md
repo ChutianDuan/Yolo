@@ -7,7 +7,8 @@
 - [代码审核报告（2026-07-10）](reports/代码审核报告_20260710.md)
 - [High/Low 重复框与光流漂移优化计划](reports/优化计划.md)
 - [视频算法对比报告（2026-07-10）](reports/video_algorithm_comparison_20260710.md)
-- [ONNX Runtime / OpenVINO CPU 对比](reports/onnx_openvino_cpu_benchmark_20260709.md)
+- [C++ ONNX Runtime / OpenVINO 双模型线程性能对比（2026-09-03）](test-results/onnx_thread_benchmark/20260903_020914_utc/combined_report.md)
+- [ONNX Runtime / OpenVINO CPU 对比（历史，2026-07-09）](reports/onnx_openvino_cpu_benchmark_20260709.md)
 
 ## 测试结果
 

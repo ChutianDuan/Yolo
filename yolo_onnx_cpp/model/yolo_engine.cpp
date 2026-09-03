@@ -16,6 +16,7 @@
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #if YOLO_ENABLE_OPENVINO
 #include <openvino/openvino.hpp>
+#include <openvino/runtime/properties.hpp>
 #endif
 
 #include "image/image_processing.h"
@@ -312,7 +313,11 @@ private:
     void initOpenVino(const AppConfig& config) {
 #if YOLO_ENABLE_OPENVINO
         auto model = ov_core_.read_model(config.model_path);
-        ov_compiled_model_ = ov_core_.compile_model(model, config.openvino_device);
+        ov_compiled_model_ = ov_core_.compile_model(
+            model,
+            config.openvino_device,
+            ov::inference_num_threads(config.thread_num)
+        );
         ov_infer_request_ = ov_compiled_model_.create_infer_request();
 
         const auto inputs = ov_compiled_model_.inputs();
@@ -327,6 +332,8 @@ private:
         std::cout << "Model loaded: " << config.model_path << '\n';
         std::cout << "Model backend: " << backendName(backend_) << '\n';
         std::cout << "OpenVINO device: " << config.openvino_device << '\n';
+        std::cout << "OpenVINO inference threads: "
+                  << ov_compiled_model_.get_property(ov::inference_num_threads) << '\n';
         std::cout << "Input name: " << ov_input_name_ << '\n';
         std::cout << "Output count: " << outputs.size() << '\n';
         std::cout << "Class count: " << class_count_ << '\n';

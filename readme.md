@@ -70,6 +70,25 @@ flowchart LR
 
 仓库中的 **rag-api** 环境不参与 VisionTrack 推理链路。
 
+### C++ CPU 推理基准结论
+
+2026-09-03 使用同一套 C++ OpenCV 预处理、YoloEngine、decode 和 NMS，对 ONNX Runtime 1.23.2 与 OpenVINO 2026.1.0 进行了单实例、batch=1、同步 CPU 推理测试。两个后端读取相同 ONNX 权重；每个模型、后端和线程数组合采集 150 个正式样本，共 3000 个样本。
+
+![C++ CPU 推理基准：OpenVINO 与 ONNX Runtime 线程性能及 8/16 线程稳定性对比](docs/assets/cpu-backend-thread-benchmark.png)
+
+| 模型 | ONNX Runtime 最优 | OpenVINO 最优 | OpenVINO 相对优势 |
+| --- | ---: | ---: | ---: |
+| 1280 × 736 | 137.38 ms，16 线程 | 91.98 ms，16 线程 | 1.49x |
+| 640 × 384 | 46.23 ms，16 线程 | 22.90 ms，16 线程 | 2.02x |
+
+结论：
+
+- CPU 单实例平均延迟优先选择 OpenVINO，并将 thread_num 设为 16；
+- OpenVINO 16 线程波动更大。大模型 8 线程 P95 为 114.28 ms，优于 16 线程的 146.99 ms；需要更稳定尾延迟时，8 线程是更保守的候选；
+- High/Low 双 Session 或多请求并发会竞争 CPU，生产配置应继续对 8、16 线程做并发吞吐验证，不能直接用单实例结论替代并发压测。
+
+thread_num 在 C++ 中分别映射到 ONNX Runtime 的 SetIntraOpNumThreads 和 OpenVINO 的 ov::inference_num_threads。完整测试条件、大小模型明细和原始数据见 [C++ ONNX Runtime / OpenVINO 合并报告](docs/test-results/onnx_thread_benchmark/20260903_020914_utc/combined_report.md)。
+
 ### 强检测与弱跟踪分工
 
 模型强检测负责重新确认类别和几何位置；光流只负责短间隔传播已有框；ByteTrack 负责轨迹 ID 和生命周期。稳定场景不必每帧调用模型，光流质量下降、尺度或速度突变时则提前触发强检测。
