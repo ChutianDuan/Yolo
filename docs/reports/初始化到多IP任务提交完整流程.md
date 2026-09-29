@@ -1,6 +1,6 @@
 # 初始化到多 IP 任务提交完整流程
 
-> 编写日期：2026-09-09。依据当前工作区源码，包含已有未提交改动，并非只依据 Git HEAD。本文只整理实现，没有修改服务、配置或依赖，也没有启动摄像头或压力测试。代码行号是编写时快照，后续修改后请结合函数名定位。
+> 首次编写：2026-09-09；源码同步：2026-09-29。本文说明当前接口与调用链，历史性能证据另见实施记录。源码链接按文件和函数定位，避免将旧行号误认为当前实现。
 
 本文围绕一个问题展开：**服务启动时创建了什么，多个客户端提交的工作如何进入系统，多路摄像头的每一帧又如何共享模型并返回自己的结果？**
 
@@ -25,7 +25,7 @@
 
 建议先读第 1、3 节建立对象关系；重点理解提交过程时读第 4、5 节；重点理解多路推理时连续读第 6～8 节。第 9 节命令供后续手动执行，不代表本文已经执行过。
 
-所有标为“原始代码节选”的代码块直接摘自所链接源码；仅保留指定行段，外围代码未展示。带“示意”的图、算例和响应是解释材料，不是运行记录。
+所有标为“原始代码节选”的代码块直接摘自所链接源码；仅保留相关连续片段，外围代码未展示。带“示意”的图、算例和响应是解释材料，不是运行记录。
 
 <a id="architecture"></a>
 ## 1. 整体架构与身份概念
@@ -119,7 +119,7 @@ OpenVINO preset 继承同一套 vcpkg/GCC15 环境，并打开 `YOLO_ENABLE_OPEN
 
 **原始代码节选：** `loadAppConfig` 中高模型路径的解析。
 
-来源：[yolo_onnx_cpp/config/app_config.cpp](../../yolo_onnx_cpp/config/app_config.cpp#L466-L472)，编写时第 466～472 行。
+来源：[yolo_onnx_cpp/config/app_config.cpp](../../yolo_onnx_cpp/config/app_config.cpp)。
 
 ```cpp
     validateConfig(config);
@@ -139,7 +139,7 @@ OpenVINO preset 继承同一套 vcpkg/GCC15 环境，并打开 `YOLO_ENABLE_OPEN
 
 ### 2.3 线程、请求池和队列配置表
 
-“源码默认”来自 [AppConfig](../../yolo_onnx_cpp/config/app_config.h#L8)；“多路模板”来自 [config.multistream.yaml](../../yolo_onnx_cpp/config.multistream.yaml)。这些数值是配置起点，不是吞吐或延迟的实测保证。
+“源码默认”来自 [AppConfig](../../yolo_onnx_cpp/config/app_config.h)；“多路模板”来自 [config.multistream.yaml](../../yolo_onnx_cpp/config.multistream.yaml)。这些数值是配置起点，不是吞吐或延迟的实测保证。
 
 | 配置项 | 源码默认 | 多路模板 | 生效位置与含义 |
 | --- | --- | --- | --- |
@@ -153,6 +153,7 @@ OpenVINO preset 继承同一套 vcpkg/GCC15 环境，并打开 `YOLO_ENABLE_OPEN
 | `infer_request_count` | 1 | 0 | 高模型；OpenVINO 为正数时建指定大小请求池，0 查询后端建议值；ORT 调度并发值至少为 1 |
 | `low_res_infer_request_count` | 0 | 0 | 大于 0 覆盖低模型请求数；0 先继承 `infer_request_count` |
 | `openvino_performance_mode` | `latency` | `throughput` | OpenVINO 编译提示，与请求池数量是不同设置 |
+| `openvino_cpu_pinning` | 未设置 | 未设置 | 省略时保留 OpenVINO 插件默认；显式 true/false 才设置 CPU pinning 属性 |
 | `max_streams` | 4 | 4 | 实时流注册表容量；不限制上传视频数量 |
 | `per_stream_queue_depth` | 2 | 2 | 同时用于每路已解码图像队列，以及每个模型调度器内每个流的等待任务队列；是两份不同队列 |
 | `video_job_threads` | 2 | 2 | 执行整段上传视频的 worker 数，不是模型内部线程数 |
@@ -173,7 +174,11 @@ OpenVINO preset 继承同一套 vcpkg/GCC15 环境，并打开 `YOLO_ENABLE_OPEN
 | `video_detect_fps` | 4.0 | 4.0 | 实时双模型的低模节奏；单模型的检测节奏；离线入口用于计算抽帧间隔 |
 | `video_high_detect_fps` | 1.0 | 1.0 | 双模型周期高模刷新；0 关闭周期高模，首帧/紧急刷新仍可执行 |
 | `video_stride_mode` | `dynamic` | `dynamic` | 离线上传视频的抽帧策略；实时 `processLoop` 使用 `DetectionCadence` |
-| `video_model_async` | `true` | `true` | 离线视频异步检测开关；实时入口不读此开关 |
+| `video_model_async` | `true` | `true` | 上传视频及实时源的异步检测开关；实时源还要求对应共享调度器可用 |
+| `high_res_roi_enabled` | false | false | 高低模型高模 ROI 开关；紧急及周期全图刷新仍保留 |
+| `high_res_roi_x/y/width/height` | 0/0/1/1 | 0/0/1/1 | 四个独立配置项，归一化 ROI；默认覆盖全图 |
+| `high_res_roi_full_frame_interval` | 4 | 4 | 周期全图高模刷新间隔，按已完成高模调用计数 |
+| `class_conf_thresholds` / `low_res_class_conf_thresholds` | 均为空 | 均为空 | 逐类阈值列表；空低模列表继承高模，单项 -1 回退该模型的标量阈值 |
 | `use_letterbox` | `true` | `true` | 按比例缩放并填充；否则直接缩放 |
 | `api_bearer_token_env` | 空 | 空 | 非空时指定读取 token 的环境变量名，不是 token 本身 |
 | `api_rate_limit_requests_per_second` | 0 | 0 | 每来源 IP 每秒补充的令牌数；0 关闭限流 |
@@ -191,7 +196,7 @@ OpenVINO preset 继承同一套 vcpkg/GCC15 环境，并打开 `YOLO_ENABLE_OPEN
 
 **原始代码节选：** `main` 的完整启动主体，保留配置/模型异常处理与低模型初始化。
 
-来源：[yolo_onnx_cpp/main.cpp](../../yolo_onnx_cpp/main.cpp#L17-L65)，编写时第 17～65 行。
+来源：[yolo_onnx_cpp/main.cpp](../../yolo_onnx_cpp/main.cpp)。
 
 ```cpp
 int main(int argc, char* argv[]) {
@@ -251,7 +256,7 @@ int main(int argc, char* argv[]) {
 
 **原始代码节选：** 低模型独立配置的派生部分，后续代码继续清理副本中的低模型嵌套字段。
 
-来源：[yolo_onnx_cpp/config/app_config.cpp](../../yolo_onnx_cpp/config/app_config.cpp#L516-L536)，编写时第 516～536 行。
+来源：[yolo_onnx_cpp/config/app_config.cpp](../../yolo_onnx_cpp/config/app_config.cpp)。
 
 ```cpp
 AppConfig makeLowResAppConfig(const AppConfig& config) {
@@ -287,7 +292,7 @@ AppConfig makeLowResAppConfig(const AppConfig& config) {
 
 **ONNX Runtime 初始化。**
 
-来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp#L256-L260)，编写时第 256～260 行。
+来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp)。
 
 ```cpp
     void initOnnxRuntime(const AppConfig& config) {
@@ -305,7 +310,7 @@ ORT 一台引擎持有一个共享 `Ort::Session`，每次调用新建本次输�
 
 **原始代码节选：** 编译之后确定并创建请求池。
 
-来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp#L386-L397)，编写时第 386～397 行。
+来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp)。
 
 ```cpp
         const size_t request_count = config.infer_request_count > 0
@@ -332,7 +337,7 @@ ORT 一台引擎持有一个共享 `Ort::Session`，每次调用新建本次输�
 
 **原始代码节选：** `ApiGateway` 的成员初始化列表。
 
-来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp#L67-L103)，编写时第 67～103 行。
+来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp)。
 
 ```cpp
 ApiGateway::ApiGateway(
@@ -386,7 +391,7 @@ ApiGateway::ApiGateway(
 
 **原始代码节选：** 监听与 I/O 线程设置。
 
-来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp#L115-L126)，编写时第 115～126 行。
+来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp)。
 
 ```cpp
     drogon::app()
@@ -428,7 +433,7 @@ ApiGateway::ApiGateway(
 
 ### 4.1 先确认 HTTP 接口契约
 
-接口常量见 [api_contract.h](../../yolo_onnx_cpp/drogon/api_contract.h#L25)，入口实现见 [inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)。
+接口常量见 [api_contract.h](../../yolo_onnx_cpp/drogon/api_contract.h)，入口实现见 [inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)。
 
 | 路径 | 请求 | 执行入口 | 正常响应 |
 | --- | --- | --- | --- |
@@ -448,7 +453,7 @@ ApiGateway::ApiGateway(
 
 **原始代码节选：** 预处理成功后的推理调用。
 
-来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp#L173-L178)，编写时第 173～178 行。
+来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)。
 
 ```cpp
         InferResult result = engine_->infer(input.value());
@@ -471,28 +476,22 @@ ApiGateway::ApiGateway(
 
 **作用：** 让整段视频推理离开 HTTP Handler，把本次请求所需资源交给任务闭包。
 
-Handler 先解析帧输出选项及 multipart，再生成调度身份。未指定查询参数 `stream_id` 时，使用进程内静态原子计数生成 `upload-1`、`upload-2` 等。
+Handler 先生成请求 ID 和调度身份、记录开始日志，再解析帧输出选项及 multipart。未指定查询参数 `stream_id` 时，使用进程内静态原子计数生成 `upload-1`、`upload-2` 等。
 
-**原始代码节选：** 任务身份、临时文件和闭包捕获。
+**原始代码节选：** 任务身份、临时文件和闭包捕获（调度身份已在前文生成）。
 
-来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp#L281-L314)，编写时第 281～314 行。
+来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)。
 
 ```cpp
-    static std::atomic<uint64_t> next_stream_id{1};
-    std::string stream_id = request->getParameter("stream_id");
-    if (stream_id.empty()) {
-        stream_id = "upload-" + std::to_string(next_stream_id.fetch_add(1));
-    }
-
     try {
         auto temp_video = std::make_shared<TempVideoFile>(content, extension);
         ResponseCallback job_callback = callback;
         auto job = [
             route = route_,
-            file_name = file->getFileName(),
             content_size = content.size(),
             temp_video,
             stream_id,
+            request_id,
             frame_json_options,
             runner = runner_,
             class_names = config_.class_names,
@@ -501,10 +500,10 @@ Handler 先解析帧输出选项及 multipart，再生成调度身份。未指�
         ]() mutable {
             runVideoJob(
                 route,
-                file_name,
                 content_size,
                 temp_video,
                 stream_id,
+                request_id,
                 frame_json_options,
                 runner,
                 class_names,
@@ -524,7 +523,7 @@ Handler 先解析帧输出选项及 multipart，再生成调度身份。未指�
 
 **原始代码节选：** `submit` 中的准入与唤醒。
 
-来源：[yolo_onnx_cpp/drogon/video_job_executor.cpp](../../yolo_onnx_cpp/drogon/video_job_executor.cpp#L38-L55)，编写时第 38～55 行。
+来源：[yolo_onnx_cpp/drogon/video_job_executor.cpp](../../yolo_onnx_cpp/drogon/video_job_executor.cpp)。
 
 ```cpp
     bool submit(std::function<void()> job) {
@@ -566,9 +565,9 @@ Handler 先解析帧输出选项及 multipart，再生成调度身份。未指�
 | 跟踪与结果 | 检测帧更新 ByteTracker，间隔帧用光流，异步返回后校正相关帧结果 | 高模权威信息、低模几何/候选、光流传播；高模异步结果到达后通过 replay 更新轨迹和已积累帧结果 |
 | 对外响应 | 算法完成后返回完整 `VideoInferResult` 给 runner | 同样在算法完成后一次性返回，并不是 SSE |
 
-代码入口：[inferVideoFile](../../yolo_onnx_cpp/video/video_inference.cpp#L51)、[inferVideoFileHighLow](../../yolo_onnx_cpp/video/video_inference_high_low.cpp#L197)、[AsyncInferWorker](../../yolo_onnx_cpp/video/video_inference_detail.cpp#L401)。
+代码入口：[inferVideoFile](../../yolo_onnx_cpp/video/video_inference.cpp)、[inferVideoFileHighLow](../../yolo_onnx_cpp/video/video_inference_high_low.cpp)、[AsyncInferWorker](../../yolo_onnx_cpp/video/video_inference_detail.cpp)。
 
-离线异步 worker 还有自己的请求/结果缓冲，并在有 pending 工作时拒绝新提交；这是视频算法内部机制，不是 `video_job_queue_depth` 或实时图像队列。高低模型离线路径可能在等待高模结果期间继续低模处理，不能套用实时“单路一次只等一个模型”的结论。
+离线异步 worker 还有自己的请求/结果缓冲，并在有 pending 工作时拒绝新提交；这是视频算法内部机制，不是 `video_job_queue_depth` 或实时图像队列。高低模型离线路径可能在等待高模结果期间继续低模处理，实时高低模型异步路径也允许各级分别有一个未完成请求，但回放和输出边界不同。
 
 两个上传入口复用的调度器仍有 `max_request_age_ms`。非 Completed 的调度结果会在 `InferenceScheduler::infer` 转为异常，交给视频算法的错误处理；不能把实时入口对 `Stale/Replaced` 的光流降级行为直接套用到上传视频。
 
@@ -576,12 +575,26 @@ Handler 先解析帧输出选项及 multipart，再生成调度身份。未指�
 
 **原始代码节选：** `runVideoJob` 完成后回到本次请求的 callback。
 
-来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp#L81-L83)，编写时第 81～83 行。
+来源：[yolo_onnx_cpp/drogon/inference_handlers.cpp](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)。
 
 ```cpp
-        callback(drogon::HttpResponse::newHttpJsonResponse(
+        auto response = drogon::HttpResponse::newHttpJsonResponse(
             videoInferResultToJson(result, class_names, frame_json_options)
-        ));
+        );
+        ApiLogRecord log = requestLog(request_id, route, "video", request_start);
+        log.stream_id = stream_id;
+        log.status_code = 200;
+        log.content_size = content_size;
+        log.has_content_size = true;
+        log.frame_count = result.frame_count;
+        log.processed_frame_count = result.processed_frame_count;
+        log.detected_frame_count = result.detected_frame_count;
+        log.track_observation_count = track_observations;
+        log.average_fps = result.metrics.average_fps;
+        log.cpu_utilization_percent = result.metrics.cpu_utilization_percent;
+        log.rss_memory_mb = result.metrics.rss_memory_mb;
+        logApiEvent(ApiLogEvent::Completed, log);
+        respondSuccess(callback, std::move(response), request_id);
 ```
 
 A 的闭包保存 A 的回调，B 的闭包保存 B 的回调；模型调度的每个任务同样持有独立 promise。`stream_id` 用于排队分组和追踪上下文，不是 HTTP 回调查找键。
@@ -603,7 +616,7 @@ A 的闭包保存 A 的回调，B 的闭包保存 B 的回调；模型调度的�
 
 **原始代码节选：** `ApiGateway::registerRequestGate`。
 
-来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp#L135-L148)，编写时第 135～148 行。
+来源：[yolo_onnx_cpp/drogon/api_gateway.cpp](../../yolo_onnx_cpp/drogon/api_gateway.cpp)。
 
 ```cpp
             const std::string& path = request->path();
@@ -632,7 +645,7 @@ A 的闭包保存 A 的回调，B 的闭包保存 B 的回调；模型调度的�
 
 **原始代码节选：** 补充令牌和消费之后的鉴权决定。
 
-来源：[yolo_onnx_cpp/drogon/request_gate.cpp](../../yolo_onnx_cpp/drogon/request_gate.cpp#L82-L112)，编写时第 82～112 行。
+来源：[yolo_onnx_cpp/drogon/request_gate.cpp](../../yolo_onnx_cpp/drogon/request_gate.cpp)。
 
 ```cpp
         Bucket& bucket = found->second;
@@ -739,7 +752,7 @@ A、B 通过门禁，只说明允许进入业务入口；不表示获得独占�
 
 **原始代码节选：** `RealtimeStreamManager::Impl::create`。
 
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L111-L131)，编写时第 111～131 行。
+来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp)。
 
 ```cpp
         auto context = std::make_shared<StreamContext>();
@@ -767,7 +780,7 @@ A、B 通过门禁，只说明允许进入业务入口；不表示获得独占�
 
 持锁完成注册和线程赋值，是为了避免另一个 DELETE 调用看见尚未赋好的线程句柄。如果创建线程抛异常，后续代码停止已启动线程、移除注册记录、归档计数并返回创建失败。
 
-初始上下文包含 `starting` 状态、空帧队列、空事件队列、独立计数、订阅者和停止标志。源码中的 `StreamContext` 从 [第 239 行附近](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L239) 开始。
+初始上下文包含 `starting` 状态、空帧队列、空事件队列、独立计数、订阅者和停止标志。源码中的 `StreamContext` 从 [第 239 行附近](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) 开始。
 
 **下一步：** `runWorker(context, true)` 进入 `decodeLoop`，`runWorker(context, false)` 进入 `processLoop`。HTTP 端查询一次快照并返回 201。由于线程已经运行，201 响应中的状态可能已经变化，不能假定固定为 `starting` 或 `running`。
 
@@ -790,7 +803,7 @@ A、B 通过门禁，只说明允许进入业务入口；不表示获得独占�
 
 **原始代码节选：** `decodeLoop` 入队时的满队列处理。
 
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L502-L523)，编写时第 502～523 行。
+来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp)。
 
 ```cpp
                     const size_t depth =
@@ -845,441 +858,128 @@ flowchart LR
     PB --> EB[SSE B / 状态 B]
 ```
 
-两路分别解码、保存灰度、推进轨迹，不交换跟踪状态。两个处理线程可以同时等待不同模型任务；真正执行数量由两个调度器和两个后端决定。共享的是模型及其调度资源，不是所有摄像头一起维护一套 tracker。
+两路分别解码、保存灰度、推进轨迹，不交换跟踪状态。两路可以同时持有模型任务；异步分支持续推进当前帧，同步回退才等待 future。真正执行数量由两个调度器和两个后端决定。共享的是模型及其调度资源，不是所有摄像头一起维护一套 tracker。
 
 <a id="one-frame"></a>
 ## 7. 跟随一帧进入模型并返回
 
-本节主线是 [RealtimeStreamManager::processLoop](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L654)，不是离线上传视频的 replay 循环。
+### 7.1 先区分实时异步与同步回退
 
-### 7.1 本路处理器和检测节奏初始化
+入口是 [RealtimeStreamManager::processLoop](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp)。每路状态归本路处理线程所有；模型和调度器由各路共享。
 
-**作用：** 将本路跟踪状态放在本路处理线程中，避免共享可变轨迹。
-
-**原始代码节选：** 每条实时处理线程启动时的局部初始化。
-
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L654-L665)，编写时第 654～665 行。
+**原始代码节选：** `processLoop` 的分支选择，后续同步循环省略。
 
 ```cpp
     void processLoop(const std::shared_ptr<StreamContext>& context) {
         const bool high_low = low_res_engine_ != nullptr;
-        StreamProcessor processor(high_low);
-        auto& authority_tracker = processor.authority();
-        bool pending_authority_refresh = false;
-        int64_t last_high_res_frame_index = -1;
-        DetectionCadence cadence(
-            config_.video_detect_fps, config_.video_high_detect_fps,
-            low_res_engine_ != nullptr
-        );
-        bool force_high_res = true;
-
-```
-
-有低模型就选择双模型 `StreamProcessor`，否则用单模型；`force_high_res=true` 使第一帧请求高模。`DetectionCadence` 保存本路高低检测到期时间，而不是在每帧重新创建。
-
-**下一步：** `takeNextFrame` 阻塞等帧，取到图像后检查实时帧是否过旧。
-
-### 7.2 准备灰度与光流，再决定本帧用什么
-
-取到的图像为空或已经超过 `max_result_age_ms` 时直接跳过。随后 `processor.prepareFrame(...)` 转灰度，在有上一帧灰度和既有轨迹时计算光流质量、运动估计和轨迹投影。该函数是 `const`，返回准备结果，不直接推进已有跟踪器或替换上一帧灰度。
-
-准备可能耗时，所以接着再查一次帧龄。严重光流质量下降可强制高模；双模型权威跟踪器也能请求刷新，相关最小帧间隔由现有策略常量约束。
-
-`DetectionCadence::select(timestamp_ms, force_high_res)` 返回 `High / Low / None`，核心规则是：首帧或时间倒退时重置节奏；紧急高模优先；双模型周期高模到期优先于低模；否则低模到期用低模；都没到期就走光流。只有单模型时，用 `video_detect_fps` 的到期节奏选高模型。
-
-**示意：** `video_detect_fps=4` 对应 250ms 低模间隔，`video_high_detect_fps=1` 对应 1000ms 高模间隔。高低同时到期时本帧只跑高模，低模到期状态保留到后续输入帧，不是同一帧串行再补一个低模。实际源帧时间、过期丢弃、紧急刷新都会影响最终执行次数，不能从配置直接断言每秒稳定检测 5 次。
-
-`video_detect_fps=0` 使低模/单模检测每个输入帧都到期；双模型仍按高模优先规则选一级。`video_high_detect_fps=0` 关闭周期高模，不取消首帧和紧急刷新。详见 [detection_cadence.h](../../yolo_onnx_cpp/stream/detection_cadence.h#L17)。
-
-### 7.3 预处理、上下文与 submit
-
-**作用：** 图像转换成所选模型尺寸的张量，把“属于哪路哪帧”一起交给调度器。
-
-预处理实现在 [image_processing.cpp](../../yolo_onnx_cpp/image/image_processing.cpp#L133)：根据配置 letterbox 或直接 resize，将 BGR 转为 RGB 通道顺序并除以 255，输出 float32、NCHW、batch=1 的连续数据。多路模板的高模型形状是 `[1,3,736,1280]`，低模型是 `[1,3,384,640]`，不是把宽高放反的 `[1,3,W,H]`。`TensorInput` 还保留原图宽高和缩放/填充信息，后处理将检测坐标映射回原图。
-
-**原始代码节选：** `runModel` 构造上下文并等待对应模型调度。
-
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L631-L647)，编写时第 631～647 行。
-
-```cpp
-        InferenceContext context;
-        context.stream_id = stream_id;
-        context.frame_index = frame.frame_index;
-        context.timestamp_ms = frame.timestamp_ms;
-
-        const auto& scheduler = high_res
-            ? high_res_scheduler_
-            : low_res_scheduler_;
-        const auto& engine = high_res
-            ? high_res_engine_
-            : low_res_engine_;
-        if (engine == nullptr) {
-            throw std::runtime_error("requested realtime model is unavailable");
+        if (context->live_source && !high_low && config_.video_model_async
+            && high_res_scheduler_ != nullptr) {
+            processAsyncSingleModel(context);
+            return;
         }
-        if (scheduler != nullptr) {
-            return scheduler->submit(std::move(input.value()), std::move(context), urgent).get();
+        if (context->live_source && high_low && config_.video_model_async
+            && high_res_scheduler_ != nullptr && low_res_scheduler_ != nullptr) {
+            processAsyncHighLow(context);
+            return;
         }
 ```
 
-`InferenceContext` 包含 `stream_id`、`frame_index`、`timestamp_ms`，与 tensor 一起移动进调度任务。`future.get()` 在**该路 processor 线程**等待，不是创建流的 HTTP 请求在等，也不是返回 201 前要先推理一帧。
+实时源且 `video_model_async=true` 时，单模型需要高模调度器，高低模型需要两个调度器；满足条件便进入对应异步循环。本地文件、关闭异步或缺少所需调度器时走同步回退。不能把后者的 `future.get()` 等待解释为全部实时源的行为。
 
-实时入口同一路一次选择一个模型并等待结果，所以不会在高模尚未返回时持续提交这一流的后续帧；解码线程仍继续工作，必要时丢旧帧。代码留有 scheduler 为空时直接调用引擎的后备路径，但正常网关初始化会提供可用模型对应的调度器。
+### 7.2 实时异步：轮询、回放、推进当前帧
 
-**下一步：** 进入所选 `InferenceScheduler::submit`。
+`processAsyncHighLow` 和 `processAsyncSingleModel` 按以下顺序工作：
 
-### 7.4 调度器：每个任务一份 promise，每个流一条等待队列
+1. `takeNextFrame` 取最新实时帧，合并积压并检查源帧年龄。
+2. 零等待轮询已提交 future，检查检测来源的流 ID、帧号、时间戳及源帧新鲜度；能够回放才接收，回放完成后再次检查时效。
+3. 将检测应用于原始帧的历史状态，再回放到当前处理时间线，恢复本路跟踪器。高低模型最多保留 60 帧运动/检测历史，单模型最多保留 32 帧灰度历史和跟踪器基态。
+4. `prepareFrame` 准备当前灰度、光流及轨迹投影，准备后再检查当前帧年龄。
+5. 已排队但尚未执行的票据可以更新为最新帧；已执行任务不能替换。检测到期且该级不忙时，提交新任务并保存 future 与票据。
+6. 对当前帧应用光流并提交灰度，发布当前帧轨迹。接受的旧检测来源另放在 `inference_updates`，不把旧检测伪装成当前帧的模型结果。
 
-**作用：** 在有限模型 worker 间选择不同流的任务，并限制单流积压。
+高低模型各有一个 pending future，可以同时存在高、低任务。高低节奏独立，高模优先并不清除低模到期状态；执行中的某一级不会迫使当前帧等待它完成。代码入口：[StreamInferenceReplay](../../yolo_onnx_cpp/stream/stream_inference_replay.h)、[SingleModelInferenceReplay](../../yolo_onnx_cpp/stream/single_model_inference_replay.h)。
 
-**原始代码节选：** 创建 `ScheduledTask` 并取得本次 future。
+实时异步检测预算使用 `captured_at` 的单调时钟经过时间，不能用解码器报告的名义 FPS 推导真实检测频率。双模型 `video_detect_fps` 控制低模节奏，`video_high_detect_fps` 控制周期高模；单模型使用前者。值为 0 时，前者每帧到期，后者关闭周期高模但保留首次/紧急刷新。详见 [DetectionCadence](../../yolo_onnx_cpp/stream/detection_cadence.h)。
 
-来源：[yolo_onnx_cpp/model/inference_scheduler.cpp](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L67-L77)，编写时第 67～77 行。
+### 7.3 同步回退：本路等待，不阻塞创建流请求
 
-```cpp
-    std::future<ScheduledInferenceResult> submit(
-        TensorInput input,
-        InferenceContext context,
-        bool urgent
-    ) {
-        auto task = std::make_shared<ScheduledTask>();
-        task->input = std::move(input);
-        task->context = std::move(context);
-        task->urgent = urgent;
-        task->submitted_at = std::chrono::steady_clock::now();
-        auto future = task->promise.get_future();
-```
+同步循环在准备帧、检查年龄和选择检测级别后，通过 `runModel` 预处理并调用 `submitModel(...).get()`；没有调度器时直接调用模型。等待发生在本路 processor 线程，`POST /streams` 不需要等待首帧检测便可返回 201。
 
-`ScheduledTask` 拥有 tensor、上下文、urgent 标志、提交时间和 promise。空 `stream_id` 内部归到 `__default__`，非空按原值分组。
-
-**原始代码节选：** 每流队列容量和调度唤醒。
-
-来源：[yolo_onnx_cpp/model/inference_scheduler.cpp](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L90-L109)，编写时第 90～109 行。
-
-```cpp
-            const std::string stream_id = normalizedStreamId(task->context.stream_id);
-            auto& queue = queues_[stream_id];
-            if (queue.size() >= per_stream_queue_depth_) {
-                replaced = std::move(queue.front());
-                queue.pop_front();
-                --stats_.queued_count;
-                ++stats_.replaced_count;
-            }
-
-            queue.push_back(task);
-            ++stats_.submitted_count;
-            ++stats_.queued_count;
-            stats_.max_queued_count = std::max(
-                stats_.max_queued_count,
-                stats_.queued_count
-            );
-            if (replaced != nullptr) {
-                unscheduleReadyLocked(stream_id);
-            }
-            scheduleReadyLocked(stream_id);
-```
-
-满时替换的是**尚未执行的最旧任务**，不会取消已经进入模型的任务。锁外用被替换任务自己的 promise 返回 `Replaced`，新任务的 future 则继续等待。这也解释了为什么同名流可能相互影响排队，但不会把新任务结果误交给旧任务的 future。
-
-`ready_streams_` 防止同一流重复进入 ready 队列；`in_flight_streams_` 阻止同一调度器并行执行同一流的两项任务。ready 队列里放流 ID，而不是把某一流所有待执行张量连续展开。
-
-**原始代码节选：** `takeNext` 在紧急和普通流之间选择。
-
-来源：[yolo_onnx_cpp/model/inference_scheduler.cpp](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L192-L214)，编写时第 192～214 行。
-
-```cpp
-        if (!urgent_ready_.empty()
-            && (normal_ready_.empty() || urgent_burst_ < kMaxUrgentBurst)) {
-            stream_id = std::move(urgent_ready_.front());
-            urgent_ready_.pop_front();
-            ++urgent_burst_;
-        } else {
-            stream_id = std::move(normal_ready_.front());
-            normal_ready_.pop_front();
-            urgent_burst_ = 0;
-        }
-
-        ready_streams_.erase(stream_id);
-        auto queue = queues_.find(stream_id);
-        if (queue == queues_.end() || queue->second.empty()) {
-            return nullptr;
-        }
-
-        auto task = std::move(queue->second.front());
-        queue->second.pop_front();
-        --stats_.queued_count;
-        ++stats_.in_flight_count;
-        in_flight_streams_.insert(stream_id);
-        return task;
-```
-
-取出的任务被记为 in-flight。普通任务也在等待时，紧急任务最多连续被选取 3 次，之后让普通队列获得一次机会；没有普通任务时不会为了配额故意闲置 worker。是否进入紧急 ready 队列看本流队首任务的 urgent 标记，不是把任何后来到达的紧急任务都插到全局最前面。
-
-任务结束后 `finishTask` 清除 in-flight；若该流仍有等待任务，重新加入 ready 队尾，因此可在流之间轮转。公平性体现在选择顺序，不保证各路相同 FPS、相同 CPU 占用或相同完成时间。高低模型调度器各自维护独立状态，单流 in-flight 限制也是“每个调度器内部”的限制。
-
-**下一步：** worker 在真正调用模型前检查提交年龄。
-
-### 7.5 worker 与模型请求池
-
-**原始代码节选：** `InferenceScheduler::run` 的过期检查和执行。
-
-来源：[yolo_onnx_cpp/model/inference_scheduler.cpp](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L255-L289)，编写时第 255～289 行。
-
-```cpp
-            ScheduledInferenceResult output;
-            const auto now = std::chrono::steady_clock::now();
-            const auto age = std::chrono::duration_cast<std::chrono::milliseconds>(
-                now - task->submitted_at
-            );
-            if (max_request_age_.count() > 0 && age > max_request_age_) {
-                output = statusResult(
-                    ScheduledInferenceStatus::Stale,
-                    "queued inference exceeded the maximum request age"
-                );
-            } else {
-                try {
-                    output.status = ScheduledInferenceStatus::Completed;
-                    output.result = engine_->infer(
-                        task->input,
-                        std::move(task->context)
-                    );
-                    output.result.queue_wait_ms =
-                        std::chrono::duration<double, std::milli>(
-                            now - task->submitted_at
-                        ).count();
-                    output.result.timing_samples.queue_wait_ms.push_back(
-                        output.result.queue_wait_ms
-                    );
-                } catch (const std::exception& e) {
-                    output = statusResult(
-                        ScheduledInferenceStatus::Failed,
-                        e.what()
-                    );
-                }
-            }
-
-            const ScheduledInferenceStatus status = output.status;
-            finishTask(stream_id, status);
-            task->promise.set_value(std::move(output));
-```
-
-任务超过 `max_request_age_ms` 时返回 `Stale`，不会调用模型。否则执行 `engine_->infer(task->input, context)`；异常转为 `Failed`。`queue_wait_ms` 是从 submit 到 worker 开始执行前的时间，不含上传任务池等待、图像解码排队或后续借模型请求池的等待。
-
-ONNX Runtime 路径用本次张量调用 `session_.Run`。OpenVINO 则先借一项空闲 InferRequest：
-
-来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp#L433-L445)，编写时第 433～445 行。
-
-```cpp
-        size_t request_index = 0;
-        {
-            std::unique_lock<std::mutex> lock(ov_pool_mutex_);
-            ov_pool_condition_.wait(lock, [this]() {
-                return !ov_available_requests_.empty();
-            });
-            request_index = ov_available_requests_.back();
-            ov_available_requests_.pop_back();
-        }
-        RequestIndexGuard request_guard(
-            ov_pool_mutex_, ov_pool_condition_, ov_available_requests_, request_index
-        );
-        ov::InferRequest& infer_request = ov_infer_requests_[request_index];
-```
-
-拿到索引后立即构造 `RequestIndexGuard`。其析构在 mutex 下归还索引并通知等待者，所以正常返回和作用域内异常都会归还该项；锁仅保护索引池，不包住整个推理。
-
-OpenVINO 接着把 float 数据复制到本次 `ov::Tensor`，绑定输入，调用 `infer_request.infer()`，读取输出。两种后端最终都进行检测输出解码、阈值筛选和同类 NMS，并返回原图坐标的 `Detection`。请求 guard 在整次函数结束时才归还索引，因此读取/后处理输出时不会被另一次调用复用同一请求对象。
-
-调度 worker 数与 OpenVINO 请求池大小对齐，但图片入口也直接共享高模型池，所以调度 worker 仍可能等待被图片占用的请求；不存在为视频独占保留的 InferRequest。
-
-**原始代码节选：** `YoloEngine::infer` 回填调用上下文。
-
-来源：[yolo_onnx_cpp/model/yolo_engine.cpp](../../yolo_onnx_cpp/model/yolo_engine.cpp#L543-L547)，编写时第 543～547 行。
-
-```cpp
-InferResult YoloEngine::infer(const TensorInput& input, InferenceContext context) {
-    InferResult result = impl_->infer(input);
-    result.context = std::move(context);
-    return result;
-}
-```
-
-调度器执行 `finishTask`，再 `task->promise.set_value(...)`；提交方的 `.get()` 返回本次 `ScheduledInferenceResult`。这是一条请求对象到 promise/future 的直接返回链路，不需要根据帧号在一个全局结果数组里猜测归属。
-
-### 7.6 回到 processLoop：更新跟踪，提交灰度
-
-| 调度结果/本帧选择 | 实时处理动作 |
+| 调度结果/本帧选择 | 同步回退动作 |
 | --- | --- |
-| `Completed` 且帧仍新鲜 | `applyDetections` 更新跟踪；标记 `detection_frame=true`、`model_tier=high/low`，清除相应刷新状态 |
-| `Completed` 但结果已过期 | 增加过旧帧计数并跳过本帧，不应用该次检测结果 |
-| `Stale` 或 `Replaced` | 增加 `skipped_inference_count`；若帧仍新鲜，则走 `applyFlow` |
-| `Failed`、`Stopped` 或预处理异常 | 计入处理错误；未达到连续错误门槛且帧仍新鲜时可走光流；达到门槛则将该流设为 failed 并停止 |
-| `DetectionTier::None` | 不向模型提交，使用 `applyFlow` 传播既有轨迹 |
+| `Completed` 且帧仍新鲜 | `applyDetections` 更新跟踪，标记模型级别；高模 ROI 开启时先映射回全图坐标 |
+| `Completed` 但结果过期 | 丢弃本帧结果，不应用检测 |
+| `Stale` 或 `Replaced` | 增加跳过推理计数，帧仍新鲜则用光流 |
+| 失败或预处理异常 | 计入推理错误，连续达到阈值后本流失败 |
+| 无检测到期 | `applyFlow` 传播轨迹 |
 
-成功 Completed 会重置连续推理错误计数（即便本帧最终因过期跳过）。解码线程顶层异常和处理线程顶层未捕获异常有单独的 `runWorker/failWorker` 隔离路径，不要都归入五次模型错误熔断。
+同步回退的检测节奏使用源帧 `timestamp_ms`。`StreamProcessor` 单模型使用 ByteTracker，双模型使用 AuthorityTracker；`applyDetections/applyFlow` 已修改轨迹，`finishFrame` 保存灰度。若发布前才过龄，只丢弃对外输出，已推进的轨迹与灰度保持一致。
 
-**原始代码节选：** `StreamProcessor::applyDetections` 的跟踪器分流。
+### 7.4 上下文、future 与共享调度
 
-来源：[yolo_onnx_cpp/stream/stream_processor.cpp](../../yolo_onnx_cpp/stream/stream_processor.cpp#L44-L61)，编写时第 44～61 行。
+`InferenceContext{stream_id, frame_index, timestamp_ms}` 随张量进入任务，`YoloEngine::infer` 将它带回 `InferResult`。每个任务有自己的 promise/future，不依赖从全局结果数组猜测归属。
 
-```cpp
-const std::vector<TrackedDetection>& StreamProcessor::applyDetections(
-    const std::vector<Detection>& detections,
-    int64_t frame_index,
-    bool high_res,
-    const std::vector<ProjectedTrack>& projected_tracks
-) {
-    if (high_low_) {
-        tracks_ = high_res
-            ? authority_tracker_.updateHighRes(detections, frame_index)
-            : authority_tracker_.updateLowRes(detections, projected_tracks, frame_index);
-    } else {
-        if (!high_res) {
-            throw std::invalid_argument("single-model processor cannot apply low-model detections");
-        }
-        tracks_ = byte_tracker_.update(detections);
-    }
-    return tracks_;
-}
-```
+[InferenceScheduler](../../yolo_onnx_cpp/model/inference_scheduler.cpp) 按流维护有界等待队列，每级同流最多一个 in-flight；高、低调度器彼此独立。满队列替换最旧等待任务，返回 `Replaced`；执行前检查排队年龄，超龄返回 `Stale`。有普通流等待时最多连续取三个紧急任务，再让普通流执行；完成后重新调度该流。
 
-高低模式使用 `AuthorityTracker`：高模更新权威类别、分数和存在性；低模用于几何修正和待确认候选；光流传播已有轨迹并受跟踪年龄规则限制。单模型则使用 ByteTracker。本文不展开跟踪算法内部的所有门槛，详见 [authority_tracker.cpp](../../yolo_onnx_cpp/tracking/authority_tracker.cpp)。
+`submitTracked` 返回 future 和票据。`isQueued/updateQueued/cancelQueued` 在调度器锁下判断任务是否仍可更新或取消，不能仅凭 future 未完成就认为尚未执行。更新必须保持流身份、输入形状，帧号前进且时间戳不倒退；取消不会中断 in-flight 调用。
 
-`applyDetections/applyFlow` 已经修改本路轨迹；`finishFrame` 只是把 prepared 的当前灰度移动到 `previous_gray_`。它不是一次提交灰度和轨迹的事务。如果直到后面的 publish 才发现过龄，轨迹和灰度仍保留本次一致推进的状态，只丢弃对外输出。
+### 7.5 模型请求池与并发边界
 
-**下一步：** 生成 `RealtimeFrameEvent` 并发布给本路订阅者。
+网关以 `engine->maxConcurrency()` 配置对应调度 worker。OpenVINO 共享一个编译模型及多个 InferRequest，worker 借用请求并由 RAII 守卫归还，异常也归还；没有按摄像头复制模型。请求数配置为 0 时使用后端推荐值，高低模型各自派生配置。
 
-### 7.7 三类主队列和两种时钟，放到同一张表里看
+代码入口：[YoloEngine::initOpenVino / inferOpenVino](../../yolo_onnx_cpp/model/yolo_engine.cpp)。单路输出帧率、检测次数与模型 worker 数是不同指标，不能直接互相推导。
 
-| 队列 | 存放内容 | 满/忙时 | 等待时间是否由 `max_request_age_ms` 直接覆盖 |
-| --- | --- | --- | --- |
-| `VideoJobExecutor::jobs_` | 一整个上传视频的闭包 | 已达到等待容量就拒绝新提交，503 | 否，尚未提交单帧模型任务 |
-| `StreamContext::frames` | 一路已解码的 `cv::Mat` 帧 | 实时丢旧/合并，本地文件等待空位 | 否；实时帧还受 `max_result_age_ms` 约束 |
-| `InferenceScheduler::queues_` | 一路等待模型执行的张量任务 | 替换最旧等待任务，内部 `Replaced` | 是，从该任务 submit 开始 |
+### 7.6 结束与失败
 
-离线上传的 `AsyncInferWorker` 请求/结果缓冲是算法内的额外一层，见第 4.5 节；OpenVINO 空闲请求索引池是执行资源池，不是这些任务队列中的任意一个。
+异步轮询的跳过/失败各自计数；过期、历史不足或来源不匹配的结果不会直接覆盖当前轨迹。连续推理错误达到阈值后本流进入 failed，线程顶层异常由 `runWorker/failWorker` 隔离。
 
-实时新鲜度的时间线为：
+`finishProcessing` 取消尚未执行的高低票据，清理本路并发布终止事件；已执行的模型不被强制中断。一条流退出不停止其他流或整个服务。
 
-```text
-摄像头拍摄 → 网络/解码器内部缓存 → 本地 read 完成 → 图像排队/光流准备/预处理 → submit → 模型执行 → 发布
-                                   ^ captured_at                       ^ submitted_at
-                                   |---------- max_result_age_ms ----------------------|
-                                                                        |--排队--|
-                                                                        max_request_age_ms
-```
+### 7.7 三类主队列和两种时钟
 
-因此这里的实时帧龄不包括摄像头、网络和解码器内部已经产生的延迟。`timestamp_ms` 用于帧时间与节奏判断，不能替代单调时钟 `captured_at` 计算本地新鲜度。源码在取帧后、准备后、推理结果处理时以及发布时分阶段检查过期；并非每阶段都强制取消正在运行的计算。
+| 队列 | 内容 | 满/忙时的处理 |
+| --- | --- | --- |
+| `VideoJobExecutor::jobs_` | 一整个上传视频闭包 | 达到等待容量后拒绝，返回 503 |
+| `StreamContext::frames` | 每路已解码图像 | 实时丢旧并合并到最新；本地文件施加背压 |
+| `InferenceScheduler::queues_` | 各流待执行张量 | 满时替换最旧等待任务；实时异步也可通过票据更新等待任务 |
+
+`max_request_age_ms` 限制模型任务排队年龄，不覆盖上传任务池和解码队列。`max_result_age_ms` 从本地解码完成的 `captured_at` 计算实时源帧年龄，在准备、结果接收、回放及发布边界检查；不约束本地文件，也不强制中断正在执行的计算。
+
+两者都不包含摄像头、网络及解码器内部的前置延迟。`timestamp_ms` 是源帧标识和同步回退节奏依据，不能替代单调时钟衡量实时新鲜度。
 
 <a id="lifecycle"></a>
 ## 8. 结果订阅、异常和任务结束
 
-### 8.1 publish：更新本路统计，再调用本路订阅者
+### 8.1 publish：更新统计，再按顺序通知订阅者
 
-**作用：** 对仍可发布的结果分配事件序号并对外通知。
+[publish](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) 在流 mutex 下检查停止及帧龄，对有效输出增加处理帧数，并分配递增 sequence、保存最多 256 条事件。
 
-**原始代码节选：** `processLoop` 在处理完成之后生成事件。
+异步事件有 `inference_updates` 时，检测计数按本次实际接受的源帧校正逐条累计；一条输出可以同时增加高、低检测数。同步事件没有该数组时按 `detection_frame` 和 `model_tier` 计数。调度器完成次数不等于有效检测次数：执行成功仍可能因过期或无法回放被丢弃。
 
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L798-L806)，编写时第 798～806 行。
+订阅者采用有序投递队列，历史补发与并发新事件保持序号顺序；真正调用 callback 时不持有流 mutex。回调失败或抛异常的订阅者被移除，不为每个订阅者创建独立后台线程。终止事件绕过普通帧时效判断，不增加正常处理帧数。
 
-```cpp
-            processor.finishFrame(std::move(prepared));
-            RealtimeFrameEvent event;
-            event.frame_index = frame.frame_index;
-            event.timestamp_ms = frame.timestamp_ms;
-            event.detection_frame = detection_frame;
-            event.model_tier = std::move(model_tier);
-            event.tracks = std::move(tracks);
+### 8.2 SSE：创建请求、结果连接与断线补发
 
-            publish(context, std::move(event), frame.captured_at);
-```
+客户端单独访问 `GET /streams/{id}/events`。不存在的流返回 HTTP 404；存在时先解析可选 `Last-Event-ID`，非法无符号十进制游标返回 HTTP 400，再建立 SSE 响应。
 
-`publish` 在流 mutex 下检查停止和帧龄；有效普通事件增加处理帧数，检测事件增加高/低检测数，记录 `latest_result_captured_at`；随后递增 sequence、保留至多 256 条事件，复制订阅者列表。
+- 不带游标：`subscribe` 接收新事件，终态或停止中的流拒绝普通订阅。
+- 带游标：`subscribeAfter` 原子注册并按顺序补发缓存中 sequence 大于游标的事件，再跟随新事件。有效游标可以补发终态；终态状态刚写入但终止事件尚未入缓存时，等待该事件发布。
+- 历史已淘汰：发送 `error`，包含 `earliest_available_sequence`；游标超前：发送 `error`，包含 `latest_sequence`；不可订阅则报告 `stream unavailable`。这些发生在 SSE 响应建立后，随后关闭连接。
 
-**原始代码节选：** `publish` 的停止/过期检查、计数与事件缓存部分。
+每路最多 32 个订阅者、256 条缓存事件；没有磁盘事件存储，流删除或进程重启后不能续传。
 
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L833-L872)，编写时第 833～872 行。
+普通事件名称为 `detection`（也包括纯光流帧），终止为 `end`，发送终止事件后关闭连接。序列化由 [realtimeFrameEventToJson](../../yolo_onnx_cpp/drogon/response_json.cpp) 完成，字段如下：
 
-```cpp
+| 字段 | 含义 |
+| --- | --- |
+| `sequence` | 与 SSE `id` 相同的流内事件序号 |
+| `frame_index`、`timestamp_ms` | 当前输出帧的身份 |
+| `result_age_ms` | 当前输出帧从本地解码到发布的年龄 |
+| `detection_frame`、`model_tier`、`high_res_roi` | 本次是否应用检测、模型级别及是否涉及高模 ROI |
+| `terminal`、`status`、`tracks` | 终止标志、事件状态和轨迹 |
+| 可选 `inference_updates` | 异步旧检测的来源数组；每项包含 `stream_id`、`frame_index`、`timestamp_ms`、`model_tier`、`high_res_roi` |
 
-    void publish(
-        const std::shared_ptr<StreamContext>& context,
-        RealtimeFrameEvent event,
-        std::chrono::steady_clock::time_point captured_at = {}
-    ) {
-        std::vector<Subscriber> subscribers;
-        {
-            std::lock_guard<std::mutex> lock(context->mutex);
-            if (!event.terminal) {
-                if (context->stop_requested) {
-                    return;
-                }
-                const auto now = std::chrono::steady_clock::now();
-                if (isFrameExpired(context->live_source, config_.max_result_age_ms,
-                                   captured_at, now)) {
-                    ++context->stale_frame_drop_count;
-                    ++context->dropped_frame_count;
-                    return;
-                }
-                event.result_age_ms =
-                    std::chrono::duration<double, std::milli>(now - captured_at).count();
-                ++context->processed_frame_count;
-                if (event.detection_frame) {
-                    ++context->detection_frame_count;
-                    if (event.model_tier == "high") {
-                        ++context->high_res_detection_count;
-                    } else {
-                        ++context->low_res_detection_count;
-                    }
-                }
-                context->latest_result_captured_at = captured_at;
-            }
-            event.sequence = context->next_sequence++;
-            context->events.push_back(event);
-            while (context->events.size() > kMaxBufferedEvents) {
-                context->events.pop_front();
-            }
-            subscribers = context->subscribers;
-        }
-```
-
-真正调用 subscriber callback 发生在释放流 mutex 之后。返回 false 或抛异常的订阅者会被移除，避免它继续接收后续事件。回调仍由发布方线程调用；当前没有为每个订阅者另建一个后台线程。
-
-终止事件绕过普通帧新鲜度判断，携带最终状态；不会增加正常处理帧数。
-
-### 8.2 SSE：创建流的响应和结果连接是两个请求
-
-客户端单独访问 `GET /streams/{id}/events`。路由先检查流存在，再创建 `newAsyncStreamResponse` 并调用 manager 的 `subscribe`。
-
-**原始代码节选：** SSE 的事件名称、序号与数据拼接。
-
-来源：[yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp](../../yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp#L271-L289)，编写时第 271～289 行。
-
-```cpp
-                            Json::StreamWriterBuilder writer;
-                            writer["indentation"] = "";
-                            const std::string data = Json::writeString(
-                                writer,
-                                streamEventToJson(event, class_names)
-                            );
-                            const std::string event_name =
-                                event.terminal ? "end" : "detection";
-                            const std::string payload =
-                                "id: " + std::to_string(event.sequence)
-                                + "\nevent: " + event_name
-                                + "\ndata: " + data + "\n\n";
-                            const bool sent = (*holder)->send(payload);
-                            if (!sent || event.terminal) {
-                                (*holder)->close();
-                                holder->reset();
-                                return false;
-                            }
-                            return true;
-```
-
-普通事件统一叫 `detection`，即使当前帧只是光流传播；必须结合 `detection_frame` 和 `model_tier` 判断是否执行了模型。终止事件叫 `end`，发送后关闭连接。
-
-SSE 数据体字段为 `sequence`、`frame_index`、`timestamp_ms`、`result_age_ms`、`detection_frame`、`model_tier`、`terminal`、`status`、`tracks`。它没有 `stream_id`，客户端从订阅 URL 关联流。普通帧事件沿用 `RealtimeFrameEvent` 默认的 `status="running"`，不是发布时读取的管理器状态快照；完整运行状态仍应查询流接口。
-
-订阅只接收注册成功后的新事件。内部虽然存 256 条事件，但当前 subscribe 没有遍历历史缓冲，也没有读取 `Last-Event-ID`；断开后重新连接不会补发遗漏结果。每路最多 32 个订阅者，终态或停止中的流拒绝订阅。若 HTTP 端检查后流状态变化或订阅失败，已经建立的 SSE 会发送 `error` 事件后关闭。
+顶层没有 `stream_id`，客户端从订阅 URL 关联流。普通事件默认 `status="running"`，不是管理器状态快照；完整运行状态仍应查询流接口。
 
 ### 8.3 状态接口、响应与指标
 
@@ -1329,7 +1029,7 @@ stateDiagram-v2
 
 **原始代码节选：** `stopContext` 的停止与 join。
 
-来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L907-L931)，编写时第 907～931 行。
+来源：[yolo_onnx_cpp/stream/realtime_stream_manager.cpp](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp)。
 
 ```cpp
     static void stopContext(const std::shared_ptr<StreamContext>& context) {
@@ -1361,7 +1061,7 @@ stateDiagram-v2
 
 manager 的 `stop` 在注册表锁下查找记录并标记 `removal_in_progress`，保证只有一个调用方负责 join；释放注册表锁后执行上面的停止逻辑，最后归档累计量并删除注册记录。源码还防止在该流 worker 回调里对自身执行 stop/join。
 
-DELETE 不是瞬间终止线程：处理线程若正在 future 等待模型，需要等调用返回后检查停止标志；解码线程可能仍在后端 open/read 中。不要把配置的帧龄阈值或后端超时理解为 DELETE 的严格响应时间保证。
+DELETE 不是瞬间终止线程：异步分支收尾会取消等待票据，不能中断已经执行的模型；同步回退若正在等待模型，需要等调用返回后检查停止标志；解码线程可能仍在后端 open/read 中。不要把配置的帧龄阈值或后端超时理解为 DELETE 的严格响应时间保证。
 
 停止同名终态流也会删除记录，HTTP DELETE 响应仍是 `status: stopped`；如果需要保存其原来的 `failed/completed/expired` 原因，应先读取状态。上传任务不注册到这个 manager，不能用 `DELETE /streams/upload-1` 取消一个上传视频。
 
@@ -1493,16 +1193,24 @@ curl -sS -N "$YOLO_API_BASE/streams/cam-west/events"
 
 `-N` 关闭 curl 输出缓冲，使事件到达时及时显示。这两条命令会保持连接等待新事件；停止 curl 只结束该订阅连接，不会删除流。
 
+断线后，使用该流最后收到的 SSE `id` 补发后续缓存事件，例如已收到 `id: 12`：
+
+```bash
+curl -sS -N -H 'Last-Event-ID: 12' "$YOLO_API_BASE/streams/cam-east/events"
+```
+
+只有游标之后的事件仍在该流缓存中才能完整补发；检查 `error` 事件，不能把 HTTP 200 当作续传成功。
+
 **普通光流事件示意：**
 
 ```text
 id: 12
 event: detection
-data: {"sequence":12,"frame_index":18,"timestamp_ms":600.0,"result_age_ms":21.5,"detection_frame":false,"model_tier":"flow","terminal":false,"status":"running","tracks":[]}
+data: {"sequence":12,"frame_index":18,"timestamp_ms":600.0,"result_age_ms":21.5,"detection_frame":false,"high_res_roi":false,"model_tier":"flow","terminal":false,"status":"running","tracks":[]}
 
 ```
 
-这里 `id/sequence` 是事件序号，不是源帧号；`frame_index=18` 和 `sequence=12` 不相等是正常情况。客户端从 URL 知道该事件属于哪路，不应期待数据中存在未实现的 `stream_id` 字段。
+这里 `id/sequence` 是事件序号，不是源帧号；`frame_index=18` 和 `sequence=12` 不相等是正常情况。客户端从 URL 知道该事件属于哪路，顶层没有 `stream_id`；异步事件的可选 `inference_updates` 中则包含各次检测的流 ID。
 
 ### 9.6 停止并释放两路注册名额
 
@@ -1532,10 +1240,10 @@ curl -sS -i "$YOLO_API_BASE/streams"
 | 创建流 409 | `RealtimeStreamManager::create` | ID 已存在或注册表已满；检查残留终态记录 |
 | 创建流 201 后一直 reconnecting | `decodeLoop`、服务端到摄像头连通性 | 201 只表示注册创建；确认源协议、路径、权限及后端能否打开 |
 | 解码帧增加但输出稀少 | `takeNextFrame`、`discardExpiredFrame`、scheduler 指标 | 实时丢旧、模型排队或结果过龄；对照各独立计数定位 |
-| `skipped_inference_count` 增长 | 调度器 `Replaced/Stale` | 跳过模型任务，不等同于相同数量源图像被丢弃 |
+| `skipped_inference_count` 增长 | 调度器 `Replaced/Stale`、异步过期或历史不足 | 跳过模型任务或旧检测校正，不等同于相同数量源图像被丢弃 |
 | 一路 failed、其他路继续 | `processLoop` 错误门槛、`runWorker/failWorker` | 本路异常隔离；区分连续模型错误与 worker 顶层异常 |
-| SSE 连接却没历史数据 | `subscribe` | 只推送新事件，不实现历史重放；也要排除源未出帧/持续过龄 |
-| 终态流 SSE 返回 error 后关闭 | SSE 路由与 `subscribe` | 注册记录存在，但终态拒绝新订阅 |
+| SSE 连接却没历史数据 | `Last-Event-ID`、`subscribeAfter` | 不带游标只推送新事件；带游标才能补发仍在缓存中的后续事件，也要排除源未出帧/持续过龄 |
+| 终态流 SSE 返回 error 后关闭 | SSE 路由与 `subscribe` | 普通订阅拒绝终态；有效游标可补发终止事件，错误游标或历史过期需按 error 处理 |
 | DELETE 等待较久 | `stopContext`、模型/视频后端调用 | join 等待线程返回，不会强制中断正在执行的推理 |
 | GET/DELETE 404 | 流注册表 | ID 不存在、已移除；上传任务 ID 本来就不在流管理器中 |
 | 上传一直等待，`/streams` 查不到 | `VideoInferenceHandler` | 上传接口是原 HTTP 请求等待最终 JSON，没有任务查询协议 |
@@ -1548,31 +1256,31 @@ curl -sS -i "$YOLO_API_BASE/streams"
 
 | 阅读目标 | 当前源码入口 |
 | --- | --- |
-| 从启动到监听 | [main.cpp](../../yolo_onnx_cpp/main.cpp#L17) → [runApiServer](../../yolo_onnx_cpp/drogon/api_server.cpp#L7) → [ApiGateway](../../yolo_onnx_cpp/drogon/api_gateway.cpp#L67) |
-| 配置读取与高低派生 | [loadAppConfig](../../yolo_onnx_cpp/config/app_config.cpp#L399)、[makeHighResAppConfig / makeLowResAppConfig](../../yolo_onnx_cpp/config/app_config.cpp#L508) |
-| 请求身份与限流 | [registerRequestGate](../../yolo_onnx_cpp/drogon/api_gateway.cpp#L129)、[RequestGate::Impl::check](../../yolo_onnx_cpp/drogon/request_gate.cpp#L42) |
-| 上传与异步 HTTP 回调 | [ImageInferenceHandler / VideoInferenceHandler](../../yolo_onnx_cpp/drogon/inference_handlers.cpp#L111)、[VideoJobExecutor](../../yolo_onnx_cpp/drogon/video_job_executor.cpp#L13) |
-| 单模型/双模型离线入口 | [inferVideoFile](../../yolo_onnx_cpp/video/video_inference.cpp#L51)、[inferVideoFileHighLow](../../yolo_onnx_cpp/video/video_inference_high_low.cpp#L197) |
-| 实时流创建及对外接口 | [registerRealtimeStreamRoutes](../../yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp#L119)、[create](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L96) |
-| 实时逐帧主链 | [decodeLoop](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L421) → [takeNextFrame](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L566) → [processLoop](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L654) → [publish](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp#L833) |
-| 跟踪器的准备与状态更新 | [StreamProcessor](../../yolo_onnx_cpp/stream/stream_processor.cpp#L11)、[DetectionCadence](../../yolo_onnx_cpp/stream/detection_cadence.h#L10) |
-| 帧任务调度与返回 | [submit](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L67)、[takeNext / finishTask / run](../../yolo_onnx_cpp/model/inference_scheduler.cpp#L183) |
-| 模型后端与请求借还 | [YoloEngine](../../yolo_onnx_cpp/model/yolo_engine.cpp#L207)、[initOpenVino](../../yolo_onnx_cpp/model/yolo_engine.cpp#L362)、[inferOpenVino](../../yolo_onnx_cpp/model/yolo_engine.cpp#L431) |
+| 从启动到监听 | [main.cpp](../../yolo_onnx_cpp/main.cpp) → [runApiServer](../../yolo_onnx_cpp/drogon/api_server.cpp) → [ApiGateway](../../yolo_onnx_cpp/drogon/api_gateway.cpp) |
+| 配置读取与高低派生 | [loadAppConfig](../../yolo_onnx_cpp/config/app_config.cpp)、[makeHighResAppConfig / makeLowResAppConfig](../../yolo_onnx_cpp/config/app_config.cpp) |
+| 请求身份与限流 | [registerRequestGate](../../yolo_onnx_cpp/drogon/api_gateway.cpp)、[RequestGate::Impl::check](../../yolo_onnx_cpp/drogon/request_gate.cpp) |
+| 上传与异步 HTTP 回调 | [ImageInferenceHandler / VideoInferenceHandler](../../yolo_onnx_cpp/drogon/inference_handlers.cpp)、[VideoJobExecutor](../../yolo_onnx_cpp/drogon/video_job_executor.cpp) |
+| 单模型/双模型离线入口 | [inferVideoFile](../../yolo_onnx_cpp/video/video_inference.cpp)、[inferVideoFileHighLow](../../yolo_onnx_cpp/video/video_inference_high_low.cpp) |
+| 实时流创建及对外接口 | [registerRealtimeStreamRoutes](../../yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp)、[create](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) |
+| 实时逐帧主链 | [decodeLoop](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) → [takeNextFrame](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) → [processLoop / processAsyncSingleModel / processAsyncHighLow](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) → [publish](../../yolo_onnx_cpp/stream/realtime_stream_manager.cpp) |
+| 跟踪器的准备与状态更新 | [StreamProcessor](../../yolo_onnx_cpp/stream/stream_processor.cpp)、[DetectionCadence](../../yolo_onnx_cpp/stream/detection_cadence.h) |
+| 帧任务调度与返回 | [submit](../../yolo_onnx_cpp/model/inference_scheduler.cpp)、[takeNext / finishTask / run](../../yolo_onnx_cpp/model/inference_scheduler.cpp) |
+| 模型后端与请求借还 | [YoloEngine](../../yolo_onnx_cpp/model/yolo_engine.cpp)、[initOpenVino](../../yolo_onnx_cpp/model/yolo_engine.cpp)、[inferOpenVino](../../yolo_onnx_cpp/model/yolo_engine.cpp) |
 
 补充资料：[多路实时监测代码速读记录](多路实时监测代码速读记录_20260908.md)、[多路实时监测实施记录](多路实时监测实施记录_20260905.md)。历史报告用于背景参考，本文对当前行为以源码为准。
 
 ### 10.2 已有测试实际覆盖什么
 
-本次阅读了相关测试源码，未重新构建或运行 CTest。不要将本表视为本次测试通过报告。
+下表为相关测试覆盖范围。2026-09-29 前序代码审核已完成默认构建 CTest 25/25、OpenVINO 定向测试 5/5 和 Qt 构建；本次文档同步没有重复运行构建或 CTest，也没有执行真实摄像头验收。
 
 | 测试源码 | 已有断言覆盖的关键场景 |
 | --- | --- |
 | [request_gate_test.cpp](../../yolo_onnx_cpp/test_cpp/request_gate_test.cpp) | 门禁关闭、正确/错误 token、错误 token 消费令牌、同客户端耗尽与补充、不同客户端独立、统计与 Retry-After |
 | [video_job_executor_test.cpp](../../yolo_onnx_cpp/test_cpp/video_job_executor_test.cpp) | 一个 worker 被占用时仍可排队，等待队列满拒绝，已接受任务执行完毕，队列/in-flight 计数归零 |
-| [inference_scheduler_test.cpp](../../yolo_onnx_cpp/test_cpp/inference_scheduler_test.cpp) | 一个任务执行期间另一流旧等待帧被新帧替换、保留新帧上下文、完成及替换计数、队列最终排空 |
-| [realtime_stream_manager_test.cpp](../../yolo_onnx_cpp/test_cpp/realtime_stream_manager_test.cpp) | 非法/重复流 ID、本地 120 帧背压完整处理、终态记录占位、帧龄查询继续增长、删除后累计量保留、worker 自停保护和双路异常隔离 |
+| [inference_scheduler_test.cpp](../../yolo_onnx_cpp/test_cpp/inference_scheduler_test.cpp) | 等待任务替换、票据更新/取消与出队竞争、上下文、执行时序及队列计数 |
+| [realtime_stream_manager_test.cpp](../../yolo_onnx_cpp/test_cpp/realtime_stream_manager_test.cpp) | 非法/重复流 ID、本地 120 帧背压完整处理、终态记录占位、帧龄查询继续增长、删除后累计量保留、worker 自停保护、双路异常隔离及 SSE 游标补发/终态竞争 |
 
-源码中的三次紧急配额和轮转分支已经逐段阅读，但现有 `inference_scheduler_test` 不能被描述成完整覆盖了所有公平性、饥饿、过期和停止组合。真实网络多 IP、RTSP 后端超时和断流恢复也不能只用本地文件测试替代验收。
+单元测试覆盖受控调度和生命周期场景；该调度测试不完整覆盖公平性、饥饿及所有过期/停止组合，不能视为全部并发行为的证明。真实网络多 IP、RTSP 后端超时和断流恢复也不能只用本地文件测试替代验收。
 
 若后续需要重新验证实现，可在既有依赖、模型与构建条件满足时手动执行以下命令；它们不属于本次仅文档修改的已执行检查：
 
@@ -1593,7 +1301,7 @@ ctest --preset vcpkg-gcc15-openvino
 ### 10.3 本次文档校验范围
 
 - 对照当前源码检查初始化顺序、默认值和模板值、路由字段、状态码、数据归属与释放逻辑。
-- 将每段原始代码与指定源码行段逐字核对，检查源文件链接、行号和文内目录锚点。
+- 将保留的 C++ 摘录与当前源码连续片段比对（忽略空白），检查本地链接和文内目录锚点。
 - 检查命令块的 Bash 语法、JSON 示例及 SSE 示例数据体，未执行上传、创建流、删除或构建命令。
 - 人工检查 Mermaid 图的节点、调用方向和主要状态路径；未通过图形渲染器做视觉验收。
-- 只新增本文和更新文档索引；未修改现有 API、业务源码、依赖、配置、模型或实验结果。
+- 同步主 README、索引、速读、本文与优化计划；未修改现有 API、业务源码、依赖、配置、模型或实验结果。
