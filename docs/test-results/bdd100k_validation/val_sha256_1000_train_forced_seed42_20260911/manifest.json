@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "validation_samples.json",
+      "sha256": "ce634572790744e9f10f9b13a1d272bf2aa33fce44520f253b86654a5d66df49"
+    },
+    {
+      "path": "selection_summary.md",
+      "sha256": "38721e426d8767418c215af8860f0e4b14708550b10ab43d36ceadd160600c0e"
+    }
+  ]
+}

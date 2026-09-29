@@ -1,0 +1,149 @@
+{
+  "case": "diag63_six_soak_8h",
+  "purpose": "local MJPEG; separate original performance and retirement evidence",
+  "driver_state": "failed",
+  "driver_error": "BrokenPipeError",
+  "retirement_audit": "INCOMPLETE: no post-DELETE metric sample",
+  "removed_stream_log_count": 6,
+  "last_metric_gauges": {
+    "yolo_streams_active": 6.0,
+    "yolo_streams_registered": 6.0,
+    "yolo_scheduler_queue_depth{tier=\"high\"}": 5.0,
+    "yolo_scheduler_in_flight{tier=\"high\"}": 1.0,
+    "yolo_scheduler_queue_depth{tier=\"low\"}": 1.0,
+    "yolo_scheduler_in_flight{tier=\"low\"}": 2.0
+  },
+  "journal_sha256": "e61744b48ce2d9002a68723eccddd13a080fa3221a037b8b085e78b8125879d6",
+  "artifact_sha256": {
+    "run_state.json": "14e039c2adc5d12894415c0573de74d5c3618837afa0039acc8749c77fefa6c2",
+    "diagnostic.json": "569bbeb834df5564b34cccbea1c663a6e4678f58404a57c95d604191de8525dc",
+    "timing_metrics.json": "bd167e787d633889ad412ba5c98b4178fd4b3e29ac03a401ce54a733e520af73",
+    "progress.json": "095c1dcf5ae865e733d270d19685bf513cb28faa2b0ec9853ae6d25108b1f3c5",
+    "diagnostic-config.yaml": "c44e4bc259a97f07e59b0d18230ab0e49892769d826e6d21b9774f8dde7ae57e",
+    "server.log": "2e6702156ba015f50d0adabf2b5b08aaed1899ecd08f804c73fb0fb34abe7001",
+    "acceptance/acceptance.json": "105039888e439970b943412f582737d73a6dc70df8baae592a146784b11dc0f8",
+    "acceptance/acceptance.md": "dd70974baf3e7e8b7a7c8c7022b0d81498f783f15166273eda297ded685c196b"
+  },
+  "process": {
+    "pid": 51235,
+    "cpu_average_percent_of_host": 54.54486344497229,
+    "cpu_peak_percent_of_host": 63.10184924462976,
+    "rss_start_bytes": 821149696,
+    "rss_end_bytes": 941297664,
+    "rss_growth_percent": 14.631676609668986,
+    "host_logical_cpus": 64
+  },
+  "hourly_memory_scope": "hours since first metric, including warmup; smaps_rollup RSS",
+  "hourly_rss_kib": {
+    "0": {
+      "samples": 712,
+      "min": 340640,
+      "median": 888750.0,
+      "max": 959100,
+      "first": 340640,
+      "last": 917760
+    },
+    "1": {
+      "samples": 709,
+      "min": 831388,
+      "median": 936672,
+      "max": 970596,
+      "first": 932288,
+      "last": 918708
+    },
+    "2": {
+      "samples": 709,
+      "min": 863192,
+      "median": 941372,
+      "max": 970188,
+      "first": 947096,
+      "last": 952536
+    },
+    "3": {
+      "samples": 709,
+      "min": 861736,
+      "median": 934804,
+      "max": 969088,
+      "first": 962984,
+      "last": 952740
+    },
+    "4": {
+      "samples": 709,
+      "min": 861636,
+      "median": 934932,
+      "max": 967328,
+      "first": 915304,
+      "last": 927292
+    },
+    "5": {
+      "samples": 711,
+      "min": 859844,
+      "median": 933072,
+      "max": 970388,
+      "first": 953580,
+      "last": 939828
+    },
+    "6": {
+      "samples": 709,
+      "min": 857984,
+      "median": 937380,
+      "max": 970080,
+      "first": 936244,
+      "last": 954392
+    },
+    "7": {
+      "samples": 710,
+      "min": 860324,
+      "median": 936282.0,
+      "max": 966196,
+      "first": 954392,
+      "last": 928520
+    },
+    "8": {
+      "samples": 12,
+      "min": 871284,
+      "median": 931594.0,
+      "max": 954240,
+      "first": 901040,
+      "last": 951240
+    }
+  },
+  "status": "FAIL",
+  "duration_seconds": 28800.005034207003,
+  "acceptance_samples": 5753,
+  "durable_samples": 5690,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.198934921994805,
+  "failed_gates": [
+    "acceptance-1-20260922_012557_144126: low detection FPS",
+    "acceptance-2-20260922_012557_144126: low detection FPS",
+    "acceptance-5-20260922_012557_144126: low detection FPS",
+    "acceptance-6-20260922_012557_144126: low detection FPS",
+    "stream fairness spread",
+    "process RSS growth"
+  ],
+  "output_fps": [
+    25.34676640274761,
+    28.28312005614302
+  ],
+  "low_fps": [
+    3.8498257159437648,
+    4.143679831245069
+  ],
+  "high_fps": [
+    0.5981596176646063,
+    0.6662846057564366
+  ],
+  "maximum_p95_ms": 186.939658,
+  "cpu_host_percent": 54.54486344497229,
+  "rss_growth_percent": 14.631676609668986,
+  "fairness_percent": 10.382000456691634,
+  "peak_rss_kib": 970596,
+  "peak_anonymous_kib": 936388,
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  }
+}

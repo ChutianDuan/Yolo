@@ -1,0 +1,434 @@
+{
+  "schema_version": 5,
+  "started_at_utc": "2026-09-14T00:29:17.656747+00:00",
+  "finished_at_utc": "2026-09-14T00:29:17.983582+00:00",
+  "base_url": "http://127.0.0.1:8080",
+  "requested_stream_count": 4,
+  "sample_count": 0,
+  "elapsed_seconds": 0.0,
+  "requested_duration_seconds": 60.0,
+  "run_errors": [
+    "warmup stream terminal or invalid status"
+  ],
+  "lifecycle_churn": {
+    "requested_cycles": 0,
+    "completed_cycles": 0,
+    "streams_per_cycle": 4,
+    "created_streams": 0,
+    "delete_attempts": 0,
+    "deleted_streams": 0,
+    "elapsed_seconds": 0.0,
+    "errors": []
+  },
+  "provenance": {
+    "scope": "Collector host and operator-supplied endpoint fingerprints; service loading is not attested.",
+    "collector_host": {
+      "system": "Linux",
+      "kernel": "5.15.0-139-generic",
+      "architecture": "x86_64",
+      "logical_cpus": 64,
+      "cpu_models": [
+        "Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz"
+      ],
+      "physical_cores": 32,
+      "sockets": 2,
+      "collector_cpu_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "monitored_pid_cpu_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    "artifacts": [
+      {
+        "kind": "config",
+        "name": "diagnostic-config.yaml",
+        "size_bytes": 2183,
+        "sha256": "d97be977942b7776b8ebc09e4c5a9f19d51075630ed06aad436b8d847e88d65e",
+        "sha256_after": "d97be977942b7776b8ebc09e4c5a9f19d51075630ed06aad436b8d847e88d65e",
+        "size_bytes_after": 2183,
+        "unchanged": true
+      },
+      {
+        "kind": "model",
+        "name": "best.onnx",
+        "size_bytes": 38399808,
+        "sha256": "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+        "sha256_after": "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+        "size_bytes_after": 38399808,
+        "unchanged": true
+      },
+      {
+        "kind": "model",
+        "name": "best_640x384.onnx",
+        "size_bytes": 38114065,
+        "sha256": "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf",
+        "sha256_after": "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf",
+        "size_bytes_after": 38114065,
+        "unchanged": true
+      }
+    ],
+    "artifacts_stable": true,
+    "errors": []
+  },
+  "thresholds": {
+    "min_processed_fps": 25.0,
+    "min_low_detection_fps": 4.0,
+    "min_high_detection_fps": 0.5,
+    "max_result_age_ms": 300.0,
+    "max_fairness_spread_percent": 10.0,
+    "max_cpu_percent": 85.0,
+    "max_memory_growth_percent": 5.0,
+    "max_queue_depth": 2
+  },
+  "process": {
+    "pid": 554266,
+    "cpu_average_percent_of_host": null,
+    "cpu_peak_percent_of_host": null,
+    "rss_start_bytes": null,
+    "rss_end_bytes": null,
+    "rss_growth_percent": null,
+    "host_logical_cpus": 64
+  },
+  "fairness_spread_percent": null,
+  "streams": [
+    {
+      "stream_id": "acceptance-1-20260914_002917_656764",
+      "missing": true,
+      "observed_samples": 0
+    },
+    {
+      "stream_id": "acceptance-2-20260914_002917_656764",
+      "missing": true,
+      "observed_samples": 0
+    },
+    {
+      "stream_id": "acceptance-3-20260914_002917_656764",
+      "missing": true,
+      "observed_samples": 0
+    },
+    {
+      "stream_id": "acceptance-4-20260914_002917_656764",
+      "missing": true,
+      "observed_samples": 0
+    }
+  ],
+  "gates": [
+    {
+      "name": "collection and cleanup completed",
+      "passed": false,
+      "actual": [
+        "warmup stream terminal or invalid status"
+      ],
+      "target": "no errors"
+    },
+    {
+      "name": "reproducibility evidence recorded",
+      "passed": true,
+      "actual": {
+        "config_files": 1,
+        "model_files": 2,
+        "cpu_identity_recorded": true
+      },
+      "target": "config and >=1 model fingerprint plus collector CPU identity"
+    },
+    {
+      "name": "artifact fingerprints stable",
+      "passed": true,
+      "actual": [],
+      "target": "start/end fingerprints match after cleanup"
+    },
+    {
+      "name": "lifecycle churn completed",
+      "passed": true,
+      "actual": "disabled",
+      "target": "disabled"
+    },
+    {
+      "name": "valid sampling timeline",
+      "passed": false,
+      "actual": 0,
+      "target": ">= 2 ordered samples"
+    },
+    {
+      "name": "requested duration covered",
+      "passed": false,
+      "actual": 0.0,
+      "target": ">= 60.0 s"
+    },
+    {
+      "name": "sampling continuity",
+      "passed": false,
+      "actual": null,
+      "target": "maximum gap <= 6.0 s"
+    },
+    {
+      "name": "all requested streams observed",
+      "passed": false,
+      "actual": "0/4",
+      "target": "4/4"
+    },
+    {
+      "name": "stream fairness spread",
+      "passed": false,
+      "actual": null,
+      "target": "<= 10.0%"
+    },
+    {
+      "name": "process CPU average",
+      "passed": null,
+      "actual": null,
+      "target": "<= 85.0% of host"
+    },
+    {
+      "name": "process RSS growth",
+      "passed": null,
+      "actual": null,
+      "target": "<= 5.0%"
+    },
+    {
+      "name": "sampling warmup completed",
+      "passed": false,
+      "actual": {
+        "requested_seconds": 10.0,
+        "elapsed_seconds": 0.0007681219140067697,
+        "observation_count": 1,
+        "completed": false,
+        "final_counters": {
+          "acceptance-1-20260914_002917_656764": {
+            "decoded_frame_count": 0,
+            "processed_frame_count": 0,
+            "low_res_detection_count": 0,
+            "high_res_detection_count": 0,
+            "dropped_frame_count": 0,
+            "decoder_queue_drop_count": 0,
+            "processor_coalesced_frame_count": 0,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          },
+          "acceptance-2-20260914_002917_656764": {
+            "decoded_frame_count": 0,
+            "processed_frame_count": 0,
+            "low_res_detection_count": 0,
+            "high_res_detection_count": 0,
+            "dropped_frame_count": 0,
+            "decoder_queue_drop_count": 0,
+            "processor_coalesced_frame_count": 0,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          },
+          "acceptance-3-20260914_002917_656764": {
+            "decoded_frame_count": 0,
+            "processed_frame_count": 0,
+            "low_res_detection_count": 0,
+            "high_res_detection_count": 0,
+            "dropped_frame_count": 0,
+            "decoder_queue_drop_count": 0,
+            "processor_coalesced_frame_count": 0,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          },
+          "acceptance-4-20260914_002917_656764": {
+            "decoded_frame_count": 0,
+            "processed_frame_count": 0,
+            "low_res_detection_count": 0,
+            "high_res_detection_count": 0,
+            "dropped_frame_count": 0,
+            "decoder_queue_drop_count": 0,
+            "processor_coalesced_frame_count": 0,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          }
+        },
+        "errors": [
+          "warmup stream terminal or invalid status"
+        ]
+      },
+      "target": ">= 10.0 s healthy same-stream warmup"
+    }
+  ],
+  "overall_status": "FAIL",
+  "overall_passed": false,
+  "samples": [],
+  "sampling_warmup": {
+    "requested_seconds": 10.0,
+    "elapsed_seconds": 0.0007681219140067697,
+    "observation_count": 1,
+    "completed": false,
+    "final_counters": {
+      "acceptance-1-20260914_002917_656764": {
+        "decoded_frame_count": 0,
+        "processed_frame_count": 0,
+        "low_res_detection_count": 0,
+        "high_res_detection_count": 0,
+        "dropped_frame_count": 0,
+        "decoder_queue_drop_count": 0,
+        "processor_coalesced_frame_count": 0,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      },
+      "acceptance-2-20260914_002917_656764": {
+        "decoded_frame_count": 0,
+        "processed_frame_count": 0,
+        "low_res_detection_count": 0,
+        "high_res_detection_count": 0,
+        "dropped_frame_count": 0,
+        "decoder_queue_drop_count": 0,
+        "processor_coalesced_frame_count": 0,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      },
+      "acceptance-3-20260914_002917_656764": {
+        "decoded_frame_count": 0,
+        "processed_frame_count": 0,
+        "low_res_detection_count": 0,
+        "high_res_detection_count": 0,
+        "dropped_frame_count": 0,
+        "decoder_queue_drop_count": 0,
+        "processor_coalesced_frame_count": 0,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      },
+      "acceptance-4-20260914_002917_656764": {
+        "decoded_frame_count": 0,
+        "processed_frame_count": 0,
+        "low_res_detection_count": 0,
+        "high_res_detection_count": 0,
+        "dropped_frame_count": 0,
+        "decoder_queue_drop_count": 0,
+        "processor_coalesced_frame_count": 0,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      }
+    },
+    "errors": [
+      "warmup stream terminal or invalid status"
+    ]
+  }
+}

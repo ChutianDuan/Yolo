@@ -1,0 +1,563 @@
+{
+  "case": "diag61_B2_dedup_60s",
+  "purpose": "controlled local LK candidate comparison; sequential windows do not prove acceleration, quality, or true RTSP acceptance",
+  "is_candidate": true,
+  "validated_against_previous_profile": true,
+  "service_binary_sha256": "ddb8dc1195a4c5f438a64afc2e7984ac0d7e53221f9c75961687d8c5ea80c891",
+  "status": "FAIL",
+  "failed_gates": [
+    "acceptance-2-20260921_230601_988168: processed FPS",
+    "stream fairness spread"
+  ],
+  "sample_count": 61,
+  "elapsed_seconds": 60.003340962008224,
+  "metrics_samples": 69,
+  "selected_global_monotonic_series": 112,
+  "output_fps": [
+    24.365309940419507,
+    28.36508722202052
+  ],
+  "low_fps": [
+    4.816398476594554,
+    5.016387340674605
+  ],
+  "high_fps": [
+    0.9166156270335656,
+    1.1499359684602914
+  ],
+  "p95_ms": [
+    106.663847,
+    222.104096
+  ],
+  "cpu_host_percent": 60.53258869998637,
+  "rss_growth_percent": -7.252307935088504,
+  "fairness_percent": 14.101057579318446,
+  "processing_global": {
+    "frame_work": {
+      "count": 11207,
+      "sum_ms": 364649,
+      "mean_ms": 32.53761042205764,
+      "max_ms": 299.803
+    },
+    "prepare": {
+      "count": 11207,
+      "sum_ms": 282921,
+      "mean_ms": 25.245025430534486,
+      "max_ms": 279.413
+    },
+    "poll": {
+      "count": 11207,
+      "sum_ms": 2204.6,
+      "mean_ms": 0.1967163380030338,
+      "max_ms": 8.74627
+    },
+    "publish": {
+      "count": 11207,
+      "sum_ms": 159.27700000000002,
+      "mean_ms": 0.014212278040510397,
+      "max_ms": 3.7097599999999997
+    },
+    "gray": {
+      "count": 11207,
+      "sum_ms": 18703.1,
+      "mean_ms": 1.6688765949852769,
+      "max_ms": 8.86526
+    },
+    "weak_flow": {
+      "count": 11088,
+      "sum_ms": 240285,
+      "mean_ms": 21.67072510822511,
+      "max_ms": 151.122
+    },
+    "motion": {
+      "count": 11088,
+      "sum_ms": 23802.7,
+      "mean_ms": 2.146708152958153,
+      "max_ms": 162.166
+    },
+    "projection": {
+      "count": 11088,
+      "sum_ms": 111.182,
+      "mean_ms": 0.010027236652236652,
+      "max_ms": 0.075103
+    },
+    "frame_diff": {
+      "count": 11088,
+      "sum_ms": 10585.699999999999,
+      "mean_ms": 0.9546987734487733,
+      "max_ms": 7.341430000000001
+    },
+    "roi_features": {
+      "count": 11088,
+      "sum_ms": 60028.7,
+      "mean_ms": 5.413843795093795,
+      "max_ms": 19.5324
+    },
+    "pyramid_build": {
+      "count": 11088,
+      "sum_ms": 30388.6,
+      "mean_ms": 2.740674603174603,
+      "max_ms": 10.247300000000001
+    },
+    "lk_forward": {
+      "count": 11088,
+      "sum_ms": 76135.8,
+      "mean_ms": 6.8665043290043295,
+      "max_ms": 113.603
+    },
+    "lk_backward": {
+      "count": 11088,
+      "sum_ms": 61657.9,
+      "mean_ms": 5.560777417027417,
+      "max_ms": 46.4257
+    },
+    "flow_quality": {
+      "count": 11088,
+      "sum_ms": 1037.7099999999998,
+      "mean_ms": 0.0935885642135642,
+      "max_ms": 2.77407
+    }
+  },
+  "weak_flow_load_global": {
+    "rois": 128389,
+    "roi_pixels": 1378052924,
+    "sampled_points": 2051779,
+    "unique_points": 1952283
+  },
+  "duplicate_fraction_global": 0.048492552073103434,
+  "weak_flow_load_by_stream_last_registered_scrape": {
+    "acceptance-1-20260921_230601_988168": {
+      "rois": 14254,
+      "roi_pixels": 419651202,
+      "sampled_points": 237273,
+      "unique_points": 233582,
+      "rois_per_weak_frame": 7.725745257452575,
+      "roi_pixels_per_roi": 29440.943033534448,
+      "points_per_roi": 16.646064262663113,
+      "output_fps": 26.765176309380116,
+      "duplicate_fraction": 0.015555920816949231
+    },
+    "acceptance-2-20260921_230601_988168": {
+      "rois": 25288,
+      "roi_pixels": 136793593,
+      "sampled_points": 379001,
+      "unique_points": 354381,
+      "rois_per_weak_frame": 14.919174041297936,
+      "roi_pixels_per_roi": 5409.42711958241,
+      "points_per_roi": 14.987385321100918,
+      "output_fps": 24.365309940419507,
+      "duplicate_fraction": 0.06496025076450984
+    },
+    "acceptance-3-20260921_230601_988168": {
+      "rois": 19311,
+      "roi_pixels": 145515863,
+      "sampled_points": 365420,
+      "unique_points": 340553,
+      "rois_per_weak_frame": 9.938754503345342,
+      "roi_pixels_per_roi": 7535.387240432914,
+      "points_per_roi": 18.922893687535602,
+      "output_fps": 28.36508722202052,
+      "duplicate_fraction": 0.06805046248152813
+    },
+    "acceptance-4-20260921_230601_988168": {
+      "rois": 26974,
+      "roi_pixels": 113502962,
+      "sampled_points": 408547,
+      "unique_points": 395378,
+      "rois_per_weak_frame": 13.889804325437693,
+      "roi_pixels_per_roi": 4207.865425965745,
+      "points_per_roi": 15.145955364425001,
+      "output_fps": 28.01510670988043,
+      "duplicate_fraction": 0.03223374544422064
+    },
+    "acceptance-5-20260921_230601_988168": {
+      "rois": 13598,
+      "roi_pixels": 401055252,
+      "sampled_points": 224547,
+      "unique_points": 221318,
+      "rois_per_weak_frame": 7.712989222915485,
+      "roi_pixels_per_roi": 29493.694072657745,
+      "points_per_roi": 16.513237240770703,
+      "output_fps": 25.665237556939836,
+      "duplicate_fraction": 0.014380062971226515
+    },
+    "acceptance-6-20260921_230601_988168": {
+      "rois": 28525,
+      "roi_pixels": 156458117,
+      "sampled_points": 429744,
+      "unique_points": 400140,
+      "rois_per_weak_frame": 15.360796984383414,
+      "roi_pixels_per_roi": 5484.947134092901,
+      "points_per_roi": 15.065521472392637,
+      "output_fps": 26.848505002746805,
+      "duplicate_fraction": 0.06888752373506091
+    }
+  },
+  "processing_by_stream_last_registered_scrape": {
+    "acceptance-1-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1857,
+        "mean_ms": 32.97867528271406
+      },
+      "prepare": {
+        "count": 1857,
+        "mean_ms": 26.17824448034464
+      },
+      "poll": {
+        "count": 1858,
+        "mean_ms": 0.12553982777179762
+      },
+      "publish": {
+        "count": 1857,
+        "mean_ms": 0.013597092084006463
+      },
+      "gray": {
+        "count": 1857,
+        "mean_ms": 1.5798653742595583
+      },
+      "weak_flow": {
+        "count": 1845,
+        "mean_ms": 22.69842818428184
+      },
+      "motion": {
+        "count": 1845,
+        "mean_ms": 2.050476964769648
+      },
+      "projection": {
+        "count": 1845,
+        "mean_ms": 0.007775230352303523
+      },
+      "frame_diff": {
+        "count": 1845,
+        "mean_ms": 0.9551219512195123
+      },
+      "roi_features": {
+        "count": 1845,
+        "mean_ms": 9.201300813008132
+      },
+      "pyramid_build": {
+        "count": 1845,
+        "mean_ms": 2.5615338753387533
+      },
+      "lk_forward": {
+        "count": 1845,
+        "mean_ms": 5.445365853658536
+      },
+      "lk_backward": {
+        "count": 1845,
+        "mean_ms": 4.437766937669377
+      },
+      "flow_quality": {
+        "count": 1845,
+        "mean_ms": 0.06538590785907859
+      }
+    },
+    "acceptance-2-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1717,
+        "mean_ms": 36.59132207338381
+      },
+      "prepare": {
+        "count": 1718,
+        "mean_ms": 28.862689173457508
+      },
+      "poll": {
+        "count": 1718,
+        "mean_ms": 0.27699359720605354
+      },
+      "publish": {
+        "count": 1717,
+        "mean_ms": 0.015530110658124634
+      },
+      "gray": {
+        "count": 1718,
+        "mean_ms": 1.6830267753201396
+      },
+      "weak_flow": {
+        "count": 1695,
+        "mean_ms": 23.652920353982303
+      },
+      "motion": {
+        "count": 1695,
+        "mean_ms": 3.8821179941002946
+      },
+      "projection": {
+        "count": 1695,
+        "mean_ms": 0.011833097345132744
+      },
+      "frame_diff": {
+        "count": 1695,
+        "mean_ms": 0.9721710914454277
+      },
+      "roi_features": {
+        "count": 1695,
+        "mean_ms": 3.81917994100295
+      },
+      "pyramid_build": {
+        "count": 1695,
+        "mean_ms": 2.794283185840708
+      },
+      "lk_forward": {
+        "count": 1695,
+        "mean_ms": 8.618171091445427
+      },
+      "lk_backward": {
+        "count": 1695,
+        "mean_ms": 7.292625368731564
+      },
+      "flow_quality": {
+        "count": 1695,
+        "mean_ms": 0.11231150442477877
+      }
+    },
+    "acceptance-3-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1954,
+        "mean_ms": 29.739150460593656
+      },
+      "prepare": {
+        "count": 1954,
+        "mean_ms": 22.41376663254862
+      },
+      "poll": {
+        "count": 1955,
+        "mean_ms": 0.18076521739130436
+      },
+      "publish": {
+        "count": 1954,
+        "mean_ms": 0.012923490276356192
+      },
+      "gray": {
+        "count": 1954,
+        "mean_ms": 1.7268577277379735
+      },
+      "weak_flow": {
+        "count": 1943,
+        "mean_ms": 20.093103448275862
+      },
+      "motion": {
+        "count": 1943,
+        "mean_ms": 0.7003242408646423
+      },
+      "projection": {
+        "count": 1943,
+        "mean_ms": 0.008831857951621204
+      },
+      "frame_diff": {
+        "count": 1943,
+        "mean_ms": 1.0311168296448792
+      },
+      "roi_features": {
+        "count": 1943,
+        "mean_ms": 3.7585589294904787
+      },
+      "pyramid_build": {
+        "count": 1943,
+        "mean_ms": 2.931461657231086
+      },
+      "lk_forward": {
+        "count": 1943,
+        "mean_ms": 6.7379310344827585
+      },
+      "lk_backward": {
+        "count": 1943,
+        "mean_ms": 5.497169325784869
+      },
+      "flow_quality": {
+        "count": 1943,
+        "mean_ms": 0.09649408131755018
+      }
+    },
+    "acceptance-4-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1958,
+        "mean_ms": 30.054136874361593
+      },
+      "prepare": {
+        "count": 1958,
+        "mean_ms": 22.649489274770175
+      },
+      "poll": {
+        "count": 1959,
+        "mean_ms": 0.2399775395610005
+      },
+      "publish": {
+        "count": 1958,
+        "mean_ms": 0.017079009193054138
+      },
+      "gray": {
+        "count": 1958,
+        "mean_ms": 1.6194637385086825
+      },
+      "weak_flow": {
+        "count": 1942,
+        "mean_ms": 19.68882595262616
+      },
+      "motion": {
+        "count": 1942,
+        "mean_ms": 1.5018228630278063
+      },
+      "projection": {
+        "count": 1942,
+        "mean_ms": 0.010891967044284244
+      },
+      "frame_diff": {
+        "count": 1942,
+        "mean_ms": 0.946513903192585
+      },
+      "roi_features": {
+        "count": 1942,
+        "mean_ms": 2.79956745623069
+      },
+      "pyramid_build": {
+        "count": 1942,
+        "mean_ms": 2.7503347064881565
+      },
+      "lk_forward": {
+        "count": 1942,
+        "mean_ms": 7.2503089598352215
+      },
+      "lk_backward": {
+        "count": 1942,
+        "mean_ms": 5.789392378990732
+      },
+      "flow_quality": {
+        "count": 1942,
+        "mean_ms": 0.10587281153450052
+      }
+    },
+    "acceptance-5-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1800,
+        "mean_ms": 34.68411111111111
+      },
+      "prepare": {
+        "count": 1800,
+        "mean_ms": 27.12611111111111
+      },
+      "poll": {
+        "count": 1801,
+        "mean_ms": 0.12688784008883955
+      },
+      "publish": {
+        "count": 1800,
+        "mean_ms": 0.015712944444444446
+      },
+      "gray": {
+        "count": 1800,
+        "mean_ms": 1.726427777777778
+      },
+      "weak_flow": {
+        "count": 1763,
+        "mean_ms": 23.23136698808848
+      },
+      "motion": {
+        "count": 1763,
+        "mean_ms": 2.69171866137266
+      },
+      "projection": {
+        "count": 1763,
+        "mean_ms": 0.008022178105501985
+      },
+      "frame_diff": {
+        "count": 1763,
+        "mean_ms": 0.9155246738513897
+      },
+      "roi_features": {
+        "count": 1763,
+        "mean_ms": 9.475836642087351
+      },
+      "pyramid_build": {
+        "count": 1763,
+        "mean_ms": 2.7078048780487802
+      },
+      "lk_forward": {
+        "count": 1763,
+        "mean_ms": 5.596069200226886
+      },
+      "lk_backward": {
+        "count": 1763,
+        "mean_ms": 4.435354509359048
+      },
+      "flow_quality": {
+        "count": 1763,
+        "mean_ms": 0.06845717526942711
+      }
+    },
+    "acceptance-6-20260921_230601_988168": {
+      "frame_work": {
+        "count": 1877,
+        "mean_ms": 31.996110815130525
+      },
+      "prepare": {
+        "count": 1877,
+        "mean_ms": 24.929994672349494
+      },
+      "poll": {
+        "count": 1877,
+        "mean_ms": 0.23415769845498136
+      },
+      "publish": {
+        "count": 1877,
+        "mean_ms": 0.010561907298881193
+      },
+      "gray": {
+        "count": 1877,
+        "mean_ms": 1.6817474693660095
+      },
+      "weak_flow": {
+        "count": 1857,
+        "mean_ms": 21.105708131394724
+      },
+      "motion": {
+        "count": 1857,
+        "mean_ms": 2.3783629509962303
+      },
+      "projection": {
+        "count": 1857,
+        "mean_ms": 0.01280511577813678
+      },
+      "frame_diff": {
+        "count": 1857,
+        "mean_ms": 0.9035541195476574
+      },
+      "roi_features": {
+        "count": 1857,
+        "mean_ms": 3.7102530963920306
+      },
+      "pyramid_build": {
+        "count": 1857,
+        "mean_ms": 2.687377490576198
+      },
+      "lk_forward": {
+        "count": 1857,
+        "mean_ms": 7.635541195476574
+      },
+      "lk_backward": {
+        "count": 1857,
+        "mean_ms": 6.008777598276791
+      },
+      "flow_quality": {
+        "count": 1857,
+        "mean_ms": 0.11259450726978998
+      }
+    }
+  },
+  "memory_full_lifecycle": {
+    "Rss_kib": {
+      "first": 339548,
+      "peak": 844860,
+      "last": 663304
+    },
+    "Anonymous_kib": {
+      "first": 307064,
+      "peak": 810504,
+      "last": 628944
+    },
+    "threads": {
+      "first": 34,
+      "peak": 97,
+      "last": 85
+    }
+  }
+}

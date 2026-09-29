@@ -1,0 +1,23 @@
+{
+  "state": "finished",
+  "driver_pid": 72991,
+  "driver_start_ticks": 14851920,
+  "started_at": "2026-09-22T11:54:54.856290+00:00",
+  "service_binary": "/tmp/yolo-soak63-ljhl2Y/yolo_api_soak",
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "requested_seconds": 60,
+  "warmup_seconds": 10,
+  "sample_interval_seconds": 5,
+  "samples_file": "live_samples.jsonl",
+  "service_pid": 73609,
+  "service_start_ticks": 14852661,
+  "config_sha256": "c44e4bc259a97f07e59b0d18230ab0e49892769d826e6d21b9774f8dde7ae57e",
+  "collector_pid": 73663,
+  "collector_start_ticks": 14852776,
+  "collection_started_at": "2026-09-22T11:54:56.009245+00:00",
+  "run_error": null,
+  "samples": 15,
+  "service_returncode": 0,
+  "collector_returncode": 0,
+  "stopped_at": "2026-09-22T11:56:07.012934+00:00"
+}

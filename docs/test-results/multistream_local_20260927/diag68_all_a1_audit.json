@@ -1,0 +1,246 @@
+{
+  "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260927/diag68_four_affinity_all_a1",
+  "scope": "local MJPEG, resource means include warmup and retirement",
+  "original_acceptance_status": "PASS",
+  "failed_gates": [],
+  "duration_seconds": 60.008462682017125,
+  "acceptance_samples": 13,
+  "durable_samples": 25,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.141074035083875,
+  "peak_probe_seconds": 0.0915942209539935,
+  "rates": {
+    "processed_fps": [
+      28.312673314144796,
+      29.69581156315834
+    ],
+    "low_detection_fps": [
+      4.9326376109398815,
+      5.0159591922057585
+    ],
+    "high_detection_fps": [
+      1.2998166677476715,
+      1.4831241465325995
+    ]
+  },
+  "maximum_p95_ms": 79.305604,
+  "fairness_percent": 4.657687991021313,
+  "process": {
+    "pid": 110481,
+    "cpu_average_percent_of_host": 38.833291095635275,
+    "cpu_peak_percent_of_host": 41.94385143942234,
+    "rss_start_bytes": 755408896,
+    "rss_end_bytes": 710266880,
+    "rss_growth_percent": -5.975838547710192,
+    "host_logical_cpus": 64
+  },
+  "peak_rss_kib": 764780,
+  "resource_weighted_means": {
+    "host_busy_percent": 40.484068767008345,
+    "service_cpu_percent_of_host": 38.43045776990256,
+    "driver_cpu_percent_of_host": 0.0652996456109446,
+    "host_busy_minus_service_and_driver_percent": 1.988311351494834
+  },
+  "resource_other_busy_range_percent": [
+    -0.006529316826091966,
+    8.674864869892254
+  ],
+  "cpu_cgroup_endpoints": [
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    },
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    }
+  ],
+  "numa_pages_start_end": [
+    {
+      "1": 77442,
+      "0": 7677
+    },
+    {
+      "1": 110050,
+      "0": 55019
+    }
+  ],
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "journal_sha256": "728903579e6d0700b88d5bec9c02beafba50bc1ca5b19ed4160465e89b3d852b",
+  "retirement_evidence": {
+    "active": 0.0,
+    "registered": 0.0,
+    "scheduler": {
+      "high": {
+        "cancelled_total": 2,
+        "queue_depth": 0,
+        "in_flight": 0
+      },
+      "low": {
+        "cancelled_total": 0,
+        "queue_depth": 0,
+        "in_flight": 0
+      }
+    }
+  },
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  },
+  "affinity_evidence": {
+    "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+    "expected_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "thread_observations": 1676,
+    "observed_masks": [
+      "0-63"
+    ],
+    "observed_endpoint_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ]
+  }
+}

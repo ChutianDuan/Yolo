@@ -1,0 +1,429 @@
+{
+  "purpose": "fixed-profile local short-window capacity evidence, not RTSP/NUMA/soak/quality acceptance",
+  "controls_verified": true,
+  "runtime": [
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 736,
+      "input_width": 1280,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_NUM_THREADS": "16",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "NUM_STREAMS": "1",
+        "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+        "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "request_pool_size": 1,
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    },
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 384,
+      "input_width": 640,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_NUM_THREADS": "8",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "NUM_STREAMS": "1",
+        "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+        "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "request_pool_size": 1,
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    }
+  ],
+  "model_sha256": [
+    "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+    "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf"
+  ],
+  "source_sha256": {
+    "0000f77c-6257be58.mov": "313eed7b8e46ae388c9d59f4e6068d5ab6fb98ce13e0d63b48b8cdd604d76767",
+    "00268999-cb063914.mov": "87380c9b303b9c913522d09c58a14e48b856a88f6a1e366831bdda5777b3a856",
+    "012fdff1-9d1d0d1d.mov": "3ce62fa669dcc8fba22d552da1e4398eb15949c26419c323c475daace57b1fcd",
+    "0000f77c-cb820c98.mov": "e6608a6ef6a15e2dfb31ce4f3df3b8307ce1bbe57a1931eb8e1feab3a5c35670"
+  },
+  "rows": [
+    {
+      "count": 1,
+      "case": "diag51_one_fixed",
+      "status": "PASS",
+      "elapsed_seconds": 30.003973077982664,
+      "warmup_seconds": 10.003491095965728,
+      "output_fps": [
+        28.69619959204049,
+        28.69619959204049
+      ],
+      "low_fps": [
+        4.999337908020991,
+        4.999337908020991
+      ],
+      "high_fps": [
+        1.3998146142458776,
+        1.3998146142458776
+      ],
+      "p95_ms": [
+        105.242406,
+        105.242406
+      ],
+      "fairness_percent": 0,
+      "cpu_host_percent": 9.806991782964928,
+      "rss_growth_percent": 0.06110175187451446,
+      "failed_gates": [],
+      "metrics_samples": 41,
+      "monotonic_global_series": 64,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 1,
+      "source_fps": [
+        29.99972782206664,
+        29.99972782206664
+      ],
+      "stages": {
+        "high": {
+          "completed": 55,
+          "applied": 55,
+          "expired": 0,
+          "evicted": 0,
+          "queue_wait_mean_ms": 0.11325381818181819,
+          "infer_mean_ms": 113.34400000000001,
+          "result_age_mean_ms": 168.5809090909091,
+          "replay_mean_ms": 0.36707636363636365,
+          "commit_age_mean_ms": 168.9489090909091,
+          "updated": 0
+        },
+        "low": {
+          "completed": 200,
+          "applied": 200,
+          "expired": 0,
+          "evicted": 0,
+          "queue_wait_mean_ms": 0.09392050000000002,
+          "infer_mean_ms": 50.2575,
+          "result_age_mean_ms": 89.694,
+          "replay_mean_ms": 0.40919900000000003,
+          "commit_age_mean_ms": 90.1045,
+          "updated": 0
+        }
+      }
+    },
+    {
+      "count": 2,
+      "case": "diag51_two_fixed",
+      "status": "PASS",
+      "elapsed_seconds": 30.00441282708198,
+      "warmup_seconds": 10.003122911090031,
+      "output_fps": [
+        28.529136861741033,
+        29.129048618179514
+      ],
+      "low_fps": [
+        4.999264636987331,
+        5.03259306790058
+      ],
+      "high_fps": [
+        1.299808805616706,
+        1.299808805616706
+      ],
+      "p95_ms": [
+        99.546981,
+        108.087673
+      ],
+      "fairness_percent": 2.059496567505723,
+      "cpu_host_percent": 17.582179260063686,
+      "rss_growth_percent": 0.01304429352921514,
+      "failed_gates": [],
+      "metrics_samples": 41,
+      "monotonic_global_series": 64,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 2,
+      "source_fps": [
+        29.99971847154926,
+        29.999791253422575
+      ],
+      "stages": {
+        "high": {
+          "completed": 106,
+          "applied": 103,
+          "expired": 3,
+          "evicted": 0,
+          "queue_wait_mean_ms": 7.337018867924527,
+          "infer_mean_ms": 114.19811320754717,
+          "result_age_mean_ms": 180.7481132075472,
+          "replay_mean_ms": 0.7042320388349514,
+          "commit_age_mean_ms": 176.8844660194175,
+          "updated": 98
+        },
+        "low": {
+          "completed": 400,
+          "applied": 400,
+          "expired": 0,
+          "evicted": 0,
+          "queue_wait_mean_ms": 7.0077750000000005,
+          "infer_mean_ms": 43.4125,
+          "result_age_mean_ms": 90.53649999999999,
+          "replay_mean_ms": 0.618715,
+          "commit_age_mean_ms": 91.1565,
+          "updated": 134
+        }
+      }
+    },
+    {
+      "count": 4,
+      "case": "diag51_four_fixed",
+      "status": "PASS",
+      "elapsed_seconds": 30.003922916017473,
+      "warmup_seconds": 10.003623489057645,
+      "output_fps": [
+        27.729707289570463,
+        28.829563468123137
+      ],
+      "low_fps": [
+        4.8993593408255505,
+        5.032675241256178
+      ],
+      "high_fps": [
+        1.1665141287679883,
+        1.56646183005987
+      ],
+      "p95_ms": [
+        103.427369,
+        113.594736
+      ],
+      "fairness_percent": 3.8150289017341015,
+      "cpu_host_percent": 37.99758068767695,
+      "rss_growth_percent": -2.667574736540254,
+      "failed_gates": [],
+      "metrics_samples": 41,
+      "monotonic_global_series": 64,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999645800707764,
+        29.999834651495657
+      ],
+      "stages": {
+        "high": {
+          "completed": 223,
+          "applied": 218,
+          "expired": 5,
+          "evicted": 0,
+          "queue_wait_mean_ms": 13.926143497757847,
+          "infer_mean_ms": 126.99372197309418,
+          "result_age_mean_ms": 197.93766816143497,
+          "replay_mean_ms": 0.8371100917431193,
+          "commit_age_mean_ms": 196.30871559633025,
+          "updated": 956
+        },
+        "low": {
+          "completed": 796,
+          "applied": 793,
+          "expired": 3,
+          "evicted": 0,
+          "queue_wait_mean_ms": 15.888693467336683,
+          "infer_mean_ms": 44.67613065326633,
+          "result_age_mean_ms": 110.22726130653265,
+          "replay_mean_ms": 0.7251941992433795,
+          "commit_age_mean_ms": 110.17692307692307,
+          "updated": 1109
+        }
+      }
+    },
+    {
+      "count": 6,
+      "case": "diag51_six_fixed",
+      "status": "FAIL",
+      "elapsed_seconds": 30.003316976013593,
+      "warmup_seconds": 10.002883787965402,
+      "output_fps": [
+        23.830698471492763,
+        27.19699294089244
+      ],
+      "low_fps": [
+        2.766360801585873,
+        3.166316580128409
+      ],
+      "high_fps": [
+        0.9332301499325837,
+        1.1665376874157296
+      ],
+      "p95_ms": [
+        111.076842,
+        140.524183
+      ],
+      "fairness_percent": 12.377450980392155,
+      "cpu_host_percent": 49.93478545299991,
+      "rss_growth_percent": 0.1336574981251663,
+      "failed_gates": [
+        "acceptance-1-20260914_020338_851523: low detection FPS",
+        "acceptance-2-20260914_020338_851523: processed FPS",
+        "acceptance-2-20260914_020338_851523: low detection FPS",
+        "acceptance-3-20260914_020338_851523: low detection FPS",
+        "acceptance-4-20260914_020338_851523: low detection FPS",
+        "acceptance-5-20260914_020338_851523: processed FPS",
+        "acceptance-5-20260914_020338_851523: low detection FPS",
+        "acceptance-6-20260914_020338_851523: processed FPS",
+        "acceptance-6-20260914_020338_851523: low detection FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 64,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 1,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999525220444102,
+        29.99976560568371
+      ],
+      "stages": {
+        "high": {
+          "completed": 276,
+          "applied": 256,
+          "expired": 20,
+          "evicted": 0,
+          "queue_wait_mean_ms": 20.469384057971013,
+          "infer_mean_ms": 138.3873188405797,
+          "result_age_mean_ms": 227.5963768115942,
+          "replay_mean_ms": 0.7794296875,
+          "commit_age_mean_ms": 220.01171875,
+          "updated": 3373
+        },
+        "low": {
+          "completed": 726,
+          "applied": 712,
+          "expired": 14,
+          "evicted": 0,
+          "queue_wait_mean_ms": 22.736501377410466,
+          "infer_mean_ms": 54.05881542699724,
+          "result_age_mean_ms": 143.76584022038568,
+          "replay_mean_ms": 0.6777443820224719,
+          "commit_age_mean_ms": 139.76137640449437,
+          "updated": 3684
+        }
+      }
+    },
+    {
+      "count": 8,
+      "case": "diag51_eight_fixed",
+      "status": "FAIL",
+      "elapsed_seconds": 30.003861999954097,
+      "warmup_seconds": 10.002845986979082,
+      "output_fps": [
+        25.296743465929858,
+        27.96306688789875
+      ],
+      "low_fps": [
+        1.8997554381528352,
+        2.1663877803497242
+      ],
+      "high_fps": [
+        0.6665808554922229,
+        0.8665551121398898
+      ],
+      "p95_ms": [
+        110.111224,
+        150.381472
+      ],
+      "fairness_percent": 9.535160905840295,
+      "cpu_host_percent": 52.28644826086158,
+      "rss_growth_percent": 1.2497351258446543,
+      "failed_gates": [
+        "acceptance-1-20260914_020501_000909: low detection FPS",
+        "acceptance-2-20260914_020501_000909: low detection FPS",
+        "acceptance-3-20260914_020501_000909: low detection FPS",
+        "acceptance-4-20260914_020501_000909: low detection FPS",
+        "acceptance-5-20260914_020501_000909: low detection FPS",
+        "acceptance-6-20260914_020501_000909: low detection FPS",
+        "acceptance-7-20260914_020501_000909: low detection FPS",
+        "acceptance-8-20260914_020501_000909: low detection FPS"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 64,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 4,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 1,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.99953625084302,
+        29.999795252742647
+      ],
+      "stages": {
+        "high": {
+          "completed": 259,
+          "applied": 240,
+          "expired": 19,
+          "evicted": 0,
+          "queue_wait_mean_ms": 21.110424710424713,
+          "infer_mean_ms": 147.08803088803086,
+          "result_age_mean_ms": 230.11119691119688,
+          "replay_mean_ms": 0.8427791666666666,
+          "commit_age_mean_ms": 221.48791666666665,
+          "updated": 6576
+        },
+        "low": {
+          "completed": 656,
+          "applied": 633,
+          "expired": 23,
+          "evicted": 0,
+          "queue_wait_mean_ms": 23.547408536585365,
+          "infer_mean_ms": 59.8173780487805,
+          "result_age_mean_ms": 150.06295731707317,
+          "replay_mean_ms": 0.5217156398104265,
+          "commit_age_mean_ms": 142.7526066350711,
+          "updated": 6019
+        }
+      }
+    }
+  ]
+}

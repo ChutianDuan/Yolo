@@ -1,0 +1,166 @@
+--- a/yolo_onnx_cpp/video/optical_flow_tracker.cpp
++++ b/yolo_onnx_cpp/video/optical_flow_tracker.cpp
+@@ -1,2 +1,4 @@
+-#include <cstddef>
+-#include <utility>
++#include <cstddef>
++#include <cstring>
++#include <unordered_map>
++#include <utility>
+--- a/yolo_onnx_cpp/video/optical_flow_tracker.cpp
++++ b/yolo_onnx_cpp/video/optical_flow_tracker.cpp
+@@ -1,2 +1,22 @@
+-    result.quality.sampled_point_count = previous_points.size();
+-    result.stage_ms[1] = std::chrono::duration<double, std::milli>(
++    result.quality.sampled_point_count = previous_points.size();
++    std::vector<cv::Point2f> unique_points;
++    unique_points.reserve(previous_points.size());
++    std::vector<size_t> point_to_unique;
++    point_to_unique.reserve(previous_points.size());
++    std::unordered_map<uint64_t, size_t> unique_indices;
++    unique_indices.reserve(previous_points.size());
++    for (const auto& point : previous_points) {
++        uint32_t x_bits = 0;
++        uint32_t y_bits = 0;
++        static_assert(sizeof(point.x) == sizeof(x_bits));
++        std::memcpy(&x_bits, &point.x, sizeof(x_bits));
++        std::memcpy(&y_bits, &point.y, sizeof(y_bits));
++        const uint64_t key = (static_cast<uint64_t>(x_bits) << 32) | y_bits;
++        const auto [found, inserted] = unique_indices.emplace(key, unique_points.size());
++        if (inserted) {
++            unique_points.push_back(point);
++        }
++        point_to_unique.push_back(found->second);
++    }
++    result.unique_sampled_point_count = unique_points.size();
++    result.stage_ms[1] = std::chrono::duration<double, std::milli>(
+--- a/yolo_onnx_cpp/video/optical_flow_tracker.cpp
++++ b/yolo_onnx_cpp/video/optical_flow_tracker.cpp
+@@ -1,6 +1,6 @@
+-    const auto forward_start = std::chrono::steady_clock::now();
+-    cv::calcOpticalFlowPyrLK(
+-        previous_pyramid,
+-        current_pyramid,
+-        previous_points,
+-        current_points,
++    const auto forward_start = std::chrono::steady_clock::now();
++    cv::calcOpticalFlowPyrLK(
++        previous_pyramid,
++        current_pyramid,
++        unique_points.size() == previous_points.size() ? previous_points : unique_points,
++        current_points,
+--- a/yolo_onnx_cpp/video/optical_flow_tracker.cpp
++++ b/yolo_onnx_cpp/video/optical_flow_tracker.cpp
+@@ -1,4 +1,25 @@
+-    previous_pyramid.clear();
+-    current_pyramid.clear();
+-
+-    const auto quality_start = std::chrono::steady_clock::now();
++    previous_pyramid.clear();
++    current_pyramid.clear();
++
++    const auto quality_start = std::chrono::steady_clock::now();
++    if (unique_points.size() != previous_points.size()) {
++        std::vector<cv::Point2f> expanded_current;
++        std::vector<cv::Point2f> expanded_backward;
++        std::vector<unsigned char> expanded_status;
++        std::vector<unsigned char> expanded_backward_status;
++        expanded_current.reserve(previous_points.size());
++        expanded_backward.reserve(previous_points.size());
++        expanded_status.reserve(previous_points.size());
++        expanded_backward_status.reserve(previous_points.size());
++        for (const size_t index : point_to_unique) {
++            expanded_status.push_back(status[index]);
++            expanded_backward_status.push_back(backward_status[index]);
++            expanded_current.push_back(status[index] ? current_points[index] : cv::Point2f{});
++            expanded_backward.push_back(status[index] && backward_status[index]
++                ? backward_points[index] : cv::Point2f{});
++        }
++        current_points.swap(expanded_current);
++        backward_points.swap(expanded_backward);
++        status.swap(expanded_status);
++        backward_status.swap(expanded_backward_status);
++    }
+--- a/yolo_onnx_cpp/video/optical_flow_tracker.h
++++ b/yolo_onnx_cpp/video/optical_flow_tracker.h
+@@ -1,1 +1,2 @@
+-    uint64_t roi_pixels = 0;
++    uint64_t roi_pixels = 0;
++    uint64_t unique_sampled_point_count = 0;
+--- a/yolo_onnx_cpp/stream/realtime_stream_manager.h
++++ b/yolo_onnx_cpp/stream/realtime_stream_manager.h
+@@ -1,4 +1,5 @@
+-    uint64_t weak_flow_sampled_points = 0;
+-};
+-
+-// Manager-lifetime totals; retain these after individual stream records are removed.
++    uint64_t weak_flow_sampled_points = 0;
++    uint64_t weak_flow_unique_points = 0;
++};
++
++// Manager-lifetime totals; retain these after individual stream records are removed.
+--- a/yolo_onnx_cpp/stream/realtime_stream_manager.h
++++ b/yolo_onnx_cpp/stream/realtime_stream_manager.h
+@@ -1,4 +1,5 @@
+-    uint64_t weak_flow_sampled_points = 0;
+-};
+-
+-struct RealtimeStreamMetrics {
++    uint64_t weak_flow_sampled_points = 0;
++    uint64_t weak_flow_unique_points = 0;
++};
++
++struct RealtimeStreamMetrics {
+--- a/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
++++ b/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
+@@ -1,1 +1,2 @@
+-        uint64_t weak_flow_sampled_points = 0;
++        uint64_t weak_flow_sampled_points = 0;
++        uint64_t weak_flow_unique_points = 0;
+--- a/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
++++ b/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
+@@ -1,1 +1,2 @@
+-        context.weak_flow_sampled_points += frame.weak.quality.sampled_point_count;
++        context.weak_flow_sampled_points += frame.weak.quality.sampled_point_count;
++        context.weak_flow_unique_points += frame.weak.unique_sampled_point_count;
+--- a/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
++++ b/yolo_onnx_cpp/stream/realtime_stream_manager.cpp
+@@ -1,1 +1,2 @@
+-        snapshot.weak_flow_sampled_points = context->weak_flow_sampled_points;
++        snapshot.weak_flow_sampled_points = context->weak_flow_sampled_points;
++        snapshot.weak_flow_unique_points = context->weak_flow_unique_points;
+--- a/yolo_onnx_cpp/stream/stream_metrics.h
++++ b/yolo_onnx_cpp/stream/stream_metrics.h
+@@ -1,1 +1,2 @@
+-    totals.weak_flow_sampled_points += stream.weak_flow_sampled_points;
++    totals.weak_flow_sampled_points += stream.weak_flow_sampled_points;
++    totals.weak_flow_unique_points += stream.weak_flow_unique_points;
+--- a/yolo_onnx_cpp/stream/stream_metrics.h
++++ b/yolo_onnx_cpp/stream/stream_metrics.h
+@@ -1,2 +1,3 @@
+-    uint64_t sampled_points,
+-    const std::string& stream_id = {}
++    uint64_t sampled_points,
++    uint64_t unique_points,
++    const std::string& stream_id = {}
+--- a/yolo_onnx_cpp/stream/stream_metrics.h
++++ b/yolo_onnx_cpp/stream/stream_metrics.h
+@@ -1,2 +1,4 @@
+-    output << "yolo_stream_weak_flow_sampled_points" << scope << "_total"
+-           << labels << ' ' << sampled_points << '\n';
++    output << "yolo_stream_weak_flow_sampled_points" << scope << "_total"
++           << labels << ' ' << sampled_points << '\n';
++    output << "yolo_stream_weak_flow_unique_points" << scope << "_total"
++           << labels << ' ' << unique_points << '\n';
+--- a/yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp
++++ b/yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp
+@@ -1,1 +1,2 @@
+-                                      totals.weak_flow_sampled_points);
++                                      totals.weak_flow_sampled_points,
++                                      totals.weak_flow_unique_points);
+--- a/yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp
++++ b/yolo_onnx_cpp/drogon/realtime_stream_handlers.cpp
+@@ -1,1 +1,2 @@
+-                                          stream.weak_flow_sampled_points, stream.stream_id);
++                                          stream.weak_flow_sampled_points,
++                                          stream.weak_flow_unique_points, stream.stream_id);

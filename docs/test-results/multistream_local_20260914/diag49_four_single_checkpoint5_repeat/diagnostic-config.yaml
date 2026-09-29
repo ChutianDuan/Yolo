@@ -1,0 +1,80 @@
+# CPU multistream starting profile. Build with preset vcpkg-gcc15-openvino.
+model_path: "/home/ubuntu/YOLO/yolo_onnx_cpp/deploy/best_640x384.onnx"
+model_backend: openvino
+openvino_device: CPU
+openvino_performance_mode: latency
+
+input_width: 640
+input_height: 384
+conf_threshold: 0.25
+# Class-ID order; [] keeps scalar defaults. -1 uses the model's scalar threshold.
+class_conf_thresholds: []
+# [] inherits the high-model list; an all -1 list uses only low scalar defaults.
+low_res_class_conf_thresholds: []
+iou_threshold: 0.45
+
+low_res_model_path: ""
+low_res_input_width: 640
+low_res_input_height: 384
+low_res_conf_threshold: 0.25
+low_res_iou_threshold: 0.45
+
+num_classes: 10
+class_names:
+  - person
+  - rider
+  - car
+  - truck
+  - bus
+  - train
+  - motor
+  - bike
+  - traffic light
+  - traffic sign
+
+# thread_num remains the compatibility fallback.
+thread_num: 8
+server_io_threads: 8
+opencv_threads: 4
+high_model_threads: 8
+low_model_threads: 8
+
+# Zero uses OpenVINO's optimal_number_of_infer_requests.
+infer_request_count: 1
+low_res_infer_request_count: 1
+
+max_streams: 4
+per_stream_queue_depth: 2
+max_request_age_ms: 300
+# Live streams only: maximum local decode-to-result age; 0 disables dropping.
+max_result_age_ms: 300
+max_stream_duration_seconds: 0
+stream_max_consecutive_errors: 5
+
+# Uploaded files use a separate bounded blocking pool.
+video_job_threads: 2
+video_job_queue_depth: 2
+client_max_body_mb: 256
+client_max_memory_body_mb: 16
+
+# Production deployments should set the token environment-variable name,
+# rate limit, and both TLS paths or terminate TLS at a trusted reverse proxy.
+api_bearer_token_env: YOLO_LOCAL_DIAGNOSTIC_TOKEN
+api_rate_limit_requests_per_second: 0
+api_rate_limit_burst: 20
+tls_certificate_path: ""
+tls_private_key_path: ""
+
+use_letterbox: true
+video_detect_fps: 5.0
+video_high_detect_fps: 1.0
+# Enable only after measuring a scene-specific road/intersection crop.
+high_res_roi_enabled: false
+high_res_roi_x: 0.0
+high_res_roi_y: 0.0
+high_res_roi_width: 1.0
+high_res_roi_height: 1.0
+high_res_roi_full_frame_interval: 4
+video_stride_mode: dynamic
+video_model_async: true
+openvino_cpu_pinning: false

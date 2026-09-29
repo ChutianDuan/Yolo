@@ -1,0 +1,24 @@
+{
+  "case": "diag64_closed_stdout_60s",
+  "driver_stdout_reader_closed_before_completion": true,
+  "driver_returncode": 0,
+  "driver_sha256": "d3e42e2f8ff48cd95fa4aaa38ccb17ac54dc17699f56080ad69671bf5e6588e4",
+  "state": "finished",
+  "original_acceptance_status": "PASS",
+  "retirement_evidence": {
+    "active": 0.0,
+    "registered": 0.0,
+    "scheduler": {
+      "high": {
+        "cancelled_total": 3,
+        "queue_depth": 0,
+        "in_flight": 0
+      },
+      "low": {
+        "cancelled_total": 0,
+        "queue_depth": 0,
+        "in_flight": 0
+      }
+    }
+  }
+}

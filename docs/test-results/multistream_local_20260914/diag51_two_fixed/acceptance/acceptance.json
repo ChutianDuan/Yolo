@@ -1,0 +1,1670 @@
+{
+  "schema_version": 5,
+  "started_at_utc": "2026-09-14T02:07:43.517311+00:00",
+  "finished_at_utc": "2026-09-14T02:08:23.750944+00:00",
+  "base_url": "[redacted]",
+  "requested_stream_count": 2,
+  "sample_count": 31,
+  "elapsed_seconds": 30.00441282708198,
+  "requested_duration_seconds": 30.0,
+  "run_errors": [],
+  "lifecycle_churn": {
+    "requested_cycles": 0,
+    "completed_cycles": 0,
+    "streams_per_cycle": 2,
+    "created_streams": 0,
+    "delete_attempts": 0,
+    "deleted_streams": 0,
+    "elapsed_seconds": 0.0,
+    "errors": []
+  },
+  "provenance": {
+    "scope": "Collector host and operator-supplied endpoint fingerprints; service loading is not attested.",
+    "collector_host": {
+      "system": "Linux",
+      "kernel": "5.15.0-139-generic",
+      "architecture": "x86_64",
+      "logical_cpus": 64,
+      "cpu_models": [
+        "Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz"
+      ],
+      "physical_cores": 32,
+      "sockets": 2,
+      "collector_cpu_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "monitored_pid_cpu_affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ]
+    },
+    "artifacts": [
+      {
+        "kind": "config",
+        "name": "diagnostic-config.yaml",
+        "size_bytes": 2183,
+        "sha256": "f44101dfca320f48da58b98bb05fdd94b0030b0b621fd97760b8c38d68b9a4d5",
+        "sha256_after": "f44101dfca320f48da58b98bb05fdd94b0030b0b621fd97760b8c38d68b9a4d5",
+        "size_bytes_after": 2183,
+        "unchanged": true
+      },
+      {
+        "kind": "model",
+        "name": "best.onnx",
+        "size_bytes": 38399808,
+        "sha256": "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+        "sha256_after": "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+        "size_bytes_after": 38399808,
+        "unchanged": true
+      },
+      {
+        "kind": "model",
+        "name": "best_640x384.onnx",
+        "size_bytes": 38114065,
+        "sha256": "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf",
+        "sha256_after": "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf",
+        "size_bytes_after": 38114065,
+        "unchanged": true
+      }
+    ],
+    "artifacts_stable": true,
+    "errors": []
+  },
+  "thresholds": {
+    "min_processed_fps": 25.0,
+    "min_low_detection_fps": 4.0,
+    "min_high_detection_fps": 0.5,
+    "max_result_age_ms": 300.0,
+    "max_fairness_spread_percent": 10.0,
+    "max_cpu_percent": 85.0,
+    "max_memory_growth_percent": 5.0,
+    "max_queue_depth": 2
+  },
+  "process": {
+    "pid": 580151,
+    "cpu_average_percent_of_host": 17.582179260063686,
+    "cpu_peak_percent_of_host": 23.08219039565796,
+    "rss_start_bytes": 502411264,
+    "rss_end_bytes": 502476800,
+    "rss_growth_percent": 0.01304429352921514,
+    "host_logical_cpus": 64
+  },
+  "fairness_spread_percent": 2.059496567505723,
+  "streams": [
+    {
+      "stream_id": "acceptance-1-20260914_020743_517334",
+      "source": "[redacted]",
+      "status": "running",
+      "observed_samples": 31,
+      "terminal_statuses_observed": [],
+      "counters_monotonic": true,
+      "processed_fps": 28.529136861741033,
+      "low_detection_fps": 4.999264636987331,
+      "high_detection_fps": 1.299808805616706,
+      "result_age_ms_p50": 38.35966,
+      "result_age_ms_p95": 99.546981,
+      "result_age_ms_p99": 107.21853,
+      "decoded_frames_delta": 900,
+      "processed_frames_delta": 856,
+      "dropped_frames_delta": 44,
+      "decoder_queue_drops_delta": 8,
+      "processor_coalesced_frames_delta": 36,
+      "inference_errors_delta": 0,
+      "inference_errors_max": 0,
+      "max_queue_length": 2,
+      "reconnects_delta": 0
+    },
+    {
+      "stream_id": "acceptance-2-20260914_020743_517334",
+      "source": "[redacted]",
+      "status": "running",
+      "observed_samples": 31,
+      "terminal_statuses_observed": [],
+      "counters_monotonic": true,
+      "processed_fps": 29.129048618179514,
+      "low_detection_fps": 5.03259306790058,
+      "high_detection_fps": 1.299808805616706,
+      "result_age_ms_p50": 40.970386,
+      "result_age_ms_p95": 108.087673,
+      "result_age_ms_p99": 126.226944,
+      "decoded_frames_delta": 900,
+      "processed_frames_delta": 874,
+      "dropped_frames_delta": 27,
+      "decoder_queue_drops_delta": 8,
+      "processor_coalesced_frames_delta": 19,
+      "inference_errors_delta": 0,
+      "inference_errors_max": 0,
+      "max_queue_length": 2,
+      "reconnects_delta": 0
+    }
+  ],
+  "gates": [
+    {
+      "name": "collection and cleanup completed",
+      "passed": true,
+      "actual": [],
+      "target": "no errors"
+    },
+    {
+      "name": "reproducibility evidence recorded",
+      "passed": true,
+      "actual": {
+        "config_files": 1,
+        "model_files": 2,
+        "cpu_identity_recorded": true
+      },
+      "target": "config and >=1 model fingerprint plus collector CPU identity"
+    },
+    {
+      "name": "artifact fingerprints stable",
+      "passed": true,
+      "actual": [],
+      "target": "start/end fingerprints match after cleanup"
+    },
+    {
+      "name": "lifecycle churn completed",
+      "passed": true,
+      "actual": "disabled",
+      "target": "disabled"
+    },
+    {
+      "name": "valid sampling timeline",
+      "passed": true,
+      "actual": 31,
+      "target": ">= 2 ordered samples"
+    },
+    {
+      "name": "requested duration covered",
+      "passed": true,
+      "actual": 30.00441282708198,
+      "target": ">= 30.0 s"
+    },
+    {
+      "name": "sampling continuity",
+      "passed": true,
+      "actual": 1.0095181160140783,
+      "target": "maximum gap <= 6.0 s"
+    },
+    {
+      "name": "all requested streams observed",
+      "passed": true,
+      "actual": "2/2",
+      "target": "2/2"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: every sample observed",
+      "passed": true,
+      "actual": 31,
+      "target": "31"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: healthy status",
+      "passed": true,
+      "actual": {
+        "final": "running",
+        "terminal": []
+      },
+      "target": "running at end; no terminal status during sampling"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: counters never reset",
+      "passed": true,
+      "actual": true,
+      "target": "monotonic"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: processed FPS",
+      "passed": true,
+      "actual": 28.529136861741033,
+      "target": ">= 25.0"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: low detection FPS",
+      "passed": true,
+      "actual": 4.999264636987331,
+      "target": ">= 4.0"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: high detection FPS",
+      "passed": true,
+      "actual": 1.299808805616706,
+      "target": ">= 0.5"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: result age P95",
+      "passed": true,
+      "actual": 99.546981,
+      "target": "<= 300.0 ms (local decode to query)"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: inference errors",
+      "passed": true,
+      "actual": 0,
+      "target": "0, including before the first sample"
+    },
+    {
+      "name": "acceptance-1-20260914_020743_517334: queue bound",
+      "passed": true,
+      "actual": 2,
+      "target": "<= 2"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: every sample observed",
+      "passed": true,
+      "actual": 31,
+      "target": "31"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: healthy status",
+      "passed": true,
+      "actual": {
+        "final": "running",
+        "terminal": []
+      },
+      "target": "running at end; no terminal status during sampling"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: counters never reset",
+      "passed": true,
+      "actual": true,
+      "target": "monotonic"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: processed FPS",
+      "passed": true,
+      "actual": 29.129048618179514,
+      "target": ">= 25.0"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: low detection FPS",
+      "passed": true,
+      "actual": 5.03259306790058,
+      "target": ">= 4.0"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: high detection FPS",
+      "passed": true,
+      "actual": 1.299808805616706,
+      "target": ">= 0.5"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: result age P95",
+      "passed": true,
+      "actual": 108.087673,
+      "target": "<= 300.0 ms (local decode to query)"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: inference errors",
+      "passed": true,
+      "actual": 0,
+      "target": "0, including before the first sample"
+    },
+    {
+      "name": "acceptance-2-20260914_020743_517334: queue bound",
+      "passed": true,
+      "actual": 2,
+      "target": "<= 2"
+    },
+    {
+      "name": "stream fairness spread",
+      "passed": true,
+      "actual": 2.059496567505723,
+      "target": "<= 10.0%"
+    },
+    {
+      "name": "process CPU average",
+      "passed": true,
+      "actual": 17.582179260063686,
+      "target": "<= 85.0% of host"
+    },
+    {
+      "name": "process RSS growth",
+      "passed": true,
+      "actual": 0.01304429352921514,
+      "target": "<= 5.0%"
+    },
+    {
+      "name": "sampling warmup completed",
+      "passed": true,
+      "actual": {
+        "requested_seconds": 10.0,
+        "elapsed_seconds": 10.003122911090031,
+        "observation_count": 11,
+        "completed": true,
+        "final_counters": {
+          "acceptance-1-20260914_020743_517334": {
+            "decoded_frame_count": 300,
+            "processed_frame_count": 291,
+            "low_res_detection_count": 50,
+            "high_res_detection_count": 11,
+            "dropped_frame_count": 9,
+            "decoder_queue_drop_count": 4,
+            "processor_coalesced_frame_count": 5,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          },
+          "acceptance-2-20260914_020743_517334": {
+            "decoded_frame_count": 300,
+            "processed_frame_count": 293,
+            "low_res_detection_count": 49,
+            "high_res_detection_count": 14,
+            "dropped_frame_count": 6,
+            "decoder_queue_drop_count": 1,
+            "processor_coalesced_frame_count": 5,
+            "inference_error_count": 0,
+            "reconnect_count": 0
+          }
+        },
+        "errors": []
+      },
+      "target": ">= 10.0 s healthy same-stream warmup"
+    }
+  ],
+  "overall_status": "PASS",
+  "overall_passed": true,
+  "samples": [
+    {
+      "observed_at_seconds": 0.0,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 300,
+          "processed_frame_count": 291,
+          "low_res_detection_count": 50,
+          "high_res_detection_count": 11,
+          "dropped_frame_count": 9,
+          "decoder_queue_drop_count": 4,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 28.867953
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 300,
+          "processed_frame_count": 293,
+          "low_res_detection_count": 49,
+          "high_res_detection_count": 14,
+          "dropped_frame_count": 6,
+          "decoder_queue_drop_count": 1,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 59.447526
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 1.0038947480497882,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 331,
+          "processed_frame_count": 321,
+          "low_res_detection_count": 55,
+          "high_res_detection_count": 12,
+          "dropped_frame_count": 9,
+          "decoder_queue_drop_count": 4,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 30.722988
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 330,
+          "processed_frame_count": 324,
+          "low_res_detection_count": 55,
+          "high_res_detection_count": 16,
+          "dropped_frame_count": 6,
+          "decoder_queue_drop_count": 1,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 31.488691
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 2.008309479104355,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 361,
+          "processed_frame_count": 351,
+          "low_res_detection_count": 60,
+          "high_res_detection_count": 13,
+          "dropped_frame_count": 9,
+          "decoder_queue_drop_count": 4,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 36.842751
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 361,
+          "processed_frame_count": 354,
+          "low_res_detection_count": 60,
+          "high_res_detection_count": 17,
+          "dropped_frame_count": 6,
+          "decoder_queue_drop_count": 1,
+          "processor_coalesced_frame_count": 5,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 33.700185
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 3.0123113309964538,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 391,
+          "processed_frame_count": 373,
+          "low_res_detection_count": 65,
+          "high_res_detection_count": 15,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 39.320536
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 391,
+          "processed_frame_count": 377,
+          "low_res_detection_count": 65,
+          "high_res_detection_count": 19,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 37.693903
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 4.015426133060828,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 421,
+          "processed_frame_count": 403,
+          "low_res_detection_count": 70,
+          "high_res_detection_count": 16,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 46.98857
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 421,
+          "processed_frame_count": 407,
+          "low_res_detection_count": 70,
+          "high_res_detection_count": 20,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 42.323829
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 5.019408727996051,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 451,
+          "processed_frame_count": 433,
+          "low_res_detection_count": 75,
+          "high_res_detection_count": 17,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 44.554866
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 451,
+          "processed_frame_count": 437,
+          "low_res_detection_count": 75,
+          "high_res_detection_count": 22,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 48.252213
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 6.024101879098453,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 481,
+          "processed_frame_count": 463,
+          "low_res_detection_count": 80,
+          "high_res_detection_count": 18,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 53.291667
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 481,
+          "processed_frame_count": 467,
+          "low_res_detection_count": 80,
+          "high_res_detection_count": 23,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 52.702837
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 7.027528331032954,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 511,
+          "processed_frame_count": 494,
+          "low_res_detection_count": 85,
+          "high_res_detection_count": 20,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 25.462936
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 511,
+          "processed_frame_count": 498,
+          "low_res_detection_count": 85,
+          "high_res_detection_count": 25,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 17.884286
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 8.030516185099259,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 541,
+          "processed_frame_count": 523,
+          "low_res_detection_count": 90,
+          "high_res_detection_count": 21,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 60.675249
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 541,
+          "processed_frame_count": 527,
+          "low_res_detection_count": 90,
+          "high_res_detection_count": 26,
+          "dropped_frame_count": 13,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 8,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 55.513113
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 9.032923503080383,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 571,
+          "processed_frame_count": 545,
+          "low_res_detection_count": 95,
+          "high_res_detection_count": 23,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 25.927686
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 571,
+          "processed_frame_count": 555,
+          "low_res_detection_count": 95,
+          "high_res_detection_count": 28,
+          "dropped_frame_count": 16,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 11,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 26.334465
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 10.037469100090675,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 602,
+          "processed_frame_count": 575,
+          "low_res_detection_count": 100,
+          "high_res_detection_count": 25,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 32.300354
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 601,
+          "processed_frame_count": 585,
+          "low_res_detection_count": 100,
+          "high_res_detection_count": 29,
+          "dropped_frame_count": 16,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 11,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 29.706814
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 11.041985796066001,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 632,
+          "processed_frame_count": 605,
+          "low_res_detection_count": 105,
+          "high_res_detection_count": 26,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 38.60138
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 632,
+          "processed_frame_count": 615,
+          "low_res_detection_count": 105,
+          "high_res_detection_count": 30,
+          "dropped_frame_count": 16,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 11,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 37.46154
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 12.045177538064308,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 662,
+          "processed_frame_count": 635,
+          "low_res_detection_count": 110,
+          "high_res_detection_count": 27,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 41.782135
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 662,
+          "processed_frame_count": 645,
+          "low_res_detection_count": 110,
+          "high_res_detection_count": 31,
+          "dropped_frame_count": 16,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 11,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 37.231676
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 13.04910080099944,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 692,
+          "processed_frame_count": 665,
+          "low_res_detection_count": 115,
+          "high_res_detection_count": 28,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 42.733177
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 692,
+          "processed_frame_count": 675,
+          "low_res_detection_count": 115,
+          "high_res_detection_count": 33,
+          "dropped_frame_count": 16,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 11,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 40.970386
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 14.052173261065036,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 722,
+          "processed_frame_count": 694,
+          "low_res_detection_count": 120,
+          "high_res_detection_count": 29,
+          "dropped_frame_count": 26,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 19,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 80.065982
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 722,
+          "processed_frame_count": 703,
+          "low_res_detection_count": 120,
+          "high_res_detection_count": 34,
+          "dropped_frame_count": 17,
+          "decoder_queue_drop_count": 5,
+          "processor_coalesced_frame_count": 12,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 80.105194
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 15.055758846108802,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 752,
+          "processed_frame_count": 716,
+          "low_res_detection_count": 125,
+          "high_res_detection_count": 31,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 52.977726
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 752,
+          "processed_frame_count": 729,
+          "low_res_detection_count": 125,
+          "high_res_detection_count": 36,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 49.550225
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 16.059958234080113,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 782,
+          "processed_frame_count": 747,
+          "low_res_detection_count": 130,
+          "high_res_detection_count": 32,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 21.397524
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 782,
+          "processed_frame_count": 760,
+          "low_res_detection_count": 130,
+          "high_res_detection_count": 38,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 20.830874
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 17.063749241060577,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 812,
+          "processed_frame_count": 777,
+          "low_res_detection_count": 135,
+          "high_res_detection_count": 33,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 23.299407
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 812,
+          "processed_frame_count": 790,
+          "low_res_detection_count": 135,
+          "high_res_detection_count": 39,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 21.620155
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 18.073267357074656,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 843,
+          "processed_frame_count": 807,
+          "low_res_detection_count": 140,
+          "high_res_detection_count": 34,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 38.35966
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 842,
+          "processed_frame_count": 820,
+          "low_res_detection_count": 140,
+          "high_res_detection_count": 40,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 30.167672
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 19.07711129600648,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 873,
+          "processed_frame_count": 837,
+          "low_res_detection_count": 145,
+          "high_res_detection_count": 35,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 37.461818
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 873,
+          "processed_frame_count": 850,
+          "low_res_detection_count": 145,
+          "high_res_detection_count": 41,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 36.087854
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 20.080256480025128,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 903,
+          "processed_frame_count": 865,
+          "low_res_detection_count": 150,
+          "high_res_detection_count": 36,
+          "dropped_frame_count": 35,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 27,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 107.21853
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 903,
+          "processed_frame_count": 878,
+          "low_res_detection_count": 150,
+          "high_res_detection_count": 42,
+          "dropped_frame_count": 22,
+          "decoder_queue_drop_count": 7,
+          "processor_coalesced_frame_count": 15,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 108.087673
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 21.083959782030433,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 933,
+          "processed_frame_count": 888,
+          "low_res_detection_count": 155,
+          "high_res_detection_count": 39,
+          "dropped_frame_count": 44,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 34,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 46.456279
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 933,
+          "processed_frame_count": 904,
+          "low_res_detection_count": 155,
+          "high_res_detection_count": 44,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 44.835947
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 22.087480535032228,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 963,
+          "processed_frame_count": 919,
+          "low_res_detection_count": 160,
+          "high_res_detection_count": 40,
+          "dropped_frame_count": 44,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 34,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 16.958205
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 963,
+          "processed_frame_count": 934,
+          "low_res_detection_count": 160,
+          "high_res_detection_count": 45,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 46.599993
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 23.091273467056453,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 993,
+          "processed_frame_count": 949,
+          "low_res_detection_count": 165,
+          "high_res_detection_count": 41,
+          "dropped_frame_count": 44,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 34,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 21.244067
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 993,
+          "processed_frame_count": 964,
+          "low_res_detection_count": 165,
+          "high_res_detection_count": 46,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 49.237923
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 24.09452099504415,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1023,
+          "processed_frame_count": 979,
+          "low_res_detection_count": 170,
+          "high_res_detection_count": 42,
+          "dropped_frame_count": 44,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 34,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 19.911987
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1023,
+          "processed_frame_count": 994,
+          "low_res_detection_count": 170,
+          "high_res_detection_count": 47,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 53.098967
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 25.09877922805026,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1053,
+          "processed_frame_count": 1009,
+          "low_res_detection_count": 175,
+          "high_res_detection_count": 44,
+          "dropped_frame_count": 44,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 34,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 27.39213
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1053,
+          "processed_frame_count": 1024,
+          "low_res_detection_count": 175,
+          "high_res_detection_count": 48,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 56.22995
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 26.10323780309409,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1083,
+          "processed_frame_count": 1037,
+          "low_res_detection_count": 180,
+          "high_res_detection_count": 45,
+          "dropped_frame_count": 45,
+          "decoder_queue_drop_count": 10,
+          "processor_coalesced_frame_count": 35,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 99.546981
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1083,
+          "processed_frame_count": 1052,
+          "low_res_detection_count": 180,
+          "high_res_detection_count": 49,
+          "dropped_frame_count": 28,
+          "decoder_queue_drop_count": 8,
+          "processor_coalesced_frame_count": 20,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 126.226944
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 27.10837784805335,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1114,
+          "processed_frame_count": 1060,
+          "low_res_detection_count": 185,
+          "high_res_detection_count": 46,
+          "dropped_frame_count": 53,
+          "decoder_queue_drop_count": 12,
+          "processor_coalesced_frame_count": 41,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 36.702363
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1113,
+          "processed_frame_count": 1080,
+          "low_res_detection_count": 185,
+          "high_res_detection_count": 50,
+          "dropped_frame_count": 33,
+          "decoder_queue_drop_count": 9,
+          "processor_coalesced_frame_count": 24,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 32.826784
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 28.112709844019264,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1144,
+          "processed_frame_count": 1090,
+          "low_res_detection_count": 190,
+          "high_res_detection_count": 48,
+          "dropped_frame_count": 53,
+          "decoder_queue_drop_count": 12,
+          "processor_coalesced_frame_count": 41,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 44.411265
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1144,
+          "processed_frame_count": 1110,
+          "low_res_detection_count": 190,
+          "high_res_detection_count": 51,
+          "dropped_frame_count": 33,
+          "decoder_queue_drop_count": 9,
+          "processor_coalesced_frame_count": 24,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 38.085042
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 29.116839015041478,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1174,
+          "processed_frame_count": 1120,
+          "low_res_detection_count": 195,
+          "high_res_detection_count": 49,
+          "dropped_frame_count": 53,
+          "decoder_queue_drop_count": 12,
+          "processor_coalesced_frame_count": 41,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 42.05056
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1174,
+          "processed_frame_count": 1140,
+          "low_res_detection_count": 195,
+          "high_res_detection_count": 52,
+          "dropped_frame_count": 33,
+          "decoder_queue_drop_count": 9,
+          "processor_coalesced_frame_count": 24,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 43.180716
+        }
+      }
+    },
+    {
+      "observed_at_seconds": 30.00441282708198,
+      "streams": {
+        "acceptance-1-20260914_020743_517334": {
+          "stream_id": "acceptance-1-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1200,
+          "processed_frame_count": 1147,
+          "low_res_detection_count": 200,
+          "high_res_detection_count": 50,
+          "dropped_frame_count": 53,
+          "decoder_queue_drop_count": 12,
+          "processor_coalesced_frame_count": 41,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 33.718976
+        },
+        "acceptance-2-20260914_020743_517334": {
+          "stream_id": "acceptance-2-20260914_020743_517334",
+          "source": "[redacted]",
+          "status": "running",
+          "decoded_frame_count": 1200,
+          "processed_frame_count": 1167,
+          "low_res_detection_count": 200,
+          "high_res_detection_count": 53,
+          "dropped_frame_count": 33,
+          "decoder_queue_drop_count": 9,
+          "processor_coalesced_frame_count": 24,
+          "inference_error_count": 0,
+          "reconnect_count": 0,
+          "max_queue_length": 2,
+          "latest_result_age_ms": 29.244731
+        }
+      }
+    }
+  ],
+  "sampling_warmup": {
+    "requested_seconds": 10.0,
+    "elapsed_seconds": 10.003122911090031,
+    "observation_count": 11,
+    "completed": true,
+    "final_counters": {
+      "acceptance-1-20260914_020743_517334": {
+        "decoded_frame_count": 300,
+        "processed_frame_count": 291,
+        "low_res_detection_count": 50,
+        "high_res_detection_count": 11,
+        "dropped_frame_count": 9,
+        "decoder_queue_drop_count": 4,
+        "processor_coalesced_frame_count": 5,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      },
+      "acceptance-2-20260914_020743_517334": {
+        "decoded_frame_count": 300,
+        "processed_frame_count": 293,
+        "low_res_detection_count": 49,
+        "high_res_detection_count": 14,
+        "dropped_frame_count": 6,
+        "decoder_queue_drop_count": 1,
+        "processor_coalesced_frame_count": 5,
+        "inference_error_count": 0,
+        "reconnect_count": 0
+      }
+    },
+    "errors": []
+  }
+}

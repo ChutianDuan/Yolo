@@ -1,0 +1,2329 @@
+{
+  "scope": "fixed prefix; five-minute rate diagnostics, not final acceptance or CPU/P95 gates",
+  "samples": 3250,
+  "journal_prefix_sha256": "80322506bfd1660a73456ad57507ed5fb0ae95180ef266fa21f67db5028daff0",
+  "last_monotonic_seconds": 102403.168102749,
+  "elapsed_since_first_full_stream_sample": 16478.924168757992,
+  "steady_start": "first six-stream metric sample plus at least 60 seconds; approximate",
+  "peak_rss_kib_including_startup": 970596,
+  "complete_windows": 54,
+  "failed_window_counts": {
+    "output_ge_25": 13,
+    "low_ge_4": 40,
+    "high_ge_0_5": 35,
+    "fairness_le_10": 44
+  },
+  "observed_total": {
+    "from_sample_seconds": 60.70741765599814,
+    "to_sample_seconds": 16478.924168757992,
+    "duration_seconds": 16418.216751101994,
+    "fps_ranges": {
+      "processed_frames": [
+        25.570621119484326,
+        28.482447703622412
+      ],
+      "low_detections": [
+        3.385142299103195,
+        3.677561388994779
+      ],
+      "high_detections": [
+        0.39096816038618537,
+        0.4341519001764651
+      ]
+    },
+    "fairness_percent": 10.223231565058782,
+    "diagnostic_rate_checks": {
+      "output_ge_25": true,
+      "low_ge_4": false,
+      "high_ge_0_5": false,
+      "fairness_le_10": false
+    },
+    "rss_start_kib": 891844,
+    "rss_end_kib": 918476,
+    "weak_flow_mean_ms": 20.01508933662149,
+    "prepare_mean_ms": 21.308999812842675,
+    "inference": {
+      "high": {
+        "mean_ms": 207.44965376202126,
+        "applied": 39954,
+        "expired": 37305
+      },
+      "low": {
+        "mean_ms": 88.24243203075238,
+        "applied": 342575,
+        "expired": 15381
+      }
+    }
+  },
+  "windows": [
+    {
+      "from_sample_seconds": 60.70741765599814,
+      "to_sample_seconds": 364.4098588529887,
+      "duration_seconds": 303.70244119699055,
+      "fps_ranges": {
+        "processed_frames": [
+          26.66096448908042,
+          29.090974590715764
+        ],
+        "low_detections": [
+          4.804044360821086,
+          5.001606157702009
+        ],
+        "high_detections": [
+          1.0569556133129325,
+          1.2380539271204445
+        ]
+      },
+      "fairness_percent": 8.353140916808158,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 891844,
+      "rss_end_kib": 843688,
+      "weak_flow_mean_ms": 19.048074236679305,
+      "prepare_mean_ms": 22.60249015473965,
+      "inference": {
+        "high": {
+          "mean_ms": 132.8675824175824,
+          "applied": 2055,
+          "expired": 129
+        },
+        "low": {
+          "mean_ms": 58.17399532450184,
+          "applied": 8926,
+          "expired": 57
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 364.4098588529887,
+      "to_sample_seconds": 667.9439306489949,
+      "duration_seconds": 303.5340717960062,
+      "fps_ranges": {
+        "processed_frames": [
+          26.412191397702212,
+          29.301488124131655
+        ],
+        "low_detections": [
+          4.836359856782693,
+          4.997791486879663
+        ],
+        "high_detections": [
+          1.0707199955411275,
+          1.2222680564484871
+        ]
+      },
+      "fairness_percent": 9.860580166404318,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 843688,
+      "rss_end_kib": 922764,
+      "weak_flow_mean_ms": 18.314180034416598,
+      "prepare_mean_ms": 21.666009152595862,
+      "inference": {
+        "high": {
+          "mean_ms": 134.0365910143585,
+          "applied": 2043,
+          "expired": 116
+        },
+        "low": {
+          "mean_ms": 58.202358438091,
+          "applied": 8944,
+          "expired": 45
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 667.9439306489949,
+      "to_sample_seconds": 971.3759775660001,
+      "duration_seconds": 303.4320469170052,
+      "fps_ranges": {
+        "processed_frames": [
+          26.233221180415466,
+          29.426687427126843
+        ],
+        "low_detections": [
+          4.768777769856932,
+          5.002767556767672
+        ],
+        "high_detections": [
+          1.0710800105069127,
+          1.2226790273786605
+        ]
+      },
+      "fairness_percent": 10.852279090603643,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 922764,
+      "rss_end_kib": 826408,
+      "weak_flow_mean_ms": 18.255905667074178,
+      "prepare_mean_ms": 21.582817261378157,
+      "inference": {
+        "high": {
+          "mean_ms": 133.35034482758624,
+          "applied": 2064,
+          "expired": 111
+        },
+        "low": {
+          "mean_ms": 57.815798244639495,
+          "applied": 8959,
+          "expired": 42
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 971.3759775660001,
+      "to_sample_seconds": 1274.9408003720018,
+      "duration_seconds": 303.56482280600176,
+      "fps_ranges": {
+        "processed_frames": [
+          26.54787180380989,
+          29.390757194886692
+        ],
+        "low_detections": [
+          4.842458313885165,
+          4.9972852123563225
+        ],
+        "high_detections": [
+          1.0739057213105876,
+          1.2419093770984402
+        ]
+      },
+      "fairness_percent": 9.672719121273262,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 826408,
+      "rss_end_kib": 910904,
+      "weak_flow_mean_ms": 18.457506773995767,
+      "prepare_mean_ms": 21.854437869822494,
+      "inference": {
+        "high": {
+          "mean_ms": 132.96783088235293,
+          "applied": 2058,
+          "expired": 118
+        },
+        "low": {
+          "mean_ms": 57.1024303628898,
+          "applied": 8972,
+          "expired": 39
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 1274.9408003720018,
+      "to_sample_seconds": 1578.4324195549998,
+      "duration_seconds": 303.49161918299797,
+      "fps_ranges": {
+        "processed_frames": [
+          26.406001001193236,
+          29.242982141950332
+        ],
+        "low_detections": [
+          4.820561450554742,
+          4.998490581333932
+        ],
+        "high_detections": [
+          1.0478048812552343,
+          1.1993741408078784
+        ]
+      },
+      "fairness_percent": 9.701408450704225,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 910904,
+      "rss_end_kib": 836752,
+      "weak_flow_mean_ms": 18.7560179843234,
+      "prepare_mean_ms": 22.211910286156225,
+      "inference": {
+        "high": {
+          "mean_ms": 134.6582984658299,
+          "applied": 2038,
+          "expired": 113
+        },
+        "low": {
+          "mean_ms": 58.15016685205784,
+          "applied": 8939,
+          "expired": 51
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 1578.4324195549998,
+      "to_sample_seconds": 1882.1021471970016,
+      "duration_seconds": 303.6697276420018,
+      "fps_ranges": {
+        "processed_frames": [
+          26.291721805778376,
+          28.949214227780274
+        ],
+        "low_detections": [
+          4.827613247403695,
+          4.995558865151027
+        ],
+        "high_detections": [
+          1.0406042197677814,
+          1.1920845808732181
+        ]
+      },
+      "fairness_percent": 9.179843021271756,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 836752,
+      "rss_end_kib": 866072,
+      "weak_flow_mean_ms": 19.414905405677672,
+      "prepare_mean_ms": 23.095696852922273,
+      "inference": {
+        "high": {
+          "mean_ms": 135.03027480204932,
+          "applied": 2002,
+          "expired": 145
+        },
+        "low": {
+          "mean_ms": 59.131162168190954,
+          "applied": 8912,
+          "expired": 54
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 1882.1021471970016,
+      "to_sample_seconds": 2186.4232550189918,
+      "duration_seconds": 304.32110782199015,
+      "fps_ranges": {
+        "processed_frames": [
+          25.561815464178235,
+          28.624370035795938
+        ],
+        "low_detections": [
+          4.698983945722442,
+          4.975008177499145
+        ],
+        "high_detections": [
+          0.9266527781075026,
+          1.1106689326253045
+        ]
+      },
+      "fairness_percent": 10.699116060153829,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 866072,
+      "rss_end_kib": 866796,
+      "weak_flow_mean_ms": 19.90765144126009,
+      "prepare_mean_ms": 23.89875190509536,
+      "inference": {
+        "high": {
+          "mean_ms": 143.48126232741618,
+          "applied": 1823,
+          "expired": 205
+        },
+        "low": {
+          "mean_ms": 64.54208338015509,
+          "applied": 8792,
+          "expired": 107
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 2186.4232550189918,
+      "to_sample_seconds": 2490.1269957059994,
+      "duration_seconds": 303.70374068700767,
+      "fps_ranges": {
+        "processed_frames": [
+          26.1274358427402,
+          28.722069673121965
+        ],
+        "low_detections": [
+          4.767804297452781,
+          4.991706709211613
+        ],
+        "high_detections": [
+          1.0141462179664753,
+          1.1623169316304085
+        ]
+      },
+      "fairness_percent": 9.033589361458219,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 866796,
+      "rss_end_kib": 848108,
+      "weak_flow_mean_ms": 19.621636999105906,
+      "prepare_mean_ms": 23.36243835394939,
+      "inference": {
+        "high": {
+          "mean_ms": 135.61682242990665,
+          "applied": 1973,
+          "expired": 167
+        },
+        "low": {
+          "mean_ms": 59.83542319749214,
+          "applied": 8859,
+          "expired": 73
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 2490.1269957059994,
+      "to_sample_seconds": 2793.7956673119916,
+      "duration_seconds": 303.66867160599213,
+      "fps_ranges": {
+        "processed_frames": [
+          25.48171979373624,
+          28.6891629417201
+        ],
+        "low_detections": [
+          4.699200587446577,
+          4.929714982065541
+        ],
+        "high_detections": [
+          0.9484020807180198,
+          1.1064690941710231
+        ]
+      },
+      "fairness_percent": 11.179981634527094,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 848108,
+      "rss_end_kib": 920120,
+      "weak_flow_mean_ms": 19.931849533653164,
+      "prepare_mean_ms": 23.761181227790708,
+      "inference": {
+        "high": {
+          "mean_ms": 140.2219006271104,
+          "applied": 1866,
+          "expired": 207
+        },
+        "low": {
+          "mean_ms": 61.64986977692223,
+          "applied": 8740,
+          "expired": 91
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 2793.7956673119916,
+      "to_sample_seconds": 3097.7712476809975,
+      "duration_seconds": 303.9755803690059,
+      "fps_ranges": {
+        "processed_frames": [
+          25.06451337555157,
+          28.584532972853076
+        ],
+        "low_detections": [
+          3.569365666422556,
+          3.9213676261527066
+        ],
+        "high_detections": [
+          0.4079275047340064,
+          0.4803017394448785
+        ]
+      },
+      "fairness_percent": 12.314420531706753,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 920120,
+      "rss_end_kib": 907220,
+      "weak_flow_mean_ms": 19.97729979996854,
+      "prepare_mean_ms": 22.841536838185093,
+      "inference": {
+        "high": {
+          "mean_ms": 194.44591029023758,
+          "applied": 811,
+          "expired": 705
+        },
+        "low": {
+          "mean_ms": 81.93603655054257,
+          "applied": 6749,
+          "expired": 255
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 3097.7712476809975,
+      "to_sample_seconds": 3401.9980201129947,
+      "duration_seconds": 304.22677243199723,
+      "fps_ranges": {
+        "processed_frames": [
+          24.333821579278553,
+          28.508339126986748
+        ],
+        "low_detections": [
+          2.836699719426907,
+          3.316604886328794
+        ],
+        "high_detections": [
+          0.10847171580659087,
+          0.13148086764435257
+        ]
+      },
+      "fairness_percent": 14.643145393750723,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 907220,
+      "rss_end_kib": 912604,
+      "weak_flow_mean_ms": 20.148336098370258,
+      "prepare_mean_ms": 22.332610663242754,
+      "inference": {
+        "high": {
+          "mean_ms": 247.9966611018363,
+          "applied": 219,
+          "expired": 979
+        },
+        "low": {
+          "mean_ms": 100.55015095605494,
+          "applied": 5587,
+          "expired": 375
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 3401.9980201129947,
+      "to_sample_seconds": 3706.3824288879987,
+      "duration_seconds": 304.384408775004,
+      "fps_ranges": {
+        "processed_frames": [
+          24.446061577024686,
+          28.716976783331912
+        ],
+        "low_detections": [
+          2.88779574334158,
+          3.383878971151112
+        ],
+        "high_detections": [
+          0.09527426229454587,
+          0.13798341435761816
+        ]
+      },
+      "fairness_percent": 14.872440224230628,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 912604,
+      "rss_end_kib": 923676,
+      "weak_flow_mean_ms": 20.1146679407549,
+      "prepare_mean_ms": 22.404314471456367,
+      "inference": {
+        "high": {
+          "mean_ms": 246.60314830157424,
+          "applied": 224,
+          "expired": 983
+        },
+        "low": {
+          "mean_ms": 99.19483101391646,
+          "applied": 5683,
+          "expired": 353
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 3706.3824288879987,
+      "to_sample_seconds": 4010.779373001991,
+      "duration_seconds": 304.3969441139925,
+      "fps_ranges": {
+        "processed_frames": [
+          24.546895573307193,
+          28.63694977415937
+        ],
+        "low_detections": [
+          2.854824980353848,
+          3.2950396493612306
+        ],
+        "high_detections": [
+          0.10512589110624065,
+          0.14783328436815094
+        ]
+      },
+      "fairness_percent": 14.28243661810256,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 923676,
+      "rss_end_kib": 938736,
+      "weak_flow_mean_ms": 20.172974571259584,
+      "prepare_mean_ms": 22.03979057591622,
+      "inference": {
+        "high": {
+          "mean_ms": 251.2552653748945,
+          "applied": 219,
+          "expired": 968
+        },
+        "low": {
+          "mean_ms": 101.50592216582073,
+          "applied": 5549,
+          "expired": 361
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 4010.779373001991,
+      "to_sample_seconds": 4315.138498634988,
+      "duration_seconds": 304.35912563299644,
+      "fps_ranges": {
+        "processed_frames": [
+          24.73722443623606,
+          28.666792828550886
+        ],
+        "low_detections": [
+          3.206738086036179,
+          3.6634354159122333
+        ],
+        "high_detections": [
+          0.27927534560765904,
+          0.3318448224279243
+        ]
+      },
+      "fairness_percent": 13.707736389684817,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 938736,
+      "rss_end_kib": 918068,
+      "weak_flow_mean_ms": 20.197911463165166,
+      "prepare_mean_ms": 22.29058407815422,
+      "inference": {
+        "high": {
+          "mean_ms": 218.12316715542556,
+          "applied": 565,
+          "expired": 799
+        },
+        "low": {
+          "mean_ms": 90.82261029411755,
+          "applied": 6238,
+          "expired": 290
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 4315.138498634988,
+      "to_sample_seconds": 4619.361364287994,
+      "duration_seconds": 304.222865653006,
+      "fps_ranges": {
+        "processed_frames": [
+          25.208493068194276,
+          28.55801118483138
+        ],
+        "low_detections": [
+          3.905031916157882,
+          4.207441795186944
+        ],
+        "high_detections": [
+          0.6113938858631027,
+          0.6771351639128987
+        ]
+      },
+      "fairness_percent": 11.728821362799254,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 918068,
+      "rss_end_kib": 932016,
+      "weak_flow_mean_ms": 20.112463584833232,
+      "prepare_mean_ms": 22.478007070623995,
+      "inference": {
+        "high": {
+          "mean_ms": 176.45833333333323,
+          "applied": 1170,
+          "expired": 510
+        },
+        "low": {
+          "mean_ms": 76.02616624818302,
+          "applied": 7370,
+          "expired": 197
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 4619.361364287994,
+      "to_sample_seconds": 4923.813842855001,
+      "duration_seconds": 304.45247856700735,
+      "fps_ranges": {
+        "processed_frames": [
+          25.2748804549686,
+          28.648149100485526
+        ],
+        "low_detections": [
+          2.604675789576361,
+          2.9528417841477284
+        ],
+        "high_detections": [
+          0.013138339417787446,
+          0.042699603107809195
+        ]
+      },
+      "fairness_percent": 11.774822288465948,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 932016,
+      "rss_end_kib": 940656,
+      "weak_flow_mean_ms": 20.102132942105857,
+      "prepare_mean_ms": 19.78932467316184,
+      "inference": {
+        "high": {
+          "mean_ms": 292.81524926686234,
+          "applied": 48,
+          "expired": 975
+        },
+        "low": {
+          "mean_ms": 111.96431889983266,
+          "applied": 4955,
+          "expired": 426
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 4923.813842855001,
+      "to_sample_seconds": 5228.286368729998,
+      "duration_seconds": 304.4725258749968,
+      "fps_ranges": {
+        "processed_frames": [
+          25.0925760150085,
+          28.26856043994479
+        ],
+        "low_detections": [
+          2.709604085390316,
+          3.0577471557556173
+        ],
+        "high_detections": [
+          0.07882484612044556,
+          0.10838416341561263
+        ]
+      },
+      "fairness_percent": 11.235041245497861,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 940656,
+      "rss_end_kib": 915272,
+      "weak_flow_mean_ms": 20.332033490079148,
+      "prepare_mean_ms": 19.810171769350255,
+      "inference": {
+        "high": {
+          "mean_ms": 283.50993377483366,
+          "applied": 184,
+          "expired": 873
+        },
+        "low": {
+          "mean_ms": 108.02296376031556,
+          "applied": 5160,
+          "expired": 414
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 5228.286368729998,
+      "to_sample_seconds": 5532.7443913079915,
+      "duration_seconds": 304.4580225779937,
+      "fps_ranges": {
+        "processed_frames": [
+          25.441930990718728,
+          28.66076553382541
+        ],
+        "low_detections": [
+          2.4404021076819022,
+          2.709733161288788
+        ],
+        "high_detections": [
+          0.006569050087972819,
+          0.026276200351891276
+        ]
+      },
+      "fairness_percent": 11.230804492321795,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 915272,
+      "rss_end_kib": 911928,
+      "weak_flow_mean_ms": 19.47987307907668,
+      "prepare_mean_ms": 17.503528112408787,
+      "inference": {
+        "high": {
+          "mean_ms": 306.5612244897962,
+          "applied": 27,
+          "expired": 953
+        },
+        "low": {
+          "mean_ms": 118.92786756011046,
+          "applied": 4683,
+          "expired": 391
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 5532.7443913079915,
+      "to_sample_seconds": 5837.469201077998,
+      "duration_seconds": 304.7248097700067,
+      "fps_ranges": {
+        "processed_frames": [
+          25.66906188539001,
+          28.35345112372407
+        ],
+        "low_detections": [
+          2.543278312602564,
+          2.845190060679256
+        ],
+        "high_detections": [
+          0.07875958645478909,
+          0.09516783363287015
+        ]
+      },
+      "fairness_percent": 9.467592592592586,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 911928,
+      "rss_end_kib": 958836,
+      "weak_flow_mean_ms": 20.20189234517894,
+      "prepare_mean_ms": 17.788619894598128,
+      "inference": {
+        "high": {
+          "mean_ms": 286.17142857142903,
+          "applied": 151,
+          "expired": 899
+        },
+        "low": {
+          "mean_ms": 114.66894977168963,
+          "applied": 4877,
+          "expired": 379
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 5837.469201077998,
+      "to_sample_seconds": 6141.850365292994,
+      "duration_seconds": 304.3811642149958,
+      "fps_ranges": {
+        "processed_frames": [
+          25.67833006407475,
+          28.819128879486144
+        ],
+        "low_detections": [
+          2.5100107688015747,
+          2.8615436906101723
+        ],
+        "high_detections": [
+          0.009856063228278434,
+          0.036138898503687594
+        ]
+      },
+      "fairness_percent": 10.898312813497489,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 958836,
+      "rss_end_kib": 938356,
+      "weak_flow_mean_ms": 19.51282271206793,
+      "prepare_mean_ms": 18.890551649207683,
+      "inference": {
+        "high": {
+          "mean_ms": 287.43540669856446,
+          "applied": 44,
+          "expired": 1001
+        },
+        "low": {
+          "mean_ms": 115.9462055715658,
+          "applied": 4815,
+          "expired": 390
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 6141.850365292994,
+      "to_sample_seconds": 6446.5475284139975,
+      "duration_seconds": 304.69716312100354,
+      "fps_ranges": {
+        "processed_frames": [
+          25.54011307584625,
+          28.713756013952562
+        ],
+        "low_detections": [
+          2.678068911576785,
+          3.0128275255238828
+        ],
+        "high_detections": [
+          0.091894521475674,
+          0.10830425745347291
+        ]
+      },
+      "fairness_percent": 11.05269173619842,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 938356,
+      "rss_end_kib": 946976,
+      "weak_flow_mean_ms": 19.844251281910683,
+      "prepare_mean_ms": 19.714479945615228,
+      "inference": {
+        "high": {
+          "mean_ms": 267.8303571428566,
+          "applied": 184,
+          "expired": 936
+        },
+        "low": {
+          "mean_ms": 109.82500911410864,
+          "applied": 5112,
+          "expired": 374
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 6446.5475284139975,
+      "to_sample_seconds": 6750.997761345992,
+      "duration_seconds": 304.45023293199483,
+      "fps_ranges": {
+        "processed_frames": [
+          25.744765982001326,
+          28.89799070038883
+        ],
+        "low_detections": [
+          2.5784181290981167,
+          2.910163646345136
+        ],
+        "high_detections": [
+          0.009853827244960957,
+          0.03941530897984383
+        ]
+      },
+      "fairness_percent": 10.911570811548078,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 946976,
+      "rss_end_kib": 948056,
+      "weak_flow_mean_ms": 19.82758620689659,
+      "prepare_mean_ms": 19.451310440626738,
+      "inference": {
+        "high": {
+          "mean_ms": 287.79482262703743,
+          "applied": 41,
+          "expired": 1002
+        },
+        "low": {
+          "mean_ms": 115.01049017737937,
+          "applied": 4893,
+          "expired": 350
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 6750.997761345992,
+      "to_sample_seconds": 7055.412521694991,
+      "duration_seconds": 304.41476034899824,
+      "fps_ranges": {
+        "processed_frames": [
+          25.301007057509278,
+          28.530154024210344
+        ],
+        "low_detections": [
+          2.8612278819904677,
+          3.2521419094954798
+        ],
+        "high_detections": [
+          0.15439461590534095,
+          0.1938145178386195
+        ]
+      },
+      "fairness_percent": 11.31836499712147,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 948056,
+      "rss_end_kib": 939776,
+      "weak_flow_mean_ms": 20.224689745264495,
+      "prepare_mean_ms": 20.83402352161671,
+      "inference": {
+        "high": {
+          "mean_ms": 246.04440789473728,
+          "applied": 325,
+          "expired": 891
+        },
+        "low": {
+          "mean_ms": 101.95378865103642,
+          "applied": 5523,
+          "expired": 363
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 7055.412521694991,
+      "to_sample_seconds": 7360.118895341991,
+      "duration_seconds": 304.7063736470009,
+      "fps_ranges": {
+        "processed_frames": [
+          25.68702422046313,
+          28.811343507275563
+        ],
+        "low_detections": [
+          2.5828143684048146,
+          2.9241265594011305
+        ],
+        "high_detections": [
+          0.08204619975872982,
+          0.11158283167187255
+        ]
+      },
+      "fairness_percent": 10.844059687891566,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 939776,
+      "rss_end_kib": 944392,
+      "weak_flow_mean_ms": 19.803963220344084,
+      "prepare_mean_ms": 17.960351522583267,
+      "inference": {
+        "high": {
+          "mean_ms": 279.3959107806692,
+          "applied": 169,
+          "expired": 907
+        },
+        "low": {
+          "mean_ms": 111.99478487614068,
+          "applied": 5010,
+          "expired": 359
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 7360.118895341991,
+      "to_sample_seconds": 7664.540712820992,
+      "duration_seconds": 304.4218174790003,
+      "fps_ranges": {
+        "processed_frames": [
+          25.661761251848805,
+          28.917112685615084
+        ],
+        "low_detections": [
+          2.539239816651194,
+          2.8644464684603377
+        ],
+        "high_detections": [
+          0.009854747024519512,
+          0.029564241073558532
+        ]
+      },
+      "fairness_percent": 11.257525843462458,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 944392,
+      "rss_end_kib": 957084,
+      "weak_flow_mean_ms": 19.814577649089614,
+      "prepare_mean_ms": 19.30168854000574,
+      "inference": {
+        "high": {
+          "mean_ms": 288.13640730067226,
+          "applied": 40,
+          "expired": 1001
+        },
+        "low": {
+          "mean_ms": 115.02383222116288,
+          "applied": 4859,
+          "expired": 386
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 7664.540712820992,
+      "to_sample_seconds": 7969.105258787997,
+      "duration_seconds": 304.56454596700496,
+      "fps_ranges": {
+        "processed_frames": [
+          25.107978263590926,
+          28.81491006162861
+        ],
+        "low_detections": [
+          2.6398345133944168,
+          3.0141394070846697
+        ],
+        "high_detections": [
+          0.07551765399013878,
+          0.09521791155278368
+        ]
+      },
+      "fairness_percent": 12.864630811303558,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 957084,
+      "rss_end_kib": 940716,
+      "weak_flow_mean_ms": 19.84079055723303,
+      "prepare_mean_ms": 19.770247695258494,
+      "inference": {
+        "high": {
+          "mean_ms": 269.847122302158,
+          "applied": 161,
+          "expired": 951
+        },
+        "low": {
+          "mean_ms": 110.17942145734183,
+          "applied": 5086,
+          "expired": 376
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 7969.105258787997,
+      "to_sample_seconds": 8273.635557499001,
+      "duration_seconds": 304.53029871100443,
+      "fps_ranges": {
+        "processed_frames": [
+          25.71172731627133,
+          28.88382547559676
+        ],
+        "low_detections": [
+          2.475944111937239,
+          2.8535748451902663
+        ],
+        "high_detections": [
+          0.006567491013096125,
+          0.02955370955893256
+        ]
+      },
+      "fairness_percent": 10.982264665757166,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 940716,
+      "rss_end_kib": 963652,
+      "weak_flow_mean_ms": 19.789570516874644,
+      "prepare_mean_ms": 18.83205717202653,
+      "inference": {
+        "high": {
+          "mean_ms": 290.3675048355897,
+          "applied": 36,
+          "expired": 998
+        },
+        "low": {
+          "mean_ms": 115.68251533742324,
+          "applied": 4836,
+          "expired": 380
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 8273.635557499001,
+      "to_sample_seconds": 8577.97412750499,
+      "duration_seconds": 304.338570005988,
+      "fps_ranges": {
+        "processed_frames": [
+          25.84621462815322,
+          28.773875095186593
+        ],
+        "low_detections": [
+          2.6943676576513655,
+          2.9999483797996302
+        ],
+        "high_detections": [
+          0.0985744264994402,
+          0.12157512601597624
+        ]
+      },
+      "fairness_percent": 10.174717368961971,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 963652,
+      "rss_end_kib": 950784,
+      "weak_flow_mean_ms": 19.40334577481804,
+      "prepare_mean_ms": 19.330059699667896,
+      "inference": {
+        "high": {
+          "mean_ms": 266.69928825622736,
+          "applied": 207,
+          "expired": 917
+        },
+        "low": {
+          "mean_ms": 110.60939794419977,
+          "applied": 5106,
+          "expired": 342
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 8577.97412750499,
+      "to_sample_seconds": 8882.506915193997,
+      "duration_seconds": 304.5327876890078,
+      "fps_ranges": {
+        "processed_frames": [
+          25.468521990218377,
+          28.817915031737556
+        ],
+        "low_detections": [
+          2.535030811816476,
+          2.8469840852913015
+        ],
+        "high_detections": [
+          0.013134874672624228,
+          0.03283718668156057
+        ]
+      },
+      "fairness_percent": 11.622607110300821,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 950784,
+      "rss_end_kib": 950016,
+      "weak_flow_mean_ms": 19.749691323380933,
+      "prepare_mean_ms": 19.323186594833754,
+      "inference": {
+        "high": {
+          "mean_ms": 288.1190019193869,
+          "applied": 37,
+          "expired": 1005
+        },
+        "low": {
+          "mean_ms": 114.8867313915854,
+          "applied": 4851,
+          "expired": 402
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 8882.506915193997,
+      "to_sample_seconds": 9187.140759315997,
+      "duration_seconds": 304.6338441219996,
+      "fps_ranges": {
+        "processed_frames": [
+          25.030048850863547,
+          28.053350489112113
+        ],
+        "low_detections": [
+          2.8690180584465232,
+          3.230107287770456
+        ],
+        "high_detections": [
+          0.21337090823686958,
+          0.2691756073142047
+        ]
+      },
+      "fairness_percent": 10.776971682658546,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 950016,
+      "rss_end_kib": 942724,
+      "weak_flow_mean_ms": 20.758702767033533,
+      "prepare_mean_ms": 19.394868349221028,
+      "inference": {
+        "high": {
+          "mean_ms": 246.64197530864203,
+          "applied": 430,
+          "expired": 785
+        },
+        "low": {
+          "mean_ms": 102.21389645776578,
+          "applied": 5515,
+          "expired": 357
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 9187.140759315997,
+      "to_sample_seconds": 9487.164517580997,
+      "duration_seconds": 300.02375826500065,
+      "fps_ranges": {
+        "processed_frames": [
+          25.46465001365609,
+          28.614400571627947
+        ],
+        "low_detections": [
+          2.48313668326882,
+          2.786445996258703
+        ],
+        "high_detections": [
+          0.003333069373515195,
+          0.01333227749406078
+        ]
+      },
+      "fairness_percent": 11.007571345369822,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 942724,
+      "rss_end_kib": 944540,
+      "weak_flow_mean_ms": 20.216819973718838,
+      "prepare_mean_ms": 17.633980073413753,
+      "inference": {
+        "high": {
+          "mean_ms": 304.2842430484028,
+          "applied": 17,
+          "expired": 954
+        },
+        "low": {
+          "mean_ms": 117.69017432646636,
+          "applied": 4654,
+          "expired": 394
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 9487.164517580997,
+      "to_sample_seconds": 9791.924684293,
+      "duration_seconds": 304.7601667120034,
+      "fps_ranges": {
+        "processed_frames": [
+          25.557802005537553,
+          28.83907071853506
+        ],
+        "low_detections": [
+          2.7070466882229405,
+          3.077830052791658
+        ],
+        "high_detections": [
+          0.08859425525093259,
+          0.12796947980690263
+        ]
+      },
+      "fairness_percent": 11.377858686995113,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 944540,
+      "rss_end_kib": 957840,
+      "weak_flow_mean_ms": 19.726456914260982,
+      "prepare_mean_ms": 19.858126863369986,
+      "inference": {
+        "high": {
+          "mean_ms": 267.6249999999998,
+          "applied": 192,
+          "expired": 928
+        },
+        "low": {
+          "mean_ms": 108.03011292346247,
+          "applied": 5204,
+          "expired": 375
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 9791.924684293,
+      "to_sample_seconds": 10096.723086105994,
+      "duration_seconds": 304.7984018129937,
+      "fps_ranges": {
+        "processed_frames": [
+          25.55787679221325,
+          28.861699889743253
+        ],
+        "low_detections": [
+          2.5525068221234797,
+          2.9134011028864397
+        ],
+        "high_detections": [
+          0.013123428391380358,
+          0.026246856782760716
+        ]
+      },
+      "fairness_percent": 11.447084233261332,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 957840,
+      "rss_end_kib": 921288,
+      "weak_flow_mean_ms": 19.58463538065874,
+      "prepare_mean_ms": 19.481106862382276,
+      "inference": {
+        "high": {
+          "mean_ms": 287.33014354067006,
+          "applied": 35,
+          "expired": 1010
+        },
+        "low": {
+          "mean_ms": 114.22625804010649,
+          "applied": 4900,
+          "expired": 386
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 10096.723086105994,
+      "to_sample_seconds": 10401.06851307099,
+      "duration_seconds": 304.34542696499557,
+      "fps_ranges": {
+        "processed_frames": [
+          25.47434366704552,
+          28.822512917235045
+        ],
+        "low_detections": [
+          2.6351636296879284,
+          2.993309310032048
+        ],
+        "high_detections": [
+          0.07228628410615265,
+          0.09857220559929906
+        ]
+      },
+      "fairness_percent": 11.616507067943457,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 921288,
+      "rss_end_kib": 940552,
+      "weak_flow_mean_ms": 19.583428310918602,
+      "prepare_mean_ms": 18.826596596391077,
+      "inference": {
+        "high": {
+          "mean_ms": 273.1415525114156,
+          "applied": 154,
+          "expired": 941
+        },
+        "low": {
+          "mean_ms": 111.26109467455568,
+          "applied": 5030,
+          "expired": 378
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 10401.06851307099,
+      "to_sample_seconds": 10705.611349578001,
+      "duration_seconds": 304.5428365070111,
+      "fps_ranges": {
+        "processed_frames": [
+          25.40200941427136,
+          28.770993599773227
+        ],
+        "low_detections": [
+          2.5546488268230507,
+          2.9322640133071776
+        ],
+        "high_detections": [
+          0.016418051586266393,
+          0.026268882538026228
+        ]
+      },
+      "fairness_percent": 11.709655329833376,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 940552,
+      "rss_end_kib": 943416,
+      "weak_flow_mean_ms": 19.642313335732677,
+      "prepare_mean_ms": 19.63493864081675,
+      "inference": {
+        "high": {
+          "mean_ms": 285.06184586108503,
+          "applied": 38,
+          "expired": 1013
+        },
+        "low": {
+          "mean_ms": 113.5328439676267,
+          "applied": 4923,
+          "expired": 390
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 10705.611349578001,
+      "to_sample_seconds": 11010.232493655989,
+      "duration_seconds": 304.621144077988,
+      "fps_ranges": {
+        "processed_frames": [
+          25.155837501674362,
+          28.13330645822123
+        ],
+        "low_detections": [
+          3.0496898132657555,
+          3.3615526036427705
+        ],
+        "high_detections": [
+          0.24620746608711697,
+          0.28560066066105566
+        ]
+      },
+      "fairness_percent": 10.583430571761964,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 943416,
+      "rss_end_kib": 935260,
+      "weak_flow_mean_ms": 20.555273976459986,
+      "prepare_mean_ms": 19.94073084708976,
+      "inference": {
+        "high": {
+          "mean_ms": 239.7435897435903,
+          "applied": 479,
+          "expired": 769
+        },
+        "low": {
+          "mean_ms": 97.69419460343441,
+          "applied": 5757,
+          "expired": 358
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 11010.232493655989,
+      "to_sample_seconds": 11315.288334621,
+      "duration_seconds": 305.05584096501116,
+      "fps_ranges": {
+        "processed_frames": [
+          25.329788721817195,
+          28.296458683412197
+        ],
+        "low_detections": [
+          2.363501704209939,
+          2.6716420096131768
+        ],
+        "high_detections": [
+          0.009834265066060773,
+          0.0360589719088895
+        ]
+      },
+      "fairness_percent": 10.484244670991668,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 935260,
+      "rss_end_kib": 948524,
+      "weak_flow_mean_ms": 19.603369014462626,
+      "prepare_mean_ms": 16.892689289633356,
+      "inference": {
+        "high": {
+          "mean_ms": 300.1996007984025,
+          "applied": 35,
+          "expired": 967
+        },
+        "low": {
+          "mean_ms": 120.77092071100473,
+          "applied": 4554,
+          "expired": 453
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 11315.288334621,
+      "to_sample_seconds": 11620.01606129299,
+      "duration_seconds": 304.72772667199024,
+      "fps_ranges": {
+        "processed_frames": [
+          25.307838194524447,
+          28.038144389784343
+        ],
+        "low_detections": [
+          2.75655913944509,
+          3.0912841778062794
+        ],
+        "high_detections": [
+          0.09188530464816967,
+          0.13126472092595667
+        ]
+      },
+      "fairness_percent": 9.737827715355797,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 948524,
+      "rss_end_kib": 923124,
+      "weak_flow_mean_ms": 20.414650613255336,
+      "prepare_mean_ms": 19.916155675134554,
+      "inference": {
+        "high": {
+          "mean_ms": 262.25919439579684,
+          "applied": 195,
+          "expired": 947
+        },
+        "low": {
+          "mean_ms": 106.80971803511248,
+          "applied": 5256,
+          "expired": 383
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 11620.01606129299,
+      "to_sample_seconds": 11924.834294765998,
+      "duration_seconds": 304.81823347300815,
+      "fps_ranges": {
+        "processed_frames": [
+          25.385620511724422,
+          28.833576980814936
+        ],
+        "low_detections": [
+          2.5031310998249854,
+          2.890247049732388
+        ],
+        "high_detections": [
+          0.0032806436432830737,
+          0.029525792789547662
+        ]
+      },
+      "fairness_percent": 11.958129480031868,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 923124,
+      "rss_end_kib": 945088,
+      "weak_flow_mean_ms": 19.42727530479163,
+      "prepare_mean_ms": 19.121313907721504,
+      "inference": {
+        "high": {
+          "mean_ms": 288.93166506256085,
+          "applied": 37,
+          "expired": 1002
+        },
+        "low": {
+          "mean_ms": 115.18214762540488,
+          "applied": 4835,
+          "expired": 408
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 11924.834294765998,
+      "to_sample_seconds": 12229.707383599001,
+      "duration_seconds": 304.87308883300284,
+      "fps_ranges": {
+        "processed_frames": [
+          25.174409553097863,
+          28.667666383592877
+        ],
+        "low_detections": [
+          2.9914086661140393,
+          3.355494589292393
+        ],
+        "high_detections": [
+          0.177122881546226,
+          0.22632368197573322
+        ]
+      },
+      "fairness_percent": 12.185354691075517,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 945088,
+      "rss_end_kib": 927160,
+      "weak_flow_mean_ms": 19.674727263586473,
+      "prepare_mean_ms": 21.226572261557592,
+      "inference": {
+        "high": {
+          "mean_ms": 239.91967871485855,
+          "applied": 361,
+          "expired": 884
+        },
+        "low": {
+          "mean_ms": 99.6519721577731,
+          "applied": 5695,
+          "expired": 339
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 12229.707383599001,
+      "to_sample_seconds": 12534.209953547994,
+      "duration_seconds": 304.50256994899246,
+      "fps_ranges": {
+        "processed_frames": [
+          25.159065164157077,
+          28.807638639862404
+        ],
+        "low_detections": [
+          2.8636868324167826,
+          3.2906126216532297
+        ],
+        "high_detections": [
+          0.0919532469124655,
+          0.12479369223834604
+        ]
+      },
+      "fairness_percent": 12.665298677610576,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 927160,
+      "rss_end_kib": 953020,
+      "weak_flow_mean_ms": 20.17187694607057,
+      "prepare_mean_ms": 21.794017165236323,
+      "inference": {
+        "high": {
+          "mean_ms": 253.95072217502096,
+          "applied": 200,
+          "expired": 977
+        },
+        "low": {
+          "mean_ms": 102.68192688759798,
+          "applied": 5505,
+          "expired": 349
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 12534.209953547994,
+      "to_sample_seconds": 12838.69378764699,
+      "duration_seconds": 304.48383409899543,
+      "fps_ranges": {
+        "processed_frames": [
+          24.917579031579304,
+          28.605787974832705
+        ],
+        "low_detections": [
+          2.877000030534265,
+          3.280962363588734
+        ],
+        "high_detections": [
+          0.08210616525497333,
+          0.12480137118755945
+        ]
+      },
+      "fairness_percent": 12.893226176808263,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 953020,
+      "rss_end_kib": 945120,
+      "weak_flow_mean_ms": 19.969775474956823,
+      "prepare_mean_ms": 22.366797062945782,
+      "inference": {
+        "high": {
+          "mean_ms": 254.68483816013628,
+          "applied": 186,
+          "expired": 988
+        },
+        "low": {
+          "mean_ms": 101.84745762711889,
+          "applied": 5520,
+          "expired": 380
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 12838.69378764699,
+      "to_sample_seconds": 13143.04292593099,
+      "duration_seconds": 304.3491382840002,
+      "fps_ranges": {
+        "processed_frames": [
+          25.053463410449385,
+          28.414734632598858
+        ],
+        "low_detections": [
+          2.59898879444793,
+          2.9242731062688465
+        ],
+        "high_detections": [
+          0.01642850059701599,
+          0.042714101552241576
+        ]
+      },
+      "fairness_percent": 11.829324699352453,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 945120,
+      "rss_end_kib": 957300,
+      "weak_flow_mean_ms": 20.076503668179488,
+      "prepare_mean_ms": 19.432509288664807,
+      "inference": {
+        "high": {
+          "mean_ms": 295.66074950690444,
+          "applied": 55,
+          "expired": 959
+        },
+        "low": {
+          "mean_ms": 112.19285182427348,
+          "applied": 4961,
+          "expired": 411
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 13143.04292593099,
+      "to_sample_seconds": 13447.651634001988,
+      "duration_seconds": 304.60870807099855,
+      "fps_ranges": {
+        "processed_frames": [
+          25.32757533051806,
+          28.817298282733315
+        ],
+        "low_detections": [
+          2.665714992661136,
+          3.026834018760551
+        ],
+        "high_detections": [
+          0.06565800474534818,
+          0.09848700711802226
+        ]
+      },
+      "fairness_percent": 12.10982000455685,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 957300,
+      "rss_end_kib": 944904,
+      "weak_flow_mean_ms": 19.86056887897391,
+      "prepare_mean_ms": 19.687286715889933,
+      "inference": {
+        "high": {
+          "mean_ms": 273.2664233576642,
+          "applied": 151,
+          "expired": 945
+        },
+        "low": {
+          "mean_ms": 110.10230179028146,
+          "applied": 5071,
+          "expired": 403
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 13447.651634001988,
+      "to_sample_seconds": 13752.223417026995,
+      "duration_seconds": 304.5717830250069,
+      "fps_ranges": {
+        "processed_frames": [
+          24.302973592902593,
+          28.118166150988625
+        ],
+        "low_detections": [
+          3.2964314357301,
+          3.739676698502574
+        ],
+        "high_detections": [
+          0.37757929791729233,
+          0.4563784557435099
+        ]
+      },
+      "fairness_percent": 13.568425969173283,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": false,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 944904,
+      "rss_end_kib": 928152,
+      "weak_flow_mean_ms": 21.204758289040637,
+      "prepare_mean_ms": 22.783678508333185,
+      "inference": {
+        "high": {
+          "mean_ms": 204.73901098901123,
+          "applied": 770,
+          "expired": 686
+        },
+        "low": {
+          "mean_ms": 89.60492714435932,
+          "applied": 6323,
+          "expired": 334
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 13752.223417026995,
+      "to_sample_seconds": 14056.086998047991,
+      "duration_seconds": 303.8635810209962,
+      "fps_ranges": {
+        "processed_frames": [
+          24.75123861414744,
+          28.098135259618513
+        ],
+        "low_detections": [
+          4.666567790833808,
+          4.9561714337064275
+        ],
+        "high_detections": [
+          0.9675394432335257,
+          1.12879601710578
+        ]
+      },
+      "fairness_percent": 11.911454673225577,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 928152,
+      "rss_end_kib": 915984,
+      "weak_flow_mean_ms": 21.19551309391797,
+      "prepare_mean_ms": 25.32381093244871,
+      "inference": {
+        "high": {
+          "mean_ms": 140.54311576941402,
+          "applied": 1875,
+          "expired": 224
+        },
+        "low": {
+          "mean_ms": 64.42024052643514,
+          "applied": 8697,
+          "expired": 117
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 14056.086998047991,
+      "to_sample_seconds": 14360.813778741998,
+      "duration_seconds": 304.7267806940072,
+      "fps_ranges": {
+        "processed_frames": [
+          24.00511035932018,
+          27.194852979861427
+        ],
+        "low_detections": [
+          4.111880147673026,
+          4.587716238185866
+        ],
+        "high_detections": [
+          0.8335335654500787,
+          0.9385456681839468
+        ]
+      },
+      "fairness_percent": 11.72921443224327,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 915984,
+      "rss_end_kib": 911280,
+      "weak_flow_mean_ms": 21.314819689392042,
+      "prepare_mean_ms": 25.382427715775382,
+      "inference": {
+        "high": {
+          "mean_ms": 154.57396759017192,
+          "applied": 1618,
+          "expired": 295
+        },
+        "low": {
+          "mean_ms": 73.02607191399976,
+          "applied": 7900,
+          "expired": 193
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 14360.813778741998,
+      "to_sample_seconds": 14661.136852180993,
+      "duration_seconds": 300.32307343899447,
+      "fps_ranges": {
+        "processed_frames": [
+          22.62230444768036,
+          26.568055223438563
+        ],
+        "low_detections": [
+          3.652732996630167,
+          4.1422058776735895
+        ],
+        "high_detections": [
+          0.6193330331569836,
+          0.7192254578597229
+        ]
+      },
+      "fairness_percent": 14.851485148514852,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 911280,
+      "rss_end_kib": 927512,
+      "weak_flow_mean_ms": 21.48409731936055,
+      "prepare_mean_ms": 25.673413823115922,
+      "inference": {
+        "high": {
+          "mean_ms": 176.94174757281576,
+          "applied": 1222,
+          "expired": 426
+        },
+        "low": {
+          "mean_ms": 80.0054704595186,
+          "applied": 7077,
+          "expired": 235
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 14661.136852180993,
+      "to_sample_seconds": 14961.584383304988,
+      "duration_seconds": 300.44753112399485,
+      "fps_ranges": {
+        "processed_frames": [
+          23.092218378511767,
+          26.170958937768525
+        ],
+        "low_detections": [
+          3.784354611756685,
+          4.133833269834479
+        ],
+        "high_detections": [
+          0.5558374847523011,
+          0.6789871071225714
+        ]
+      },
+      "fairness_percent": 11.763957776929926,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 927512,
+      "rss_end_kib": 948372,
+      "weak_flow_mean_ms": 21.386379829460573,
+      "prepare_mean_ms": 25.656850249323615,
+      "inference": {
+        "high": {
+          "mean_ms": 179.8401966810082,
+          "applied": 1144,
+          "expired": 483
+        },
+        "low": {
+          "mean_ms": 79.45335871634524,
+          "applied": 7119,
+          "expired": 235
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 14961.584383304988,
+      "to_sample_seconds": 15265.476685891,
+      "duration_seconds": 303.8923025860131,
+      "fps_ranges": {
+        "processed_frames": [
+          25.821647778587614,
+          28.55616916306656
+        ],
+        "low_detections": [
+          4.75826464736048,
+          4.985318769537432
+        ],
+        "high_detections": [
+          0.9970637539074866,
+          1.1418518897884418
+        ]
+      },
+      "fairness_percent": 9.57593915648766,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 948372,
+      "rss_end_kib": 895056,
+      "weak_flow_mean_ms": 20.16683022571151,
+      "prepare_mean_ms": 23.844401041666668,
+      "inference": {
+        "high": {
+          "mean_ms": 139.40256045519203,
+          "applied": 1947,
+          "expired": 162
+        },
+        "low": {
+          "mean_ms": 61.60455255523305,
+          "applied": 8881,
+          "expired": 81
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 15265.476685891,
+      "to_sample_seconds": 15569.457534899993,
+      "duration_seconds": 303.98084900899266,
+      "fps_ranges": {
+        "processed_frames": [
+          24.78116639439069,
+          28.449160623747606
+        ],
+        "low_detections": [
+          4.615422335235649,
+          4.973997555863365
+        ],
+        "high_detections": [
+          0.8882138492613151,
+          1.0198010861889173
+        ]
+      },
+      "fairness_percent": 12.893154486586498,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 895056,
+      "rss_end_kib": 944812,
+      "weak_flow_mean_ms": 20.920793962838573,
+      "prepare_mean_ms": 25.06804572672842,
+      "inference": {
+        "high": {
+          "mean_ms": 148.26720241084826,
+          "applied": 1724,
+          "expired": 267
+        },
+        "low": {
+          "mean_ms": 65.37546721032967,
+          "applied": 8690,
+          "expired": 139
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 15569.457534899993,
+      "to_sample_seconds": 15873.547960365002,
+      "duration_seconds": 304.0904254650086,
+      "fps_ranges": {
+        "processed_frames": [
+          25.272088025291364,
+          28.0377127525874
+        ],
+        "low_detections": [
+          4.695971594029417,
+          4.949185748609435
+        ],
+        "high_detections": [
+          0.9339327259834415,
+          1.055607060002411
+        ]
+      },
+      "fairness_percent": 9.86394557823129,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_start_kib": 944812,
+      "rss_end_kib": 908892,
+      "weak_flow_mean_ms": 21.0244016197078,
+      "prepare_mean_ms": 25.078277680879108,
+      "inference": {
+        "high": {
+          "mean_ms": 143.7895762299078,
+          "applied": 1806,
+          "expired": 247
+        },
+        "low": {
+          "mean_ms": 64.54936594202883,
+          "applied": 8705,
+          "expired": 127
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 15873.547960365002,
+      "to_sample_seconds": 16178.621079288001,
+      "duration_seconds": 305.07311892299913,
+      "fps_ranges": {
+        "processed_frames": [
+          23.27966497039208,
+          26.947638090903027
+        ],
+        "low_detections": [
+          3.9498727526503035,
+          4.356332687362866
+        ],
+        "high_detections": [
+          0.6785258587540356,
+          0.783418745131471
+        ]
+      },
+      "fairness_percent": 13.611482787982002,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 908892,
+      "rss_end_kib": 942136,
+      "weak_flow_mean_ms": 21.367258000616342,
+      "prepare_mean_ms": 25.510666292789292,
+      "inference": {
+        "high": {
+          "mean_ms": 168.71794871794893,
+          "applied": 1362,
+          "expired": 393
+        },
+        "low": {
+          "mean_ms": 75.58984823364376,
+          "applied": 7634,
+          "expired": 207
+        }
+      }
+    },
+    {
+      "from_sample_seconds": 16178.621079288001,
+      "to_sample_seconds": 16478.924168757992,
+      "duration_seconds": 300.3030894699914,
+      "fps_ranges": {
+        "processed_frames": [
+          22.946816871454804,
+          26.246816221275107
+        ],
+        "low_detections": [
+          3.8128145868256786,
+          4.209080906329832
+        ],
+        "high_detections": [
+          0.589404525649035,
+          0.6693237833641584
+        ]
+      },
+      "fairness_percent": 12.572951027657956,
+      "diagnostic_rate_checks": {
+        "output_ge_25": false,
+        "low_ge_4": false,
+        "high_ge_0_5": true,
+        "fairness_le_10": false
+      },
+      "rss_start_kib": 942136,
+      "rss_end_kib": 918476,
+      "weak_flow_mean_ms": 21.608259749815975,
+      "prepare_mean_ms": 25.880348777262203,
+      "inference": {
+        "high": {
+          "mean_ms": 179.3357933579338,
+          "applied": 1137,
+          "expired": 489
+        },
+        "low": {
+          "mean_ms": 78.89623532586705,
+          "applied": 7184,
+          "expired": 227
+        }
+      }
+    }
+  ],
+  "unfinished_tail": null
+}

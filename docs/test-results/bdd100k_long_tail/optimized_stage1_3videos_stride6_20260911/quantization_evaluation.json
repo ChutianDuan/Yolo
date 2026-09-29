@@ -1,0 +1,1185 @@
+{
+  "schema_version": 3,
+  "generated_at": "2026-09-11T01:48:10.922910+00:00",
+  "environment": {
+    "python": "3.10.20",
+    "openvino": "2026.1.0-21367-63e31528c62-releases/2026/1",
+    "opencv": "4.13.0",
+    "numpy": "2.2.6",
+    "device": "CPU",
+    "inference_threads": 8
+  },
+  "inputs": {
+    "manifest_path": "/home/ubuntu/YOLO/docs/test-results/bdd100k_long_tail/gt_3videos_stride6_20260911/manifest.json",
+    "manifest_sha256": "440445424dbd9b743844e15b54f46943ec0182e4d27f7bf02770042c22b446ba",
+    "manifest_schema_version": 1,
+    "classes_path": "/tmp/yolo-stage1-longtail-20260911/classes.json",
+    "classes_sha256": "b53fb9a8138f24767d46be09c3dbdbb1e78356b88c49dd3cd1c1b3091128b2c1",
+    "videos": {
+      "002d290d-90f2bab2": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov",
+        "sha256": "adea3374f6098607418006a6970b5e2bbb9dd84aecd94eaad7ffe6bb8a746912"
+      },
+      "0090c713-9d58a186": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov",
+        "sha256": "c7499e3ad2bb789a9e165accf6d79e03b309c116295862a23a43834c1cfdb529"
+      },
+      "02344f0c-d5d916ff": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov",
+        "sha256": "29ff144d9d33a0fbdea81cc810edda8a9f0f704e2cc9e2cc70cdeb7008ac4105"
+      }
+    },
+    "evaluated_frames": 603,
+    "evaluated_ground_truth_objects": 10058,
+    "crowd_ground_truth_objects": 937,
+    "distractor_ground_truth_objects": 41,
+    "ignored_ground_truth_regions": 978
+  },
+  "configuration": {
+    "iou_threshold": 0.5,
+    "nms_iou_threshold": 0.45,
+    "minimum_score": 0.001,
+    "score_thresholds": [
+      0.01,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ],
+    "ignored_region_matching": "normal GT first; unmatched predictions use IoU threshold; crowd is class-specific and BDD distractors are any-class",
+    "preprocessing": "C++-aligned BGR letterbox 114, RGB NCHW float32 / 255"
+  },
+  "models": {
+    "optimized_stage1_fp32": {
+      "model": {
+        "runtime": "openvino",
+        "runtime_version": "2026.1.0-21367-63e31528c62-releases/2026/1",
+        "path": "/tmp/yolo-stage1-longtail-20260911/optimized_stage1_640x384_opset13.onnx",
+        "file_size_bytes": 38114307,
+        "sha256": "d685edda6dd98f0b352fc5fe8fade541db00697de034465f5e5bdf46e8fb04aa",
+        "input_shape": [
+          1,
+          3,
+          384,
+          640
+        ],
+        "output_shape": [
+          1,
+          300,
+          6
+        ],
+        "compile_ms": 568.741969,
+        "latency": {
+          "sample_count": 603,
+          "mean_ms": 46.845537,
+          "p50_ms": 39.22713,
+          "p95_ms": 80.455818,
+          "maximum_ms": 150.098039
+        },
+        "decoded_supported_candidates": 65592
+      },
+      "evaluation": {
+        "ap_floor": 0.001,
+        "operating_points": {
+          "0.001": {
+            "threshold": 0.001,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 65442,
+              "true_positives": 6241,
+              "false_positives": 59201,
+              "false_negatives": 3817,
+              "precision": 0.095367,
+              "recall": 0.620501,
+              "f1": 0.165325,
+              "map50": 0.284649
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 4798,
+                "true_positives": 90,
+                "false_positives": 4708,
+                "false_negatives": 211,
+                "precision": 0.018758,
+                "recall": 0.299003,
+                "f1": 0.035301,
+                "ap50": 0.115734,
+                "mean_matched_iou": 0.68882,
+                "minimum_prediction_score": 0.001023
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 2190,
+                "true_positives": 222,
+                "false_positives": 1968,
+                "false_negatives": 97,
+                "precision": 0.10137,
+                "recall": 0.695925,
+                "f1": 0.176963,
+                "ap50": 0.436815,
+                "mean_matched_iou": 0.709484,
+                "minimum_prediction_score": 0.001001
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 24427,
+                "true_positives": 2459,
+                "false_positives": 21968,
+                "false_negatives": 1238,
+                "precision": 0.100667,
+                "recall": 0.665134,
+                "f1": 0.174868,
+                "ap50": 0.424396,
+                "mean_matched_iou": 0.713972,
+                "minimum_prediction_score": 0.001
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 2682,
+                "true_positives": 127,
+                "false_positives": 2555,
+                "false_negatives": 211,
+                "precision": 0.047353,
+                "recall": 0.37574,
+                "f1": 0.084106,
+                "ap50": 0.175144,
+                "mean_matched_iou": 0.659624,
+                "minimum_prediction_score": 0.001015
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 23089,
+                "true_positives": 2260,
+                "false_positives": 20829,
+                "false_negatives": 1406,
+                "precision": 0.097882,
+                "recall": 0.616476,
+                "f1": 0.16894,
+                "ap50": 0.339917,
+                "mean_matched_iou": 0.664069,
+                "minimum_prediction_score": 0.001001
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 3601,
+                "true_positives": 137,
+                "false_positives": 3464,
+                "false_negatives": 237,
+                "precision": 0.038045,
+                "recall": 0.36631,
+                "f1": 0.068931,
+                "ap50": 0.095918,
+                "mean_matched_iou": 0.647294,
+                "minimum_prediction_score": 0.001028
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 89,
+                "true_positives": 0,
+                "false_positives": 89,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.001049
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 4566,
+                "true_positives": 946,
+                "false_positives": 3620,
+                "false_negatives": 244,
+                "precision": 0.207184,
+                "recall": 0.794958,
+                "f1": 0.3287,
+                "ap50": 0.68927,
+                "mean_matched_iou": 0.788362,
+                "minimum_prediction_score": 0.001004
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 20878,
+                "true_positives": 3249,
+                "false_positives": 17629,
+                "false_negatives": 1151,
+                "precision": 0.155618,
+                "recall": 0.738409,
+                "f1": 0.257061,
+                "map50": 0.451017
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 26114,
+                "true_positives": 1158,
+                "false_positives": 24956,
+                "false_negatives": 1407,
+                "precision": 0.044344,
+                "recall": 0.451462,
+                "f1": 0.080756,
+                "map50": 0.193967
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 18450,
+                "true_positives": 1834,
+                "false_positives": 16616,
+                "false_negatives": 1259,
+                "precision": 0.099404,
+                "recall": 0.592952,
+                "f1": 0.170264,
+                "map50": 0.176299
+              }
+            },
+            "ignored_crowd_predictions": 150
+          },
+          "0.010": {
+            "threshold": 0.01,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 40893,
+              "true_positives": 5982,
+              "false_positives": 34911,
+              "false_negatives": 4076,
+              "precision": 0.146284,
+              "recall": 0.59475,
+              "f1": 0.234814,
+              "map50": 0.282058
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 2875,
+                "true_positives": 84,
+                "false_positives": 2791,
+                "false_negatives": 217,
+                "precision": 0.029217,
+                "recall": 0.27907,
+                "f1": 0.052897,
+                "ap50": 0.11523,
+                "mean_matched_iou": 0.69244,
+                "minimum_prediction_score": 0.010003
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 1261,
+                "true_positives": 215,
+                "false_positives": 1046,
+                "false_negatives": 104,
+                "precision": 0.1705,
+                "recall": 0.673981,
+                "f1": 0.272152,
+                "ap50": 0.434169,
+                "mean_matched_iou": 0.712435,
+                "minimum_prediction_score": 0.010004
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 15965,
+                "true_positives": 2363,
+                "false_positives": 13602,
+                "false_negatives": 1334,
+                "precision": 0.148011,
+                "recall": 0.639167,
+                "f1": 0.240362,
+                "ap50": 0.420581,
+                "mean_matched_iou": 0.719149,
+                "minimum_prediction_score": 0.010001
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 1501,
+                "true_positives": 116,
+                "false_positives": 1385,
+                "false_negatives": 222,
+                "precision": 0.077282,
+                "recall": 0.343195,
+                "f1": 0.126156,
+                "ap50": 0.173541,
+                "mean_matched_iou": 0.664717,
+                "minimum_prediction_score": 0.010006
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 14990,
+                "true_positives": 2168,
+                "false_positives": 12822,
+                "false_negatives": 1498,
+                "precision": 0.14463,
+                "recall": 0.59138,
+                "f1": 0.232419,
+                "ap50": 0.337478,
+                "mean_matched_iou": 0.666955,
+                "minimum_prediction_score": 0.010001
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 1931,
+                "true_positives": 126,
+                "false_positives": 1805,
+                "false_negatives": 248,
+                "precision": 0.065251,
+                "recall": 0.336898,
+                "f1": 0.109328,
+                "ap50": 0.094347,
+                "mean_matched_iou": 0.654846,
+                "minimum_prediction_score": 0.010012
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 2370,
+                "true_positives": 910,
+                "false_positives": 1460,
+                "false_negatives": 280,
+                "precision": 0.383966,
+                "recall": 0.764706,
+                "f1": 0.511236,
+                "ap50": 0.681117,
+                "mean_matched_iou": 0.789329,
+                "minimum_prediction_score": 0.010004
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 13443,
+                "true_positives": 3143,
+                "false_positives": 10300,
+                "false_negatives": 1257,
+                "precision": 0.233802,
+                "recall": 0.714318,
+                "f1": 0.352295,
+                "map50": 0.446211
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 16291,
+                "true_positives": 1095,
+                "false_positives": 15196,
+                "false_negatives": 1470,
+                "precision": 0.067215,
+                "recall": 0.426901,
+                "f1": 0.116143,
+                "map50": 0.193005
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 11159,
+                "true_positives": 1744,
+                "false_positives": 9415,
+                "false_negatives": 1349,
+                "precision": 0.156286,
+                "recall": 0.563854,
+                "f1": 0.244738,
+                "map50": 0.175409
+              }
+            },
+            "ignored_crowd_predictions": 128
+          },
+          "0.050": {
+            "threshold": 0.05,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 19065,
+              "true_positives": 5362,
+              "false_positives": 13703,
+              "false_negatives": 4696,
+              "precision": 0.281248,
+              "recall": 0.533108,
+              "f1": 0.368231,
+              "map50": 0.269302
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 1141,
+                "true_positives": 77,
+                "false_positives": 1064,
+                "false_negatives": 224,
+                "precision": 0.067485,
+                "recall": 0.255814,
+                "f1": 0.106796,
+                "ap50": 0.114155,
+                "mean_matched_iou": 0.700002,
+                "minimum_prediction_score": 0.050017
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 515,
+                "true_positives": 183,
+                "false_positives": 332,
+                "false_negatives": 136,
+                "precision": 0.35534,
+                "recall": 0.573668,
+                "f1": 0.438849,
+                "ap50": 0.408347,
+                "mean_matched_iou": 0.723585,
+                "minimum_prediction_score": 0.050019
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 8269,
+                "true_positives": 2195,
+                "false_positives": 6074,
+                "false_negatives": 1502,
+                "precision": 0.265449,
+                "recall": 0.593725,
+                "f1": 0.366873,
+                "ap50": 0.412091,
+                "mean_matched_iou": 0.72748,
+                "minimum_prediction_score": 0.050023
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 579,
+                "true_positives": 102,
+                "false_positives": 477,
+                "false_negatives": 236,
+                "precision": 0.176166,
+                "recall": 0.301775,
+                "f1": 0.222465,
+                "ap50": 0.168501,
+                "mean_matched_iou": 0.674308,
+                "minimum_prediction_score": 0.050204
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 6632,
+                "true_positives": 1886,
+                "false_positives": 4746,
+                "false_negatives": 1780,
+                "precision": 0.284379,
+                "recall": 0.514457,
+                "f1": 0.366285,
+                "ap50": 0.321072,
+                "mean_matched_iou": 0.673611,
+                "minimum_prediction_score": 0.050015
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 656,
+                "true_positives": 109,
+                "false_positives": 547,
+                "false_negatives": 265,
+                "precision": 0.166159,
+                "recall": 0.291444,
+                "f1": 0.21165,
+                "ap50": 0.089695,
+                "mean_matched_iou": 0.662967,
+                "minimum_prediction_score": 0.050019
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 1273,
+                "true_positives": 810,
+                "false_positives": 463,
+                "false_negatives": 380,
+                "precision": 0.636292,
+                "recall": 0.680672,
+                "f1": 0.657734,
+                "ap50": 0.640554,
+                "mean_matched_iou": 0.805387,
+                "minimum_prediction_score": 0.050086
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 6836,
+                "true_positives": 2846,
+                "false_positives": 3990,
+                "false_negatives": 1554,
+                "precision": 0.416325,
+                "recall": 0.646818,
+                "f1": 0.506586,
+                "map50": 0.421462
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 6678,
+                "true_positives": 948,
+                "false_positives": 5730,
+                "false_negatives": 1617,
+                "precision": 0.141959,
+                "recall": 0.369591,
+                "f1": 0.205128,
+                "map50": 0.182807
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 5551,
+                "true_positives": 1568,
+                "false_positives": 3983,
+                "false_negatives": 1525,
+                "precision": 0.282472,
+                "recall": 0.506951,
+                "f1": 0.362795,
+                "map50": 0.171458
+              }
+            },
+            "ignored_crowd_predictions": 89
+          },
+          "0.100": {
+            "threshold": 0.1,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 13537,
+              "true_positives": 4974,
+              "false_positives": 8563,
+              "false_negatives": 5084,
+              "precision": 0.367437,
+              "recall": 0.494532,
+              "f1": 0.421615,
+              "map50": 0.254246
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 683,
+                "true_positives": 74,
+                "false_positives": 609,
+                "false_negatives": 227,
+                "precision": 0.108346,
+                "recall": 0.245847,
+                "f1": 0.150407,
+                "ap50": 0.113407,
+                "mean_matched_iou": 0.700609,
+                "minimum_prediction_score": 0.100164
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 336,
+                "true_positives": 151,
+                "false_positives": 185,
+                "false_negatives": 168,
+                "precision": 0.449405,
+                "recall": 0.473354,
+                "f1": 0.461069,
+                "ap50": 0.369035,
+                "mean_matched_iou": 0.726496,
+                "minimum_prediction_score": 0.100032
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 6016,
+                "true_positives": 2097,
+                "false_positives": 3919,
+                "false_negatives": 1600,
+                "precision": 0.34857,
+                "recall": 0.567217,
+                "f1": 0.431792,
+                "ap50": 0.403055,
+                "mean_matched_iou": 0.732104,
+                "minimum_prediction_score": 0.100047
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 413,
+                "true_positives": 96,
+                "false_positives": 317,
+                "false_negatives": 242,
+                "precision": 0.232446,
+                "recall": 0.284024,
+                "f1": 0.255659,
+                "ap50": 0.16448,
+                "mean_matched_iou": 0.678124,
+                "minimum_prediction_score": 0.100789
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 4662,
+                "true_positives": 1723,
+                "false_positives": 2939,
+                "false_negatives": 1943,
+                "precision": 0.369584,
+                "recall": 0.469995,
+                "f1": 0.413785,
+                "ap50": 0.304416,
+                "mean_matched_iou": 0.678798,
+                "minimum_prediction_score": 0.100044
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 446,
+                "true_positives": 93,
+                "false_positives": 353,
+                "false_negatives": 281,
+                "precision": 0.20852,
+                "recall": 0.248663,
+                "f1": 0.226829,
+                "ap50": 0.080283,
+                "mean_matched_iou": 0.674586,
+                "minimum_prediction_score": 0.100494
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 981,
+                "true_positives": 740,
+                "false_positives": 241,
+                "false_negatives": 450,
+                "precision": 0.754332,
+                "recall": 0.621849,
+                "f1": 0.681713,
+                "ap50": 0.599296,
+                "mean_matched_iou": 0.816181,
+                "minimum_prediction_score": 0.100302
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 5036,
+                "true_positives": 2643,
+                "false_positives": 2393,
+                "false_negatives": 1757,
+                "precision": 0.524821,
+                "recall": 0.600682,
+                "f1": 0.560195,
+                "map50": 0.398928
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 4433,
+                "true_positives": 868,
+                "false_positives": 3565,
+                "false_negatives": 1697,
+                "precision": 0.195804,
+                "recall": 0.338402,
+                "f1": 0.248071,
+                "map50": 0.172806
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 4068,
+                "true_positives": 1463,
+                "false_positives": 2605,
+                "false_negatives": 1630,
+                "precision": 0.359636,
+                "recall": 0.473004,
+                "f1": 0.408602,
+                "map50": 0.168321
+              }
+            },
+            "ignored_crowd_predictions": 69
+          },
+          "0.150": {
+            "threshold": 0.15,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 10797,
+              "true_positives": 4687,
+              "false_positives": 6110,
+              "false_negatives": 5371,
+              "precision": 0.434102,
+              "recall": 0.465997,
+              "f1": 0.449485,
+              "map50": 0.243806
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 473,
+                "true_positives": 72,
+                "false_positives": 401,
+                "false_negatives": 229,
+                "precision": 0.15222,
+                "recall": 0.239203,
+                "f1": 0.186047,
+                "ap50": 0.111992,
+                "mean_matched_iou": 0.703427,
+                "minimum_prediction_score": 0.150005
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 265,
+                "true_positives": 134,
+                "false_positives": 131,
+                "false_negatives": 185,
+                "precision": 0.50566,
+                "recall": 0.420063,
+                "f1": 0.458904,
+                "ap50": 0.345102,
+                "mean_matched_iou": 0.72994,
+                "minimum_prediction_score": 0.150594
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 4818,
+                "true_positives": 2000,
+                "false_positives": 2818,
+                "false_negatives": 1697,
+                "precision": 0.41511,
+                "recall": 0.540979,
+                "f1": 0.469759,
+                "ap50": 0.395607,
+                "mean_matched_iou": 0.736094,
+                "minimum_prediction_score": 0.150055
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 337,
+                "true_positives": 94,
+                "false_positives": 243,
+                "false_negatives": 244,
+                "precision": 0.278932,
+                "recall": 0.278107,
+                "f1": 0.278519,
+                "ap50": 0.161745,
+                "mean_matched_iou": 0.680607,
+                "minimum_prediction_score": 0.151989
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 3718,
+                "true_positives": 1608,
+                "false_positives": 2110,
+                "false_negatives": 2058,
+                "precision": 0.432491,
+                "recall": 0.438625,
+                "f1": 0.435536,
+                "ap50": 0.292244,
+                "mean_matched_iou": 0.681644,
+                "minimum_prediction_score": 0.150102
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 344,
+                "true_positives": 86,
+                "false_positives": 258,
+                "false_negatives": 288,
+                "precision": 0.25,
+                "recall": 0.229947,
+                "f1": 0.239554,
+                "ap50": 0.075429,
+                "mean_matched_iou": 0.68011,
+                "minimum_prediction_score": 0.150391
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 842,
+                "true_positives": 693,
+                "false_positives": 149,
+                "false_negatives": 497,
+                "precision": 0.82304,
+                "recall": 0.582353,
+                "f1": 0.682087,
+                "ap50": 0.568325,
+                "mean_matched_iou": 0.824685,
+                "minimum_prediction_score": 0.150233
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 4152,
+                "true_positives": 2502,
+                "false_positives": 1650,
+                "false_negatives": 1898,
+                "precision": 0.602601,
+                "recall": 0.568636,
+                "f1": 0.585126,
+                "map50": 0.381007
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 3475,
+                "true_positives": 821,
+                "false_positives": 2654,
+                "false_negatives": 1744,
+                "precision": 0.236259,
+                "recall": 0.320078,
+                "f1": 0.271854,
+                "map50": 0.167609
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 3170,
+                "true_positives": 1364,
+                "false_positives": 1806,
+                "false_negatives": 1729,
+                "precision": 0.430284,
+                "recall": 0.440996,
+                "f1": 0.435574,
+                "map50": 0.16445
+              }
+            },
+            "ignored_crowd_predictions": 59
+          },
+          "0.200": {
+            "threshold": 0.2,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 9079,
+              "true_positives": 4435,
+              "false_positives": 4644,
+              "false_negatives": 5623,
+              "precision": 0.48849,
+              "recall": 0.440943,
+              "f1": 0.4635,
+              "map50": 0.233375
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 349,
+                "true_positives": 68,
+                "false_positives": 281,
+                "false_negatives": 233,
+                "precision": 0.194842,
+                "recall": 0.225914,
+                "f1": 0.209231,
+                "ap50": 0.110178,
+                "mean_matched_iou": 0.711694,
+                "minimum_prediction_score": 0.200763
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 218,
+                "true_positives": 119,
+                "false_positives": 99,
+                "false_negatives": 200,
+                "precision": 0.545872,
+                "recall": 0.373041,
+                "f1": 0.443203,
+                "ap50": 0.319233,
+                "mean_matched_iou": 0.732523,
+                "minimum_prediction_score": 0.20265
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 4026,
+                "true_positives": 1919,
+                "false_positives": 2107,
+                "false_negatives": 1778,
+                "precision": 0.476652,
+                "recall": 0.51907,
+                "f1": 0.496957,
+                "ap50": 0.382461,
+                "mean_matched_iou": 0.737644,
+                "minimum_prediction_score": 0.200048
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 296,
+                "true_positives": 89,
+                "false_positives": 207,
+                "false_negatives": 249,
+                "precision": 0.300676,
+                "recall": 0.263314,
+                "f1": 0.280757,
+                "ap50": 0.15889,
+                "mean_matched_iou": 0.683058,
+                "minimum_prediction_score": 0.200788
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 3170,
+                "true_positives": 1506,
+                "false_positives": 1664,
+                "false_negatives": 2160,
+                "precision": 0.475079,
+                "recall": 0.410802,
+                "f1": 0.440609,
+                "ap50": 0.283329,
+                "mean_matched_iou": 0.683679,
+                "minimum_prediction_score": 0.200179
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 270,
+                "true_positives": 77,
+                "false_positives": 193,
+                "false_negatives": 297,
+                "precision": 0.285185,
+                "recall": 0.205882,
+                "f1": 0.23913,
+                "ap50": 0.069799,
+                "mean_matched_iou": 0.68751,
+                "minimum_prediction_score": 0.200296
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 750,
+                "true_positives": 657,
+                "false_positives": 93,
+                "false_negatives": 533,
+                "precision": 0.876,
+                "recall": 0.552101,
+                "f1": 0.67732,
+                "ap50": 0.543109,
+                "mean_matched_iou": 0.830698,
+                "minimum_prediction_score": 0.202865
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 3608,
+                "true_positives": 2377,
+                "false_positives": 1231,
+                "false_negatives": 2023,
+                "precision": 0.658814,
+                "recall": 0.540227,
+                "f1": 0.593656,
+                "map50": 0.367931
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 2866,
+                "true_positives": 773,
+                "false_positives": 2093,
+                "false_negatives": 1792,
+                "precision": 0.269714,
+                "recall": 0.301365,
+                "f1": 0.284662,
+                "map50": 0.15794
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 2605,
+                "true_positives": 1285,
+                "false_positives": 1320,
+                "false_negatives": 1808,
+                "precision": 0.493282,
+                "recall": 0.415454,
+                "f1": 0.451035,
+                "map50": 0.161639
+              }
+            },
+            "ignored_crowd_predictions": 50
+          },
+          "0.250": {
+            "threshold": 0.25,
+            "pooled": {
+              "ground_truth": 10058,
+              "predictions": 7844,
+              "true_positives": 4224,
+              "false_positives": 3620,
+              "false_negatives": 5834,
+              "precision": 0.538501,
+              "recall": 0.419964,
+              "f1": 0.471903,
+              "map50": 0.225619
+            },
+            "per_class": {
+              "bike": {
+                "ground_truth": 301,
+                "predictions": 267,
+                "true_positives": 65,
+                "false_positives": 202,
+                "false_negatives": 236,
+                "precision": 0.243446,
+                "recall": 0.215947,
+                "f1": 0.228873,
+                "ap50": 0.108186,
+                "mean_matched_iou": 0.71576,
+                "minimum_prediction_score": 0.250124
+              },
+              "bus": {
+                "ground_truth": 319,
+                "predictions": 198,
+                "true_positives": 115,
+                "false_positives": 83,
+                "false_negatives": 204,
+                "precision": 0.580808,
+                "recall": 0.360502,
+                "f1": 0.444874,
+                "ap50": 0.313675,
+                "mean_matched_iou": 0.738366,
+                "minimum_prediction_score": 0.250583
+              },
+              "car": {
+                "ground_truth": 3697,
+                "predictions": 3403,
+                "true_positives": 1846,
+                "false_positives": 1557,
+                "false_negatives": 1851,
+                "precision": 0.542463,
+                "recall": 0.499324,
+                "f1": 0.52,
+                "ap50": 0.372065,
+                "mean_matched_iou": 0.741361,
+                "minimum_prediction_score": 0.250035
+              },
+              "motor": {
+                "ground_truth": 338,
+                "predictions": 273,
+                "true_positives": 87,
+                "false_positives": 186,
+                "false_negatives": 251,
+                "precision": 0.318681,
+                "recall": 0.257396,
+                "f1": 0.284779,
+                "ap50": 0.155697,
+                "mean_matched_iou": 0.682103,
+                "minimum_prediction_score": 0.254978
+              },
+              "person": {
+                "ground_truth": 3666,
+                "predictions": 2775,
+                "true_positives": 1408,
+                "false_positives": 1367,
+                "false_negatives": 2258,
+                "precision": 0.507387,
+                "recall": 0.38407,
+                "f1": 0.437199,
+                "ap50": 0.268875,
+                "mean_matched_iou": 0.68572,
+                "minimum_prediction_score": 0.250074
+              },
+              "rider": {
+                "ground_truth": 374,
+                "predictions": 230,
+                "true_positives": 64,
+                "false_positives": 166,
+                "false_negatives": 310,
+                "precision": 0.278261,
+                "recall": 0.171123,
+                "f1": 0.211921,
+                "ap50": 0.060946,
+                "mean_matched_iou": 0.693361,
+                "minimum_prediction_score": 0.250566
+              },
+              "train": {
+                "ground_truth": 173,
+                "predictions": 0,
+                "true_positives": 0,
+                "false_positives": 0,
+                "false_negatives": 173,
+                "precision": 0.0,
+                "recall": 0.0,
+                "f1": 0.0,
+                "ap50": 0.0,
+                "mean_matched_iou": 0.0,
+                "minimum_prediction_score": 0.0
+              },
+              "truck": {
+                "ground_truth": 1190,
+                "predictions": 698,
+                "true_positives": 639,
+                "false_positives": 59,
+                "false_negatives": 551,
+                "precision": 0.915473,
+                "recall": 0.536975,
+                "f1": 0.676907,
+                "ap50": 0.525507,
+                "mean_matched_iou": 0.835128,
+                "minimum_prediction_score": 0.251233
+              }
+            },
+            "per_video": {
+              "002d290d-90f2bab2": {
+                "ground_truth": 4400,
+                "predictions": 3225,
+                "true_positives": 2275,
+                "false_positives": 950,
+                "false_negatives": 2125,
+                "precision": 0.705426,
+                "recall": 0.517045,
+                "f1": 0.596721,
+                "map50": 0.358693
+              },
+              "0090c713-9d58a186": {
+                "ground_truth": 2565,
+                "predictions": 2462,
+                "true_positives": 731,
+                "false_positives": 1731,
+                "false_negatives": 1834,
+                "precision": 0.296913,
+                "recall": 0.28499,
+                "f1": 0.29083,
+                "map50": 0.154007
+              },
+              "02344f0c-d5d916ff": {
+                "ground_truth": 3093,
+                "predictions": 2157,
+                "true_positives": 1218,
+                "false_positives": 939,
+                "false_negatives": 1875,
+                "precision": 0.564673,
+                "recall": 0.393792,
+                "f1": 0.464,
+                "map50": 0.158154
+              }
+            },
+            "ignored_crowd_predictions": 38
+          }
+        }
+      }
+    }
+  },
+  "comparison": {
+    "baseline": "optimized_stage1_fp32",
+    "deltas": {}
+  }
+}

@@ -1,0 +1,1975 @@
+{
+  "scope": "node0 local four-stream low16/pool4 vs fresh low8/pool4; only configured low threads differ; native properties retained",
+  "only_configured_low_threads_differs": true,
+  "low_runtime_property_differences": {
+    "INFERENCE_NUM_THREADS": [
+      "16",
+      "8"
+    ]
+  },
+  "cases": {
+    "low16_pool4": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag74_node0_low16_pool4",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "FAIL",
+      "failed_gates": [
+        "acceptance-1-20260928_114010_109085: high detection FPS",
+        "acceptance-2-20260928_114010_109085: high detection FPS",
+        "acceptance-3-20260928_114010_109085: high detection FPS",
+        "acceptance-4-20260928_114010_109085: high detection FPS"
+      ],
+      "duration_seconds": 60.007391081075184,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.136184672010131,
+      "peak_probe_seconds": 0.08986363699659705,
+      "rates": {
+        "processed_fps": [
+          27.713252818359376,
+          29.696341865493928
+        ],
+        "low_detection_fps": [
+          4.932725697074188,
+          4.999384152440055
+        ],
+        "high_detection_fps": [
+          0.4166153460366713,
+          0.49993841524400556
+        ]
+      },
+      "maximum_p95_ms": 79.275759,
+      "fairness_percent": 6.677890011223334,
+      "process": {
+        "pid": 128306,
+        "cpu_average_percent_of_host": 35.41151652320782,
+        "cpu_peak_percent_of_host": 35.582819484294134,
+        "rss_start_bytes": 836317184,
+        "rss_end_bytes": 779567104,
+        "rss_growth_percent": -6.785712536548813,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 818896,
+      "resource_weighted_means": {
+        "host_busy_percent": 35.618977733019335,
+        "service_cpu_percent_of_host": 35.20425032188485,
+        "driver_cpu_percent_of_host": 0.06748294683739012,
+        "host_busy_minus_service_and_driver_percent": 0.3472444642971023
+      },
+      "resource_other_busy_range_percent": [
+        0.012526808553983027,
+        0.9481314072227354
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "0": 76164,
+          "1": 6054
+        },
+        {
+          "0": 162530,
+          "1": 6482
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "8981dc7ffd3e7cc078e0878eb456357398c5bec933061dba42e78ab97cb46abc",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 0,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1382,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_low_threads": 16,
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "collection_started_at": "2026-09-28T11:40:09.771789+00:00",
+      "stopped_at": "2026-09-28T11:42:11.259649+00:00",
+      "source_delivered_fps": [
+        29.999921426034028,
+        29.999866288942265,
+        29.99989456922387,
+        29.9998915266339
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.493745763087645,
+        "to_seconds": 112.73065306898206,
+        "duration_seconds": 51.23690730589442,
+        "fps_ranges": {
+          "processed_frames": [
+            27.63632846819191,
+            29.74418402932519
+          ],
+          "low_detections": [
+            4.937846823765927,
+            5.015915548252345
+          ],
+          "high_detections": [
+            0.42937798467529803,
+            0.5269638902833204
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_114010_109085": {
+            "processed_frames": 28.163292358475232,
+            "low_detections": 4.976881186009137,
+            "high_detections": 0.42937798467529803
+          },
+          "acceptance-2-20260928_114010_109085": {
+            "processed_frames": 27.63632846819191,
+            "low_detections": 4.937846823765927,
+            "high_detections": 0.46841234691850697
+          },
+          "acceptance-3-20260928_114010_109085": {
+            "processed_frames": 29.74418402932519,
+            "low_detections": 5.015915548252345,
+            "high_detections": 0.5269638902833204
+          },
+          "acceptance-4-20260928_114010_109085": {
+            "processed_frames": 29.00253114670422,
+            "low_detections": 4.976881186009137,
+            "high_detections": 0.4488951657969025
+          }
+        },
+        "fairness_percent": 7.086614173228345,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": true,
+          "high_ge_0_5": false,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 813704,
+          "end": 804488,
+          "peak": 818276
+        },
+        "weak_flow_mean_ms": 16.589209492914463,
+        "prepare_mean_ms": 19.693578606710954,
+        "inference": {
+          "high": {
+            "mean_ms": 229.301376146789,
+            "applied": 96,
+            "expired": 122
+          },
+          "low": {
+            "mean_ms": 113.12903225806451,
+            "applied": 1020,
+            "expired": 3
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.23398126801476,
+          "host_busy_percent": 35.82983145123088,
+          "service_cpu_percent_of_host": 35.43607592200592,
+          "driver_cpu_percent_of_host": 0.06892398194720327,
+          "host_busy_minus_service_and_driver_percent": 0.324831547277758,
+          "active_threads_with_different_endpoint_cpu": 40
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "0": 192243,
+            "1": 6482
+          },
+          {
+            "0": 198022,
+            "1": 6482
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2750901,
+              "cpu16": 1000843
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2119939,
+              "cpu16": 1000243
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      },
+      "per_stream_loss_analysis": {
+        "duration_seconds": 51.23690730589442,
+        "samples": 11,
+        "streams": {
+          "acceptance-1-20260928_114010_109085": {
+            "processing": {
+              "frame_work": {
+                "count": 1443,
+                "mean_ms": 28.80990990990991
+              },
+              "prepare": {
+                "count": 1443,
+                "mean_ms": 22.954192654192656
+              },
+              "poll": {
+                "count": 1442,
+                "mean_ms": 0.09713522884882109
+              },
+              "publish": {
+                "count": 1443,
+                "mean_ms": 0.010522869022869023
+              },
+              "weak_flow": {
+                "count": 1438,
+                "mean_ms": 19.579485396383863
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 56,
+                  "applied": 22,
+                  "expired": 34,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0929621428098495,
+                  "applied": 0.42937798467529803,
+                  "expired": 0.6635841581345515,
+                  "evicted": 0.0
+                },
+                "published_count": 22,
+                "published_fps": 0.42937798467529803,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 31,
+                "expired_during_replay": 3,
+                "stages": {
+                  "preprocess": {
+                    "count": 56,
+                    "mean_ms": 7.403607142857143
+                  },
+                  "queue_wait": {
+                    "count": 56,
+                    "mean_ms": 16.90857142857143
+                  },
+                  "execution": {
+                    "count": 56,
+                    "mean_ms": 232.86249999999998
+                  },
+                  "infer": {
+                    "count": 56,
+                    "mean_ms": 230.13035714285712
+                  },
+                  "postprocess": {
+                    "count": 56,
+                    "mean_ms": 0.024056607142857143
+                  },
+                  "completion_pickup": {
+                    "count": 56,
+                    "mean_ms": 18.839999999999996
+                  },
+                  "result_age": {
+                    "count": 56,
+                    "mean_ms": 306.63749999999993
+                  },
+                  "replay": {
+                    "count": 25,
+                    "mean_ms": 0.86654
+                  },
+                  "commit_age": {
+                    "count": 25,
+                    "mean_ms": 283.5856
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 256,
+                  "applied": 255,
+                  "expired": 1,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.996398367130741,
+                  "applied": 4.976881186009137,
+                  "expired": 0.019517181121604457,
+                  "evicted": 0.0
+                },
+                "published_count": 255,
+                "published_fps": 4.976881186009137,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 1,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 256,
+                    "mean_ms": 2.5177734375000003
+                  },
+                  "queue_wait": {
+                    "count": 256,
+                    "mean_ms": 0.06874804687500001
+                  },
+                  "execution": {
+                    "count": 256,
+                    "mean_ms": 113.59140625
+                  },
+                  "infer": {
+                    "count": 256,
+                    "mean_ms": 112.81484375000004
+                  },
+                  "postprocess": {
+                    "count": 256,
+                    "mean_ms": 0.023274882812499998
+                  },
+                  "completion_pickup": {
+                    "count": 256,
+                    "mean_ms": 17.114843750000002
+                  },
+                  "result_age": {
+                    "count": 256,
+                    "mean_ms": 163.12343749999997
+                  },
+                  "replay": {
+                    "count": 255,
+                    "mean_ms": 0.44642745098039216
+                  },
+                  "commit_age": {
+                    "count": 255,
+                    "mean_ms": 162.7407843137255
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-2-20260928_114010_109085": {
+            "processing": {
+              "frame_work": {
+                "count": 1416,
+                "mean_ms": 27.6819209039548
+              },
+              "prepare": {
+                "count": 1417,
+                "mean_ms": 21.151799576570216
+              },
+              "poll": {
+                "count": 1416,
+                "mean_ms": 0.18572387005649718
+              },
+              "publish": {
+                "count": 1416,
+                "mean_ms": 0.007835381355932201
+              },
+              "weak_flow": {
+                "count": 1413,
+                "mean_ms": 16.618329794762918
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 50,
+                  "applied": 24,
+                  "expired": 26,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 0.9758590560802228,
+                  "applied": 0.46841234691850697,
+                  "expired": 0.5074467091617159,
+                  "evicted": 0.0
+                },
+                "published_count": 24,
+                "published_fps": 0.46841234691850697,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 25,
+                "expired_during_replay": 1,
+                "stages": {
+                  "preprocess": {
+                    "count": 50,
+                    "mean_ms": 7.3117399999999995
+                  },
+                  "queue_wait": {
+                    "count": 50,
+                    "mean_ms": 18.1456
+                  },
+                  "execution": {
+                    "count": 50,
+                    "mean_ms": 232.556
+                  },
+                  "infer": {
+                    "count": 50,
+                    "mean_ms": 229.84799999999998
+                  },
+                  "postprocess": {
+                    "count": 50,
+                    "mean_ms": 0.0254678
+                  },
+                  "completion_pickup": {
+                    "count": 50,
+                    "mean_ms": 21.3088
+                  },
+                  "result_age": {
+                    "count": 50,
+                    "mean_ms": 303.29800000000006
+                  },
+                  "replay": {
+                    "count": 25,
+                    "mean_ms": 1.1034680000000001
+                  },
+                  "commit_age": {
+                    "count": 25,
+                    "mean_ms": 280.168
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 254,
+                  "applied": 253,
+                  "expired": 1,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.957364004887532,
+                  "applied": 4.937846823765927,
+                  "expired": 0.019517181121604457,
+                  "evicted": 0.0
+                },
+                "published_count": 253,
+                "published_fps": 4.937846823765927,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 1,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 254,
+                    "mean_ms": 2.6404251968503942
+                  },
+                  "queue_wait": {
+                    "count": 254,
+                    "mean_ms": 0.06987834645669293
+                  },
+                  "execution": {
+                    "count": 254,
+                    "mean_ms": 113.70669291338581
+                  },
+                  "infer": {
+                    "count": 254,
+                    "mean_ms": 112.91850393700787
+                  },
+                  "postprocess": {
+                    "count": 254,
+                    "mean_ms": 0.0258001968503937
+                  },
+                  "completion_pickup": {
+                    "count": 254,
+                    "mean_ms": 17.627440944881894
+                  },
+                  "result_age": {
+                    "count": 254,
+                    "mean_ms": 164.64763779527559
+                  },
+                  "replay": {
+                    "count": 253,
+                    "mean_ms": 0.9126007905138341
+                  },
+                  "commit_age": {
+                    "count": 253,
+                    "mean_ms": 165.02450592885376
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-3-20260928_114010_109085": {
+            "processing": {
+              "frame_work": {
+                "count": 1524,
+                "mean_ms": 22.95196850393701
+              },
+              "prepare": {
+                "count": 1524,
+                "mean_ms": 16.828805774278216
+              },
+              "poll": {
+                "count": 1524,
+                "mean_ms": 0.11193372703412074
+              },
+              "publish": {
+                "count": 1524,
+                "mean_ms": 0.008671587926509189
+              },
+              "weak_flow": {
+                "count": 1524,
+                "mean_ms": 14.991797900262467
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 56,
+                  "applied": 27,
+                  "expired": 29,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0929621428098495,
+                  "applied": 0.5269638902833204,
+                  "expired": 0.5659982525265292,
+                  "evicted": 0.0
+                },
+                "published_count": 27,
+                "published_fps": 0.5269638902833204,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 24,
+                "expired_during_replay": 5,
+                "stages": {
+                  "preprocess": {
+                    "count": 56,
+                    "mean_ms": 7.360482142857142
+                  },
+                  "queue_wait": {
+                    "count": 56,
+                    "mean_ms": 18.64089285714286
+                  },
+                  "execution": {
+                    "count": 56,
+                    "mean_ms": 232.27857142857144
+                  },
+                  "infer": {
+                    "count": 56,
+                    "mean_ms": 229.47678571428574
+                  },
+                  "postprocess": {
+                    "count": 56,
+                    "mean_ms": 0.02384214285714285
+                  },
+                  "completion_pickup": {
+                    "count": 56,
+                    "mean_ms": 18.145
+                  },
+                  "result_age": {
+                    "count": 56,
+                    "mean_ms": 294.99821428571437
+                  },
+                  "replay": {
+                    "count": 32,
+                    "mean_ms": 0.6655968750000002
+                  },
+                  "commit_age": {
+                    "count": 32,
+                    "mean_ms": 283.5953124999999
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 257,
+                  "applied": 257,
+                  "expired": 0,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 5.015915548252345,
+                  "applied": 5.015915548252345,
+                  "expired": 0.0,
+                  "evicted": 0.0
+                },
+                "published_count": 257,
+                "published_fps": 5.015915548252345,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 0,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 257,
+                    "mean_ms": 2.620832684824902
+                  },
+                  "queue_wait": {
+                    "count": 257,
+                    "mean_ms": 0.06494357976653695
+                  },
+                  "execution": {
+                    "count": 257,
+                    "mean_ms": 113.96926070038911
+                  },
+                  "infer": {
+                    "count": 257,
+                    "mean_ms": 113.1785992217899
+                  },
+                  "postprocess": {
+                    "count": 257,
+                    "mean_ms": 0.02416214007782101
+                  },
+                  "completion_pickup": {
+                    "count": 257,
+                    "mean_ms": 17.1784046692607
+                  },
+                  "result_age": {
+                    "count": 257,
+                    "mean_ms": 155.9237354085603
+                  },
+                  "replay": {
+                    "count": 257,
+                    "mean_ms": 0.5520194552529183
+                  },
+                  "commit_age": {
+                    "count": 257,
+                    "mean_ms": 156.4774319066148
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-4-20260928_114010_109085": {
+            "processing": {
+              "frame_work": {
+                "count": 1486,
+                "mean_ms": 24.18741588156124
+              },
+              "prepare": {
+                "count": 1487,
+                "mean_ms": 18.075521183591125
+              },
+              "poll": {
+                "count": 1486,
+                "mean_ms": 0.17453432032301486
+              },
+              "publish": {
+                "count": 1486,
+                "mean_ms": 0.012301615074024226
+              },
+              "weak_flow": {
+                "count": 1482,
+                "mean_ms": 15.302631578947368
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 56,
+                  "applied": 23,
+                  "expired": 33,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0929621428098495,
+                  "applied": 0.4488951657969025,
+                  "expired": 0.644066977012947,
+                  "evicted": 0.0
+                },
+                "published_count": 23,
+                "published_fps": 0.4488951657969025,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 28,
+                "expired_during_replay": 5,
+                "stages": {
+                  "preprocess": {
+                    "count": 56,
+                    "mean_ms": 7.705624999999998
+                  },
+                  "queue_wait": {
+                    "count": 56,
+                    "mean_ms": 24.01517857142857
+                  },
+                  "execution": {
+                    "count": 56,
+                    "mean_ms": 230.66964285714286
+                  },
+                  "infer": {
+                    "count": 56,
+                    "mean_ms": 227.81071428571428
+                  },
+                  "postprocess": {
+                    "count": 56,
+                    "mean_ms": 0.02550875
+                  },
+                  "completion_pickup": {
+                    "count": 56,
+                    "mean_ms": 18.957142857142856
+                  },
+                  "result_age": {
+                    "count": 56,
+                    "mean_ms": 303.44821428571424
+                  },
+                  "replay": {
+                    "count": 28,
+                    "mean_ms": 1.2407857142857144
+                  },
+                  "commit_age": {
+                    "count": 28,
+                    "mean_ms": 281.67571428571426
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 256,
+                  "applied": 255,
+                  "expired": 1,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.996398367130741,
+                  "applied": 4.976881186009137,
+                  "expired": 0.019517181121604457,
+                  "evicted": 0.0
+                },
+                "published_count": 255,
+                "published_fps": 4.976881186009137,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 1,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 256,
+                    "mean_ms": 2.6065078125000003
+                  },
+                  "queue_wait": {
+                    "count": 256,
+                    "mean_ms": 0.06345156249999999
+                  },
+                  "execution": {
+                    "count": 256,
+                    "mean_ms": 114.390234375
+                  },
+                  "infer": {
+                    "count": 256,
+                    "mean_ms": 113.60351562499999
+                  },
+                  "postprocess": {
+                    "count": 256,
+                    "mean_ms": 0.026535234374999994
+                  },
+                  "completion_pickup": {
+                    "count": 256,
+                    "mean_ms": 18.5509765625
+                  },
+                  "result_age": {
+                    "count": 256,
+                    "mean_ms": 160.033984375
+                  },
+                  "replay": {
+                    "count": 255,
+                    "mean_ms": 0.861435294117647
+                  },
+                  "commit_age": {
+                    "count": 255,
+                    "mean_ms": 160.32862745098038
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scheduler": {
+          "high": {
+            "submitted": 218,
+            "completed": 218,
+            "replaced": 0,
+            "updated": 3585,
+            "stale": 0,
+            "failed": 0,
+            "cancelled": 0,
+            "sampled_max_queue": 3.0,
+            "sampled_max_in_flight": 1.0
+          },
+          "low": {
+            "submitted": 1022,
+            "completed": 1023,
+            "replaced": 0,
+            "updated": 0,
+            "stale": 0,
+            "failed": 0,
+            "cancelled": 0,
+            "sampled_max_queue": 0.0,
+            "sampled_max_in_flight": 4.0
+          }
+        }
+      }
+    },
+    "low8_control": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag74_node0_low8_control",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "FAIL",
+      "failed_gates": [
+        "acceptance-2-20260928_114323_518631: high detection FPS"
+      ],
+      "duration_seconds": 60.00710611091927,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.144325293018483,
+      "peak_probe_seconds": 0.091160471085459,
+      "rates": {
+        "processed_fps": [
+          28.196660523379467,
+          29.546500654817844
+        ],
+        "low_detection_fps": [
+          4.216167324122344,
+          4.632784648640361
+        ],
+        "high_detection_fps": [
+          0.49994078942162173,
+          0.599928947305946
+        ]
+      },
+      "maximum_p95_ms": 76.954227,
+      "fairness_percent": 4.5685279187817205,
+      "process": {
+        "pid": 129014,
+        "cpu_average_percent_of_host": 30.5474226951303,
+        "cpu_peak_percent_of_host": 30.8801583976508,
+        "rss_start_bytes": 802250752,
+        "rss_end_bytes": 809238528,
+        "rss_growth_percent": 0.8710214334582512,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 829184,
+      "resource_weighted_means": {
+        "host_busy_percent": 30.6799897599626,
+        "service_cpu_percent_of_host": 30.340130240145154,
+        "driver_cpu_percent_of_host": 0.06747939082477256,
+        "host_busy_minus_service_and_driver_percent": 0.2723801289926668
+      },
+      "resource_other_busy_range_percent": [
+        0.04273476899243178,
+        1.24669442511937
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "0": 76612,
+          "1": 6055
+        },
+        {
+          "0": 158910,
+          "1": 6483
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "6978f36b6e5dcde25f3689b3dede13b61649ea672ca9dc574c5352c34fbe90e9",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 1,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1246,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_low_threads": 8,
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "collection_started_at": "2026-09-28T11:43:23.111927+00:00",
+      "stopped_at": "2026-09-28T11:45:24.673294+00:00",
+      "source_delivered_fps": [
+        29.999916124747497,
+        29.999896925682453,
+        29.99984180999898,
+        29.999906201893012
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.497749690082856,
+        "to_seconds": 112.78755616105627,
+        "duration_seconds": 51.28980647097342,
+        "fps_ranges": {
+          "processed_frames": [
+            28.192736520040075,
+            29.538033075975598
+          ],
+          "low_detections": [
+            4.250357234694838,
+            4.601304162330192
+          ],
+          "high_detections": [
+            0.48742628838243557,
+            0.643402700664815
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_114323_518631": {
+            "processed_frames": 28.29022177771656,
+            "low_detections": 4.250357234694838,
+            "high_detections": 0.5654144945236252
+          },
+          "acceptance-2-20260928_114323_518631": {
+            "processed_frames": 28.192736520040075,
+            "low_detections": 4.289351337765433,
+            "high_detections": 0.48742628838243557
+          },
+          "acceptance-3-20260928_114323_518631": {
+            "processed_frames": 29.538033075975598,
+            "low_detections": 4.601304162330192,
+            "high_detections": 0.6044085975942202
+          },
+          "acceptance-4-20260928_114323_518631": {
+            "processed_frames": 29.14809204526965,
+            "low_detections": 4.562310059259597,
+            "high_detections": 0.643402700664815
+          }
+        },
+        "fairness_percent": 4.554455445544556,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": true,
+          "high_ge_0_5": false,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 819436,
+          "end": 829184,
+          "peak": 829184
+        },
+        "weak_flow_mean_ms": 16.080445760055724,
+        "prepare_mean_ms": 18.61303979678239,
+        "inference": {
+          "high": {
+            "mean_ms": 222.96577777777776,
+            "applied": 118,
+            "expired": 107
+          },
+          "low": {
+            "mean_ms": 166.71718249733192,
+            "applied": 907,
+            "expired": 30
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.28062470792793,
+          "host_busy_percent": 30.833544618937502,
+          "service_cpu_percent_of_host": 30.55948292216742,
+          "driver_cpu_percent_of_host": 0.06794720266856108,
+          "host_busy_minus_service_and_driver_percent": 0.206114494101522,
+          "active_threads_with_different_endpoint_cpu": 36
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "0": 194333,
+            "1": 6483
+          },
+          {
+            "0": 200812,
+            "1": 6483
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2126745,
+              "cpu16": 1000236
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2740729,
+              "cpu16": 1000096
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      },
+      "per_stream_loss_analysis": {
+        "duration_seconds": 51.28980647097342,
+        "samples": 11,
+        "streams": {
+          "acceptance-1-20260928_114323_518631": {
+            "processing": {
+              "frame_work": {
+                "count": 1451,
+                "mean_ms": 27.376016540317018
+              },
+              "prepare": {
+                "count": 1451,
+                "mean_ms": 21.478428669882838
+              },
+              "poll": {
+                "count": 1451,
+                "mean_ms": 0.07710062026188838
+              },
+              "publish": {
+                "count": 1451,
+                "mean_ms": 0.008485871812543073
+              },
+              "weak_flow": {
+                "count": 1376,
+                "mean_ms": 19.249636627906973
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 54,
+                  "applied": 29,
+                  "expired": 25,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0528407829060609,
+                  "applied": 0.5654144945236252,
+                  "expired": 0.48742628838243557,
+                  "evicted": 0.0
+                },
+                "published_count": 29,
+                "published_fps": 0.5654144945236252,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 24,
+                "expired_during_replay": 1,
+                "stages": {
+                  "preprocess": {
+                    "count": 54,
+                    "mean_ms": 7.638796296296295
+                  },
+                  "queue_wait": {
+                    "count": 54,
+                    "mean_ms": 21.740000000000002
+                  },
+                  "execution": {
+                    "count": 54,
+                    "mean_ms": 222.69444444444446
+                  },
+                  "infer": {
+                    "count": 54,
+                    "mean_ms": 219.9148148148148
+                  },
+                  "postprocess": {
+                    "count": 54,
+                    "mean_ms": 0.022546111111111114
+                  },
+                  "completion_pickup": {
+                    "count": 54,
+                    "mean_ms": 16.436111111111114
+                  },
+                  "result_age": {
+                    "count": 54,
+                    "mean_ms": 296.5814814814815
+                  },
+                  "replay": {
+                    "count": 30,
+                    "mean_ms": 0.5299200000000001
+                  },
+                  "commit_age": {
+                    "count": 30,
+                    "mean_ms": 273.2766666666667
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 230,
+                  "applied": 218,
+                  "expired": 12,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.4843218531184075,
+                  "applied": 4.250357234694838,
+                  "expired": 0.23396461842356908,
+                  "evicted": 0.0
+                },
+                "published_count": 218,
+                "published_fps": 4.250357234694838,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 12,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 230,
+                    "mean_ms": 2.800947826086956
+                  },
+                  "queue_wait": {
+                    "count": 230,
+                    "mean_ms": 0.06865956521739132
+                  },
+                  "execution": {
+                    "count": 230,
+                    "mean_ms": 169.37739130434787
+                  },
+                  "infer": {
+                    "count": 230,
+                    "mean_ms": 168.56391304347824
+                  },
+                  "postprocess": {
+                    "count": 230,
+                    "mean_ms": 0.02515821739130435
+                  },
+                  "completion_pickup": {
+                    "count": 230,
+                    "mean_ms": 19.271521739130435
+                  },
+                  "result_age": {
+                    "count": 230,
+                    "mean_ms": 223.59217391304352
+                  },
+                  "replay": {
+                    "count": 218,
+                    "mean_ms": 0.4200412844036697
+                  },
+                  "commit_age": {
+                    "count": 218,
+                    "mean_ms": 218.47798165137613
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-2-20260928_114323_518631": {
+            "processing": {
+              "frame_work": {
+                "count": 1446,
+                "mean_ms": 24.546887966804977
+              },
+              "prepare": {
+                "count": 1446,
+                "mean_ms": 18.99253112033195
+              },
+              "poll": {
+                "count": 1446,
+                "mean_ms": 0.16298547717842324
+              },
+              "publish": {
+                "count": 1446,
+                "mean_ms": 0.0067010373443983405
+              },
+              "weak_flow": {
+                "count": 1381,
+                "mean_ms": 15.65097755249819
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 61,
+                  "applied": 25,
+                  "expired": 36,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.1893201436531429,
+                  "applied": 0.48742628838243557,
+                  "expired": 0.7018938552707072,
+                  "evicted": 0.0
+                },
+                "published_count": 25,
+                "published_fps": 0.48742628838243557,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 31,
+                "expired_during_replay": 5,
+                "stages": {
+                  "preprocess": {
+                    "count": 61,
+                    "mean_ms": 8.738278688524591
+                  },
+                  "queue_wait": {
+                    "count": 61,
+                    "mean_ms": 18.148688524590163
+                  },
+                  "execution": {
+                    "count": 61,
+                    "mean_ms": 229.11967213114755
+                  },
+                  "infer": {
+                    "count": 61,
+                    "mean_ms": 226.43934426229507
+                  },
+                  "postprocess": {
+                    "count": 61,
+                    "mean_ms": 0.023553934426229512
+                  },
+                  "completion_pickup": {
+                    "count": 61,
+                    "mean_ms": 17.919016393442618
+                  },
+                  "result_age": {
+                    "count": 61,
+                    "mean_ms": 297.160655737705
+                  },
+                  "replay": {
+                    "count": 30,
+                    "mean_ms": 1.0013633333333332
+                  },
+                  "commit_age": {
+                    "count": 30,
+                    "mean_ms": 279.33166666666665
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 233,
+                  "applied": 219,
+                  "expired": 14,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.5428130077243,
+                  "applied": 4.269854286230136,
+                  "expired": 0.27295872149416395,
+                  "evicted": 0.0
+                },
+                "published_count": 220,
+                "published_fps": 4.289351337765433,
+                "applied_minus_published_endpoints": [
+                  1.0,
+                  0.0
+                ],
+                "expired_before_replay": 14,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 233,
+                    "mean_ms": 2.6599399141630906
+                  },
+                  "queue_wait": {
+                    "count": 233,
+                    "mean_ms": 0.06792017167381974
+                  },
+                  "execution": {
+                    "count": 233,
+                    "mean_ms": 164.24506437768235
+                  },
+                  "infer": {
+                    "count": 233,
+                    "mean_ms": 163.43948497854075
+                  },
+                  "postprocess": {
+                    "count": 233,
+                    "mean_ms": 0.027944978540772533
+                  },
+                  "completion_pickup": {
+                    "count": 233,
+                    "mean_ms": 20.285150214592278
+                  },
+                  "result_age": {
+                    "count": 233,
+                    "mean_ms": 218.1296137339056
+                  },
+                  "replay": {
+                    "count": 219,
+                    "mean_ms": 0.917123287671233
+                  },
+                  "commit_age": {
+                    "count": 219,
+                    "mean_ms": 211.62648401826485
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-3-20260928_114323_518631": {
+            "processing": {
+              "frame_work": {
+                "count": 1515,
+                "mean_ms": 22.302838283828386
+              },
+              "prepare": {
+                "count": 1514,
+                "mean_ms": 16.61889035667107
+              },
+              "poll": {
+                "count": 1515,
+                "mean_ms": 0.12671155115511548
+              },
+              "publish": {
+                "count": 1515,
+                "mean_ms": 0.007711683168316832
+              },
+              "weak_flow": {
+                "count": 1508,
+                "mean_ms": 14.867904509283822
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 55,
+                  "applied": 31,
+                  "expired": 24,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0723378344413583,
+                  "applied": 0.6044085975942202,
+                  "expired": 0.46792923684713816,
+                  "evicted": 0.0
+                },
+                "published_count": 31,
+                "published_fps": 0.6044085975942202,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 19,
+                "expired_during_replay": 5,
+                "stages": {
+                  "preprocess": {
+                    "count": 55,
+                    "mean_ms": 7.718290909090908
+                  },
+                  "queue_wait": {
+                    "count": 55,
+                    "mean_ms": 16.254727272727276
+                  },
+                  "execution": {
+                    "count": 55,
+                    "mean_ms": 225.47818181818187
+                  },
+                  "infer": {
+                    "count": 55,
+                    "mean_ms": 222.8018181818182
+                  },
+                  "postprocess": {
+                    "count": 55,
+                    "mean_ms": 0.023131090909090914
+                  },
+                  "completion_pickup": {
+                    "count": 55,
+                    "mean_ms": 16.615454545454547
+                  },
+                  "result_age": {
+                    "count": 55,
+                    "mean_ms": 284.1109090909091
+                  },
+                  "replay": {
+                    "count": 36,
+                    "mean_ms": 0.8805666666666666
+                  },
+                  "commit_age": {
+                    "count": 36,
+                    "mean_ms": 273.37499999999994
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 237,
+                  "applied": 236,
+                  "expired": 1,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.620801213865489,
+                  "applied": 4.601304162330192,
+                  "expired": 0.019497051535297422,
+                  "evicted": 0.0
+                },
+                "published_count": 236,
+                "published_fps": 4.601304162330192,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 1,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 237,
+                    "mean_ms": 2.5925907172995775
+                  },
+                  "queue_wait": {
+                    "count": 237,
+                    "mean_ms": 0.08285443037974685
+                  },
+                  "execution": {
+                    "count": 237,
+                    "mean_ms": 168.49535864978904
+                  },
+                  "infer": {
+                    "count": 237,
+                    "mean_ms": 167.7004219409283
+                  },
+                  "postprocess": {
+                    "count": 237,
+                    "mean_ms": 0.026004261603375527
+                  },
+                  "completion_pickup": {
+                    "count": 237,
+                    "mean_ms": 18.129493670886077
+                  },
+                  "result_age": {
+                    "count": 237,
+                    "mean_ms": 212.6915611814346
+                  },
+                  "replay": {
+                    "count": 236,
+                    "mean_ms": 0.6569279661016948
+                  },
+                  "commit_age": {
+                    "count": 236,
+                    "mean_ms": 212.43686440677962
+                  }
+                }
+              }
+            }
+          },
+          "acceptance-4-20260928_114323_518631": {
+            "processing": {
+              "frame_work": {
+                "count": 1495,
+                "mean_ms": 24.020133779264214
+              },
+              "prepare": {
+                "count": 1494,
+                "mean_ms": 17.483132530120482
+              },
+              "poll": {
+                "count": 1495,
+                "mean_ms": 0.18167224080267563
+              },
+              "publish": {
+                "count": 1495,
+                "mean_ms": 0.010886822742474916
+              },
+              "weak_flow": {
+                "count": 1478,
+                "mean_ms": 14.76874154262517
+              }
+            },
+            "tiers": {
+              "high": {
+                "counts": {
+                  "completed": 55,
+                  "applied": 33,
+                  "expired": 22,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 1.0723378344413583,
+                  "applied": 0.643402700664815,
+                  "expired": 0.4289351337765433,
+                  "evicted": 0.0
+                },
+                "published_count": 33,
+                "published_fps": 0.643402700664815,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 20,
+                "expired_during_replay": 2,
+                "stages": {
+                  "preprocess": {
+                    "count": 55,
+                    "mean_ms": 7.6846
+                  },
+                  "queue_wait": {
+                    "count": 55,
+                    "mean_ms": 18.65127272727273
+                  },
+                  "execution": {
+                    "count": 55,
+                    "mean_ms": 224.99090909090913
+                  },
+                  "infer": {
+                    "count": 55,
+                    "mean_ms": 222.27090909090913
+                  },
+                  "postprocess": {
+                    "count": 55,
+                    "mean_ms": 0.02379636363636364
+                  },
+                  "completion_pickup": {
+                    "count": 55,
+                    "mean_ms": 20.02963636363636
+                  },
+                  "result_age": {
+                    "count": 55,
+                    "mean_ms": 289.5018181818182
+                  },
+                  "replay": {
+                    "count": 35,
+                    "mean_ms": 1.2254857142857143
+                  },
+                  "commit_age": {
+                    "count": 35,
+                    "mean_ms": 271.33885714285714
+                  }
+                }
+              },
+              "low": {
+                "counts": {
+                  "completed": 237,
+                  "applied": 234,
+                  "expired": 3,
+                  "evicted": 0
+                },
+                "fps": {
+                  "completed": 4.620801213865489,
+                  "applied": 4.562310059259597,
+                  "expired": 0.05849115460589227,
+                  "evicted": 0.0
+                },
+                "published_count": 234,
+                "published_fps": 4.562310059259597,
+                "applied_minus_published_endpoints": [
+                  0.0,
+                  0.0
+                ],
+                "expired_before_replay": 3,
+                "expired_during_replay": 0,
+                "stages": {
+                  "preprocess": {
+                    "count": 237,
+                    "mean_ms": 2.73835864978903
+                  },
+                  "queue_wait": {
+                    "count": 237,
+                    "mean_ms": 0.06699957805907172
+                  },
+                  "execution": {
+                    "count": 237,
+                    "mean_ms": 167.97679324894517
+                  },
+                  "infer": {
+                    "count": 237,
+                    "mean_ms": 167.16708860759493
+                  },
+                  "postprocess": {
+                    "count": 237,
+                    "mean_ms": 0.02902
+                  },
+                  "completion_pickup": {
+                    "count": 237,
+                    "mean_ms": 16.75215189873418
+                  },
+                  "result_age": {
+                    "count": 237,
+                    "mean_ms": 215.68438818565406
+                  },
+                  "replay": {
+                    "count": 234,
+                    "mean_ms": 0.9488589743589746
+                  },
+                  "commit_age": {
+                    "count": 234,
+                    "mean_ms": 214.9653846153846
+                  }
+                }
+              }
+            }
+          }
+        },
+        "scheduler": {
+          "high": {
+            "submitted": 225,
+            "completed": 225,
+            "replaced": 0,
+            "updated": 3490,
+            "stale": 0,
+            "failed": 0,
+            "cancelled": 0,
+            "sampled_max_queue": 3.0,
+            "sampled_max_in_flight": 1.0
+          },
+          "low": {
+            "submitted": 939,
+            "completed": 937,
+            "replaced": 0,
+            "updated": 0,
+            "stale": 0,
+            "failed": 0,
+            "cancelled": 0,
+            "sampled_max_queue": 0.0,
+            "sampled_max_in_flight": 4.0
+          }
+        }
+      }
+    }
+  }
+}

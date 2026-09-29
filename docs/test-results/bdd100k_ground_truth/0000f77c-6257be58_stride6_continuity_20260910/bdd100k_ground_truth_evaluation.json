@@ -1,0 +1,663 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-09-10T09:37:35.915938+00:00",
+  "video_name": "0000f77c-6257be58",
+  "label_fps": 5.0,
+  "frame_stride": 6,
+  "iou_threshold": 0.5,
+  "max_missing_tail_label_frames": 1,
+  "include_crowd": false,
+  "evaluated_classes": [
+    "bike",
+    "bus",
+    "car",
+    "motor",
+    "person",
+    "rider",
+    "train",
+    "truck"
+  ],
+  "labels": {
+    "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/mot_labels.csv",
+    "file_size_bytes": 462806153,
+    "selected_rows": 1126,
+    "selected_rows_sha256": "9a0d4c7324b248b2884984e370a193a4cca6da7ddec4b911a5af8478f73cda32",
+    "evaluated_objects": 1126,
+    "annotated_frame_count": 203,
+    "frame_index_min": 0,
+    "frame_index_max": 202,
+    "ignored_crowd": 0,
+    "ignored_unsupported": {}
+  },
+  "runs": [
+    {
+      "name": "full_high",
+      "prediction": {
+        "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/full_high_infer_video_response.json",
+        "file_size_bytes": 4570934,
+        "sha256": "32b08f4c2d596fab2077e1d3f2cb86c62ebcd9213bc8df6be8345fc426aa0d1d",
+        "response_frame_count": 1217,
+        "source_fps": 30.148637489677952,
+        "processed_frame_count": 1217,
+        "elapsed_sec": 400.90259417903144
+      },
+      "metrics": {
+        "alignment": {
+          "frame_stride": 6,
+          "requested_label_frames": 203,
+          "evaluated_label_frames": 203,
+          "unique_response_frames": 203,
+          "skipped_tail_label_frames": [],
+          "skipped_tail_ground_truth_objects": 0,
+          "first": {
+            "label_frame_index": 0,
+            "response_frame_index": 0,
+            "response_timestamp_ms": 0.0
+          },
+          "last": {
+            "label_frame_index": 202,
+            "response_frame_index": 1212,
+            "response_timestamp_ms": 40200.821693
+          }
+        },
+        "prediction_filter": {
+          "raw_track_count": 13395,
+          "evaluated_track_count": 6558,
+          "ignored_unannotated_class_count": 6837,
+          "ignored_unannotated_classes": {
+            "traffic light": 1244,
+            "traffic sign": 5593
+          }
+        },
+        "detection": {
+          "ground_truth": 1126,
+          "predictions": 1092,
+          "true_positives": 963,
+          "false_positives": 129,
+          "false_negatives": 163,
+          "precision": 0.881868,
+          "recall": 0.85524,
+          "f1": 0.86835,
+          "map50": 0.833955
+        },
+        "by_class": {
+          "bus": {
+            "ground_truth": 0,
+            "predictions": 1,
+            "true_positives": 0,
+            "false_positives": 1,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.563423
+          },
+          "car": {
+            "ground_truth": 1126,
+            "predictions": 1080,
+            "true_positives": 963,
+            "false_positives": 117,
+            "false_negatives": 163,
+            "precision": 0.891667,
+            "recall": 0.85524,
+            "f1": 0.873073,
+            "ap50": 0.833955,
+            "mean_matched_iou": 0.834941,
+            "minimum_prediction_score": 0.254318
+          },
+          "person": {
+            "ground_truth": 0,
+            "predictions": 8,
+            "true_positives": 0,
+            "false_positives": 8,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.331374
+          },
+          "truck": {
+            "ground_truth": 0,
+            "predictions": 3,
+            "true_positives": 0,
+            "false_positives": 3,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.408368
+          }
+        },
+        "tracking": {
+          "ground_truth": 1126,
+          "predictions": 1092,
+          "matches": 963,
+          "false_positives": 129,
+          "false_negatives": 163,
+          "id_switches": 31,
+          "fragments": 33,
+          "mota": 0.713144,
+          "idf1": 0.700631,
+          "idtp": 777,
+          "idfp": 315,
+          "idfn": 349,
+          "mean_matched_iou": 0.834941,
+          "miss_duration": {
+            "event_count": 85,
+            "missed_ground_truth_observations": 163,
+            "mean_frames": 1.917647,
+            "p50_frames": 1.0,
+            "p95_frames": 4.0,
+            "max_frames": 8,
+            "mean_ms": 383.529412,
+            "p95_ms": 800.0,
+            "max_ms": 1600.0
+          },
+          "localization_jitter": {
+            "sample_count": 876,
+            "mean_error_delta_px": 3.001719,
+            "p50_error_delta_px": 1.930252,
+            "p95_error_delta_px": 8.327552,
+            "max_error_delta_px": 41.927107,
+            "sum_error_delta_px": 2629.505858,
+            "mean_normalized_error_delta": 0.024028,
+            "p95_normalized_error_delta": 0.072614,
+            "max_normalized_error_delta": 0.24574,
+            "sum_normalized_error_delta": 21.048169
+          }
+        }
+      }
+    },
+    {
+      "name": "high_dynamic_flow",
+      "prediction": {
+        "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/high_dynamic_flow_infer_video_response.json",
+        "file_size_bytes": 3854578,
+        "sha256": "6a76b252f8ac75faba86ce13e776cb761d5a1465613dfcfab4325a941861e855",
+        "response_frame_count": 1217,
+        "source_fps": 30.148637489677952,
+        "processed_frame_count": 65,
+        "elapsed_sec": 28.028380724950694
+      },
+      "metrics": {
+        "alignment": {
+          "frame_stride": 6,
+          "requested_label_frames": 203,
+          "evaluated_label_frames": 203,
+          "unique_response_frames": 203,
+          "skipped_tail_label_frames": [],
+          "skipped_tail_ground_truth_objects": 0,
+          "first": {
+            "label_frame_index": 0,
+            "response_frame_index": 0,
+            "response_timestamp_ms": 0.0
+          },
+          "last": {
+            "label_frame_index": 202,
+            "response_frame_index": 1212,
+            "response_timestamp_ms": 40200.821693
+          }
+        },
+        "prediction_filter": {
+          "raw_track_count": 11169,
+          "evaluated_track_count": 5710,
+          "ignored_unannotated_class_count": 5459,
+          "ignored_unannotated_classes": {
+            "traffic light": 879,
+            "traffic sign": 4580
+          }
+        },
+        "detection": {
+          "ground_truth": 1126,
+          "predictions": 953,
+          "true_positives": 389,
+          "false_positives": 564,
+          "false_negatives": 737,
+          "precision": 0.408185,
+          "recall": 0.345471,
+          "f1": 0.374218,
+          "map50": 0.180339
+        },
+        "by_class": {
+          "car": {
+            "ground_truth": 1126,
+            "predictions": 947,
+            "true_positives": 389,
+            "false_positives": 558,
+            "false_negatives": 737,
+            "precision": 0.410771,
+            "recall": 0.345471,
+            "f1": 0.375301,
+            "ap50": 0.180339,
+            "mean_matched_iou": 0.703605,
+            "minimum_prediction_score": 0.206151
+          },
+          "person": {
+            "ground_truth": 0,
+            "predictions": 6,
+            "true_positives": 0,
+            "false_positives": 6,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.413717
+          }
+        },
+        "tracking": {
+          "ground_truth": 1126,
+          "predictions": 953,
+          "matches": 390,
+          "false_positives": 563,
+          "false_negatives": 736,
+          "id_switches": 14,
+          "fragments": 24,
+          "mota": -0.166075,
+          "idf1": 0.30784,
+          "idtp": 320,
+          "idfp": 633,
+          "idfn": 806,
+          "mean_matched_iou": 0.704165,
+          "miss_duration": {
+            "event_count": 104,
+            "missed_ground_truth_observations": 736,
+            "mean_frames": 7.076923,
+            "p50_frames": 4.0,
+            "p95_frames": 22.85,
+            "max_frames": 52,
+            "mean_ms": 1415.384615,
+            "p95_ms": 4570.0,
+            "max_ms": 10400.0
+          },
+          "localization_jitter": {
+            "sample_count": 340,
+            "mean_error_delta_px": 5.516438,
+            "p50_error_delta_px": 3.047487,
+            "p95_error_delta_px": 17.759088,
+            "max_error_delta_px": 104.114503,
+            "sum_error_delta_px": 1875.588951,
+            "mean_normalized_error_delta": 0.032522,
+            "p95_normalized_error_delta": 0.102735,
+            "max_normalized_error_delta": 0.240872,
+            "sum_normalized_error_delta": 11.057379
+          }
+        }
+      }
+    },
+    {
+      "name": "high_fixed_flow",
+      "prediction": {
+        "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/high_fixed_flow_infer_video_response.json",
+        "file_size_bytes": 3767064,
+        "sha256": "694ba1cea470ce64d9cfb482f1f740fb33a540a5c6a057d87350def5cee8de70",
+        "response_frame_count": 1217,
+        "source_fps": 30.148637489677952,
+        "processed_frame_count": 65,
+        "elapsed_sec": 28.515030118986033
+      },
+      "metrics": {
+        "alignment": {
+          "frame_stride": 6,
+          "requested_label_frames": 203,
+          "evaluated_label_frames": 203,
+          "unique_response_frames": 203,
+          "skipped_tail_label_frames": [],
+          "skipped_tail_ground_truth_objects": 0,
+          "first": {
+            "label_frame_index": 0,
+            "response_frame_index": 0,
+            "response_timestamp_ms": 0.0
+          },
+          "last": {
+            "label_frame_index": 202,
+            "response_frame_index": 1212,
+            "response_timestamp_ms": 40200.821693
+          }
+        },
+        "prediction_filter": {
+          "raw_track_count": 10909,
+          "evaluated_track_count": 5824,
+          "ignored_unannotated_class_count": 5085,
+          "ignored_unannotated_classes": {
+            "traffic light": 751,
+            "traffic sign": 4334
+          }
+        },
+        "detection": {
+          "ground_truth": 1126,
+          "predictions": 973,
+          "true_positives": 382,
+          "false_positives": 591,
+          "false_negatives": 744,
+          "precision": 0.3926,
+          "recall": 0.339254,
+          "f1": 0.363983,
+          "map50": 0.190678
+        },
+        "by_class": {
+          "car": {
+            "ground_truth": 1126,
+            "predictions": 972,
+            "true_positives": 382,
+            "false_positives": 590,
+            "false_negatives": 744,
+            "precision": 0.393004,
+            "recall": 0.339254,
+            "f1": 0.364156,
+            "ap50": 0.190678,
+            "mean_matched_iou": 0.708972,
+            "minimum_prediction_score": 0.187236
+          },
+          "person": {
+            "ground_truth": 0,
+            "predictions": 1,
+            "true_positives": 0,
+            "false_positives": 1,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.584457
+          }
+        },
+        "tracking": {
+          "ground_truth": 1126,
+          "predictions": 973,
+          "matches": 382,
+          "false_positives": 591,
+          "false_negatives": 744,
+          "id_switches": 13,
+          "fragments": 29,
+          "mota": -0.197158,
+          "idf1": 0.318247,
+          "idtp": 334,
+          "idfp": 639,
+          "idfn": 792,
+          "mean_matched_iou": 0.709073,
+          "miss_duration": {
+            "event_count": 110,
+            "missed_ground_truth_observations": 744,
+            "mean_frames": 6.763636,
+            "p50_frames": 4.0,
+            "p95_frames": 23.1,
+            "max_frames": 52,
+            "mean_ms": 1352.727273,
+            "p95_ms": 4620.0,
+            "max_ms": 10400.0
+          },
+          "localization_jitter": {
+            "sample_count": 326,
+            "mean_error_delta_px": 5.203642,
+            "p50_error_delta_px": 2.8264,
+            "p95_error_delta_px": 17.768408,
+            "max_error_delta_px": 54.593851,
+            "sum_error_delta_px": 1696.387404,
+            "mean_normalized_error_delta": 0.02913,
+            "p95_normalized_error_delta": 0.093748,
+            "max_normalized_error_delta": 0.235722,
+            "sum_normalized_error_delta": 9.49646
+          }
+        }
+      }
+    },
+    {
+      "name": "low_dynamic_flow",
+      "prediction": {
+        "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/low_dynamic_flow_infer_video_response.json",
+        "file_size_bytes": 3764090,
+        "sha256": "f02a825bce8843e37489745efab1496834ccaf7e4588f07f03e01c93a7c4195e",
+        "response_frame_count": 1217,
+        "source_fps": 30.148637489677952,
+        "processed_frame_count": 158,
+        "elapsed_sec": 26.148103201994672
+      },
+      "metrics": {
+        "alignment": {
+          "frame_stride": 6,
+          "requested_label_frames": 203,
+          "evaluated_label_frames": 203,
+          "unique_response_frames": 203,
+          "skipped_tail_label_frames": [],
+          "skipped_tail_ground_truth_objects": 0,
+          "first": {
+            "label_frame_index": 0,
+            "response_frame_index": 0,
+            "response_timestamp_ms": 0.0
+          },
+          "last": {
+            "label_frame_index": 202,
+            "response_frame_index": 1212,
+            "response_timestamp_ms": 40200.821693
+          }
+        },
+        "prediction_filter": {
+          "raw_track_count": 10863,
+          "evaluated_track_count": 5490,
+          "ignored_unannotated_class_count": 5373,
+          "ignored_unannotated_classes": {
+            "traffic light": 999,
+            "traffic sign": 4374
+          }
+        },
+        "detection": {
+          "ground_truth": 1126,
+          "predictions": 920,
+          "true_positives": 672,
+          "false_positives": 248,
+          "false_negatives": 454,
+          "precision": 0.730435,
+          "recall": 0.596803,
+          "f1": 0.656891,
+          "map50": 0.4983
+        },
+        "by_class": {
+          "car": {
+            "ground_truth": 1126,
+            "predictions": 915,
+            "true_positives": 672,
+            "false_positives": 243,
+            "false_negatives": 454,
+            "precision": 0.734426,
+            "recall": 0.596803,
+            "f1": 0.658501,
+            "ap50": 0.4983,
+            "mean_matched_iou": 0.730561,
+            "minimum_prediction_score": 0.232105
+          },
+          "truck": {
+            "ground_truth": 0,
+            "predictions": 5,
+            "true_positives": 0,
+            "false_positives": 5,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.358379
+          }
+        },
+        "tracking": {
+          "ground_truth": 1126,
+          "predictions": 920,
+          "matches": 672,
+          "false_positives": 248,
+          "false_negatives": 454,
+          "id_switches": 25,
+          "fragments": 48,
+          "mota": 0.354352,
+          "idf1": 0.569892,
+          "idtp": 583,
+          "idfp": 337,
+          "idfn": 543,
+          "mean_matched_iou": 0.730598,
+          "miss_duration": {
+            "event_count": 132,
+            "missed_ground_truth_observations": 454,
+            "mean_frames": 3.439394,
+            "p50_frames": 2.0,
+            "p95_frames": 9.0,
+            "max_frames": 20,
+            "mean_ms": 687.878788,
+            "p95_ms": 1800.0,
+            "max_ms": 4000.0
+          },
+          "localization_jitter": {
+            "sample_count": 590,
+            "mean_error_delta_px": 5.268141,
+            "p50_error_delta_px": 2.998227,
+            "p95_error_delta_px": 19.138374,
+            "max_error_delta_px": 80.214117,
+            "sum_error_delta_px": 3108.20302,
+            "mean_normalized_error_delta": 0.031076,
+            "p95_normalized_error_delta": 0.087975,
+            "max_normalized_error_delta": 0.19235,
+            "sum_normalized_error_delta": 18.334808
+          }
+        }
+      }
+    },
+    {
+      "name": "integrated_high_low_flow",
+      "prediction": {
+        "path": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/video_compare/video_algorithm_report_20260710/0000f77c-6257be58_20260710_061903/integrated_high_low_flow_infer_video_response.json",
+        "file_size_bytes": 7416856,
+        "sha256": "37e929ad986659a668b6e541f3dff01d5a7759ff12a85e81db3a8edfc33de76f",
+        "response_frame_count": 1217,
+        "source_fps": 30.148637489677952,
+        "processed_frame_count": 150,
+        "elapsed_sec": 42.819789264991414
+      },
+      "metrics": {
+        "alignment": {
+          "frame_stride": 6,
+          "requested_label_frames": 203,
+          "evaluated_label_frames": 203,
+          "unique_response_frames": 203,
+          "skipped_tail_label_frames": [],
+          "skipped_tail_ground_truth_objects": 0,
+          "first": {
+            "label_frame_index": 0,
+            "response_frame_index": 0,
+            "response_timestamp_ms": 0.0
+          },
+          "last": {
+            "label_frame_index": 202,
+            "response_frame_index": 1212,
+            "response_timestamp_ms": 40200.821693
+          }
+        },
+        "prediction_filter": {
+          "raw_track_count": 22180,
+          "evaluated_track_count": 10730,
+          "ignored_unannotated_class_count": 11450,
+          "ignored_unannotated_classes": {
+            "traffic light": 2191,
+            "traffic sign": 9259
+          }
+        },
+        "detection": {
+          "ground_truth": 1126,
+          "predictions": 1799,
+          "true_positives": 922,
+          "false_positives": 877,
+          "false_negatives": 204,
+          "precision": 0.512507,
+          "recall": 0.818828,
+          "f1": 0.630427,
+          "map50": 0.668774
+        },
+        "by_class": {
+          "car": {
+            "ground_truth": 1126,
+            "predictions": 1747,
+            "true_positives": 922,
+            "false_positives": 825,
+            "false_negatives": 204,
+            "precision": 0.527762,
+            "recall": 0.818828,
+            "f1": 0.641838,
+            "ap50": 0.668774,
+            "mean_matched_iou": 0.813512,
+            "minimum_prediction_score": 0.261748
+          },
+          "person": {
+            "ground_truth": 0,
+            "predictions": 22,
+            "true_positives": 0,
+            "false_positives": 22,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.269819
+          },
+          "truck": {
+            "ground_truth": 0,
+            "predictions": 30,
+            "true_positives": 0,
+            "false_positives": 30,
+            "false_negatives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "ap50": null,
+            "mean_matched_iou": 0.0,
+            "minimum_prediction_score": 0.319401
+          }
+        },
+        "tracking": {
+          "ground_truth": 1126,
+          "predictions": 1799,
+          "matches": 922,
+          "false_positives": 877,
+          "false_negatives": 204,
+          "id_switches": 26,
+          "fragments": 32,
+          "mota": 0.016874,
+          "idf1": 0.510769,
+          "idtp": 747,
+          "idfp": 1052,
+          "idfn": 379,
+          "mean_matched_iou": 0.815751,
+          "miss_duration": {
+            "event_count": 93,
+            "missed_ground_truth_observations": 204,
+            "mean_frames": 2.193548,
+            "p50_frames": 2.0,
+            "p95_frames": 5.0,
+            "max_frames": 12,
+            "mean_ms": 438.709677,
+            "p95_ms": 1000.0,
+            "max_ms": 2400.0
+          },
+          "localization_jitter": {
+            "sample_count": 837,
+            "mean_error_delta_px": 4.810972,
+            "p50_error_delta_px": 3.034934,
+            "p95_error_delta_px": 15.759901,
+            "max_error_delta_px": 49.435653,
+            "sum_error_delta_px": 4026.783573,
+            "mean_normalized_error_delta": 0.034996,
+            "p95_normalized_error_delta": 0.104385,
+            "max_normalized_error_delta": 0.420764,
+            "sum_normalized_error_delta": 29.291301
+          }
+        }
+      }
+    }
+  ]
+}

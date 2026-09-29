@@ -1,0 +1,78 @@
+{
+  "case": "diag64_closed_stdout_60s",
+  "purpose": "local MJPEG; separate original performance and retirement evidence",
+  "driver_state": "finished",
+  "driver_error": null,
+  "retirement_audit": "PASS",
+  "removed_stream_log_count": 6,
+  "last_metric_gauges": {
+    "yolo_streams_active": 0.0,
+    "yolo_streams_registered": 0.0,
+    "yolo_scheduler_queue_depth{tier=\"high\"}": 0.0,
+    "yolo_scheduler_in_flight{tier=\"high\"}": 0.0,
+    "yolo_scheduler_queue_depth{tier=\"low\"}": 0.0,
+    "yolo_scheduler_in_flight{tier=\"low\"}": 0.0
+  },
+  "journal_sha256": "52251879f706d82006f6a3dffea3ce15d409bc883dce4f86c6e01ab6117695ea",
+  "artifact_sha256": {
+    "run_state.json": "65d1dfeb13703939d13669a2f0192b23d9cbf3805ef46b75c4be7c551a87bc9f",
+    "diagnostic.json": "8ccfadf7dc020a2c42f6dae78bf3c21feabf5d8affb1ad42e97cac9fd92c279c",
+    "timing_metrics.json": "322cfb1d6972ac9eba53f0ead2921e594c22da1b7890dff8a2807634ac407b23",
+    "progress.json": "99b10f2d4d4962bcbea428940973932c115e6e1b0377948579cd04adb1dc8c23",
+    "diagnostic-config.yaml": "c44e4bc259a97f07e59b0d18230ab0e49892769d826e6d21b9774f8dde7ae57e",
+    "server.log": "17c20818271d7431ed12cacc98b3e94de3729b9fe13f25064ebde73782082837",
+    "acceptance/acceptance.json": "509171fc15a0556312b06b8da40f03c72355d1b25ce0cebc0ee9c79fdc2e3984",
+    "acceptance/acceptance.md": "19717a603771af788067ac927bd3f50a5fe49c20d0b971c6e187078de3f5a4a1"
+  },
+  "process": {
+    "pid": 73609,
+    "cpu_average_percent_of_host": 57.66702664824829,
+    "cpu_peak_percent_of_host": 59.36591382539421,
+    "rss_start_bytes": 799674368,
+    "rss_end_bytes": 813789184,
+    "rss_growth_percent": 1.765070454277709,
+    "host_logical_cpus": 64
+  },
+  "hourly_memory_scope": "hours since first metric, including warmup; smaps_rollup RSS",
+  "hourly_rss_kib": {
+    "0": {
+      "samples": 15,
+      "min": 340700,
+      "median": 839628,
+      "max": 896760,
+      "first": 340700,
+      "last": 679504
+    }
+  },
+  "status": "PASS",
+  "duration_seconds": 60.00794808199862,
+  "acceptance_samples": 13,
+  "durable_samples": 15,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.073028724000324,
+  "failed_gates": [],
+  "output_fps": [
+    27.379706397474244,
+    29.312783659864394
+  ],
+  "low_fps": [
+    4.816028696816833,
+    4.999337747560727
+  ],
+  "high_fps": [
+    1.0665253861462882,
+    1.2498344368901817
+  ],
+  "maximum_p95_ms": 168.254672,
+  "cpu_host_percent": 57.66702664824829,
+  "rss_growth_percent": 1.765070454277709,
+  "fairness_percent": 6.59465605457647,
+  "peak_rss_kib": 896760,
+  "peak_anonymous_kib": 862584,
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  }
+}

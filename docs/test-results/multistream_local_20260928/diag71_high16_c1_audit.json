@@ -1,0 +1,185 @@
+{
+  "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag71_node0_high16_c1",
+  "scope": "local MJPEG, resource means include warmup and retirement",
+  "original_acceptance_status": "FAIL",
+  "failed_gates": [
+    "acceptance-1-20260928_061247_073083: low detection FPS",
+    "acceptance-2-20260928_061247_073083: low detection FPS"
+  ],
+  "duration_seconds": 60.00768521509599,
+  "acceptance_samples": 13,
+  "durable_samples": 25,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.155963854980655,
+  "peak_probe_seconds": 0.09233308595139533,
+  "rates": {
+    "processed_fps": [
+      27.363161803597215,
+      29.396234726885194
+    ],
+    "low_detection_fps": [
+      3.7995133320463856,
+      4.282784764631233
+    ],
+    "high_detection_fps": [
+      1.083194590276382,
+      1.4664788299126401
+    ]
+  },
+  "maximum_p95_ms": 96.651484,
+  "fairness_percent": 6.91609977324263,
+  "process": {
+    "pid": 121093,
+    "cpu_average_percent_of_host": 36.17634541187444,
+    "cpu_peak_percent_of_host": 37.92559705213227,
+    "rss_start_bytes": 732315648,
+    "rss_end_bytes": 754307072,
+    "rss_growth_percent": 3.002997964069177,
+    "host_logical_cpus": 64
+  },
+  "peak_rss_kib": 782416,
+  "resource_weighted_means": {
+    "host_busy_percent": 36.35730416227498,
+    "service_cpu_percent_of_host": 36.017741718432255,
+    "driver_cpu_percent_of_host": 0.06807670057927,
+    "host_busy_minus_service_and_driver_percent": 0.271485743263453
+  },
+  "resource_other_busy_range_percent": [
+    0.01901004471498284,
+    0.8113854004807695
+  ],
+  "cpu_cgroup_endpoints": [
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    },
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    }
+  ],
+  "numa_pages_start_end": [
+    {
+      "0": 76282,
+      "1": 6057
+    },
+    {
+      "0": 153728,
+      "1": 6482
+    }
+  ],
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "journal_sha256": "7922547d38cc2ba4797fa6ef66989969a20d53e64e30eca1ac0c43c9df732c23",
+  "retirement_evidence": {
+    "active": 0.0,
+    "registered": 0.0,
+    "scheduler": {
+      "high": {
+        "cancelled_total": 1,
+        "queue_depth": 0,
+        "in_flight": 0
+      },
+      "low": {
+        "cancelled_total": 0,
+        "queue_depth": 0,
+        "in_flight": 0
+      }
+    }
+  },
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  },
+  "affinity_evidence": {
+    "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+    "expected_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "thread_observations": 1530,
+    "observed_masks": [
+      "0-15,32-47"
+    ],
+    "observed_endpoint_cpus": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ]
+  }
+}

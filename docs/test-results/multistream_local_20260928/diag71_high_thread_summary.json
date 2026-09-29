@@ -1,0 +1,1482 @@
+{
+  "scope": "node0 CPU affinity; fixed low8/pool4; only high8/16 changes; previous baseline separated by hours",
+  "only_configured_high_threads_differs": true,
+  "cases": {
+    "previous_high8": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag70_node0_pool4_b2",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "PASS",
+      "failed_gates": [],
+      "duration_seconds": 60.005732788005844,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.153400997049175,
+      "peak_probe_seconds": 0.09655340202152729,
+      "rates": {
+        "processed_fps": [
+          27.714018690100993,
+          29.53051179726937
+        ],
+        "low_detection_fps": [
+          4.249593966311337,
+          4.599560528242859
+        ],
+        "high_detection_fps": [
+          0.5999426775968947,
+          0.7165981982407352
+        ]
+      },
+      "maximum_p95_ms": 86.815348,
+      "fairness_percent": 6.151241534988718,
+      "process": {
+        "pid": 118989,
+        "cpu_average_percent_of_host": 30.616372412512405,
+        "cpu_peak_percent_of_host": 30.853961831507863,
+        "rss_start_bytes": 816459776,
+        "rss_end_bytes": 782065664,
+        "rss_growth_percent": -4.212591117287326,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 819016,
+      "resource_weighted_means": {
+        "host_busy_percent": 30.841420730832514,
+        "service_cpu_percent_of_host": 30.35219899012996,
+        "driver_cpu_percent_of_host": 0.07015325307595631,
+        "host_busy_minus_service_and_driver_percent": 0.41906848762659143
+      },
+      "resource_other_busy_range_percent": [
+        0.07259160814024196,
+        1.1880665887473856
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "1": 7660,
+          "0": 74854
+        },
+        {
+          "1": 8130,
+          "0": 171947
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "30cf5d52f2b04a9d9eee8f2827eb299f2310a036bb1b024cad2c34f9e981f469",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 3,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 0,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1166,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_high_low_threads": [
+        8,
+        8
+      ],
+      "collection_started_at": "2026-09-28T01:22:50.871585+00:00",
+      "stopped_at": "2026-09-28T01:24:52.450449+00:00",
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "source_delivered_fps": [
+        29.999915152555747,
+        29.999907332965616,
+        29.999914648561457,
+        29.999869488848486
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.62500557093881,
+        "to_seconds": 113.02589901397005,
+        "duration_seconds": 51.40089344303124,
+        "fps_ranges": {
+          "processed_frames": [
+            27.664888774278495,
+            29.47419584601401
+          ],
+          "low_detections": [
+            4.2411714154660425,
+            4.6108147957130825
+          ],
+          "high_detections": [
+            0.6031023572451711,
+            0.7392867604940807
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_012251_298592": {
+            "processed_frames": 28.481995193771954,
+            "low_detections": 4.260626330215887,
+            "high_detections": 0.6420121867448596
+          },
+          "acceptance-2-20260928_012251_298592": {
+            "processed_frames": 27.664888774278495,
+            "low_detections": 4.2411714154660425,
+            "high_detections": 0.6420121867448596
+          },
+          "acceptance-3-20260928_012251_298592": {
+            "processed_frames": 29.47419584601401,
+            "low_detections": 4.571904966213395,
+            "high_detections": 0.6031023572451711
+          },
+          "acceptance-4-20260928_012251_298592": {
+            "processed_frames": 29.104552465766968,
+            "low_detections": 4.6108147957130825,
+            "high_detections": 0.7392867604940807
+          }
+        },
+        "fairness_percent": 6.138613861386141,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": true,
+          "high_ge_0_5": true,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 783104,
+          "end": 811160,
+          "peak": 819016
+        },
+        "weak_flow_mean_ms": 16.336190309602937,
+        "prepare_mean_ms": 18.872455902306648,
+        "inference": {
+          "high": {
+            "mean_ms": 220.28377192982455,
+            "applied": 135,
+            "expired": 93
+          },
+          "low": {
+            "mean_ms": 164.69344608879493,
+            "applied": 909,
+            "expired": 37
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.4057256130036,
+          "host_busy_percent": 31.138982968251263,
+          "service_cpu_percent_of_host": 30.626756187675365,
+          "driver_cpu_percent_of_host": 0.07142930006752327,
+          "host_busy_minus_service_and_driver_percent": 0.4407974805083741,
+          "active_threads_with_different_endpoint_cpu": 35
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "1": 8130,
+            "0": 191213
+          },
+          {
+            "1": 8130,
+            "0": 194659
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2181830,
+              "cpu16": 1000410
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2307458,
+              "cpu16": 1111221
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      }
+    },
+    "c1_high16": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag71_node0_high16_c1",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "FAIL",
+      "failed_gates": [
+        "acceptance-1-20260928_061247_073083: low detection FPS",
+        "acceptance-2-20260928_061247_073083: low detection FPS"
+      ],
+      "duration_seconds": 60.00768521509599,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.155963854980655,
+      "peak_probe_seconds": 0.09233308595139533,
+      "rates": {
+        "processed_fps": [
+          27.363161803597215,
+          29.396234726885194
+        ],
+        "low_detection_fps": [
+          3.7995133320463856,
+          4.282784764631233
+        ],
+        "high_detection_fps": [
+          1.083194590276382,
+          1.4664788299126401
+        ]
+      },
+      "maximum_p95_ms": 96.651484,
+      "fairness_percent": 6.91609977324263,
+      "process": {
+        "pid": 121093,
+        "cpu_average_percent_of_host": 36.17634541187444,
+        "cpu_peak_percent_of_host": 37.92559705213227,
+        "rss_start_bytes": 732315648,
+        "rss_end_bytes": 754307072,
+        "rss_growth_percent": 3.002997964069177,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 782416,
+      "resource_weighted_means": {
+        "host_busy_percent": 36.35730416227498,
+        "service_cpu_percent_of_host": 36.017741718432255,
+        "driver_cpu_percent_of_host": 0.06807670057927,
+        "host_busy_minus_service_and_driver_percent": 0.271485743263453
+      },
+      "resource_other_busy_range_percent": [
+        0.01901004471498284,
+        0.8113854004807695
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "0": 76282,
+          "1": 6057
+        },
+        {
+          "0": 153728,
+          "1": 6482
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "7922547d38cc2ba4797fa6ef66989969a20d53e64e30eca1ac0c43c9df732c23",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 1,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 0,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1530,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_high_low_threads": [
+        16,
+        8
+      ],
+      "collection_started_at": "2026-09-28T06:12:46.665797+00:00",
+      "stopped_at": "2026-09-28T06:14:48.223267+00:00",
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "source_delivered_fps": [
+        29.999906440675677,
+        29.999906786983445,
+        29.999935249370363,
+        29.999906377260242
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.57264221704099,
+        "to_seconds": 112.88614244700875,
+        "duration_seconds": 51.31350022996776,
+        "fps_ranges": {
+          "processed_frames": [
+            27.341732559897164,
+            29.42695378862774
+          ],
+          "low_detections": [
+            3.761193431261691,
+            4.287370750660995
+          ],
+          "high_detections": [
+            1.1108187853985305,
+            1.4616036649980664
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_061247_073083": {
+            "processed_frames": 27.71200548836334,
+            "low_detections": 3.8586336755948953,
+            "high_detections": 1.1108187853985305
+          },
+          "acceptance-2-20260928_061247_073083": {
+            "processed_frames": 27.341732559897164,
+            "low_detections": 3.761193431261691,
+            "high_detections": 1.3446753717982212
+          },
+          "acceptance-3-20260928_061247_073083": {
+            "processed_frames": 29.42695378862774,
+            "low_detections": 4.287370750660995,
+            "high_detections": 1.4616036649980664
+          },
+          "acceptance-4-20260928_061247_073083": {
+            "processed_frames": 28.88128842036179,
+            "low_detections": 4.150954408594509,
+            "high_detections": 1.2277470785983757
+          }
+        },
+        "fairness_percent": 7.086092715231787,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": false,
+          "high_ge_0_5": true,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 782416,
+          "end": 738152,
+          "peak": 782416
+        },
+        "weak_flow_mean_ms": 18.095357142857143,
+        "prepare_mean_ms": 20.62598831213476,
+        "inference": {
+          "high": {
+            "mean_ms": 127.47224199288257,
+            "applied": 265,
+            "expired": 16
+          },
+          "low": {
+            "mean_ms": 174.50447427293065,
+            "applied": 825,
+            "expired": 69
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.32120580994524,
+          "host_busy_percent": 36.450677572945914,
+          "service_cpu_percent_of_host": 36.168345924567056,
+          "driver_cpu_percent_of_host": 0.06880684006289851,
+          "host_busy_minus_service_and_driver_percent": 0.21352480831595888,
+          "active_threads_with_different_endpoint_cpu": 40
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "0": 192937,
+            "1": 6482
+          },
+          {
+            "0": 178277,
+            "1": 6482
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2118026,
+              "cpu16": 1013940
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2807239,
+              "cpu16": 1000079
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      }
+    },
+    "control_high8": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag71_node0_high8_control",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "FAIL",
+      "failed_gates": [
+        "process RSS growth"
+      ],
+      "duration_seconds": 60.00669322698377,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.145283363061026,
+      "peak_probe_seconds": 0.08630851504858583,
+      "rates": {
+        "processed_fps": [
+          27.880223188963967,
+          29.480044722819642
+        ],
+        "low_detection_fps": [
+          4.216196334015471,
+          4.58282210219073
+        ],
+        "high_detection_fps": [
+          0.5832682675515475,
+          0.6332626904845372
+        ]
+      },
+      "maximum_p95_ms": 93.762741,
+      "fairness_percent": 5.426794799321656,
+      "process": {
+        "pid": 121811,
+        "cpu_average_percent_of_host": 30.567672902320247,
+        "cpu_peak_percent_of_host": 30.880005505596035,
+        "rss_start_bytes": 788774912,
+        "rss_end_bytes": 830349312,
+        "rss_growth_percent": 5.270755873127973,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 820048,
+      "resource_weighted_means": {
+        "host_busy_percent": 30.62833810999792,
+        "service_cpu_percent_of_host": 30.330396274406702,
+        "driver_cpu_percent_of_host": 0.06600865628714576,
+        "host_busy_minus_service_and_driver_percent": 0.23193317930407611
+      },
+      "resource_other_busy_range_percent": [
+        0.07651075461939658,
+        0.974098567617293
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "0": 76552,
+          "1": 6025
+        },
+        {
+          "0": 162587,
+          "1": 6479
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "fb2190b26907946457fea28b665627dc0d1d4b26266e6a99b3c90a0af0ac02ea",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 1,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1263,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_high_low_threads": [
+        8,
+        8
+      ],
+      "collection_started_at": "2026-09-28T06:15:54.152742+00:00",
+      "stopped_at": "2026-09-28T06:17:55.740909+00:00",
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "source_delivered_fps": [
+        29.99986323976621,
+        29.999918102724564,
+        29.999913336334785,
+        29.999891981618347
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.50523686700035,
+        "to_seconds": 112.82565135799814,
+        "duration_seconds": 51.32041449099779,
+        "fps_ranges": {
+          "processed_frames": [
+            27.86415531095991,
+            29.559387137570756
+          ],
+          "low_detections": [
+            4.1893660082911754,
+            4.598559897473104
+          ],
+          "high_detections": [
+            0.5845626988313267,
+            0.662504392008837
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_061554_588333": {
+            "processed_frames": 27.86415531095991,
+            "low_detections": 4.2673077014686855,
+            "high_detections": 0.6040481221257044
+          },
+          "acceptance-2-20260928_061554_588333": {
+            "processed_frames": 28.156436660375572,
+            "low_detections": 4.1893660082911754,
+            "high_detections": 0.5845626988313267
+          },
+          "acceptance-3-20260928_061554_588333": {
+            "processed_frames": 29.559387137570756,
+            "low_detections": 4.598559897473104,
+            "high_detections": 0.662504392008837
+          },
+          "acceptance-4-20260928_061554_588333": {
+            "processed_frames": 29.150193248388828,
+            "low_detections": 4.540103627589971,
+            "high_detections": 0.6235335454200819
+          }
+        },
+        "fairness_percent": 5.735003295978904,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": true,
+          "high_ge_0_5": true,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 738332,
+          "end": 797584,
+          "peak": 820048
+        },
+        "weak_flow_mean_ms": 16.39940569830449,
+        "prepare_mean_ms": 18.959592529711376,
+        "inference": {
+          "high": {
+            "mean_ms": 220.27797356828196,
+            "applied": 126,
+            "expired": 101
+          },
+          "low": {
+            "mean_ms": 167.58842443729904,
+            "applied": 900,
+            "expired": 33
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.321477164980024,
+          "host_busy_percent": 30.83509161915987,
+          "service_cpu_percent_of_host": 30.604877076137278,
+          "driver_cpu_percent_of_host": 0.06697975564790698,
+          "host_busy_minus_service_and_driver_percent": 0.1632347873746836,
+          "active_threads_with_different_endpoint_cpu": 29
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "0": 185196,
+            "1": 6479
+          },
+          {
+            "0": 192916,
+            "1": 6479
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2204943,
+              "cpu16": 1012303
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2108888,
+              "cpu16": 1000236
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      }
+    },
+    "c2_high16": {
+      "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260928/diag71_node0_high16_c2",
+      "scope": "local MJPEG, resource means include warmup and retirement",
+      "original_acceptance_status": "FAIL",
+      "failed_gates": [
+        "acceptance-1-20260928_061923_727803: low detection FPS",
+        "acceptance-2-20260928_061923_727803: low detection FPS"
+      ],
+      "duration_seconds": 60.004288090975024,
+      "acceptance_samples": 13,
+      "durable_samples": 25,
+      "selected_global_monotonic_series": 111,
+      "metrics_maximum_gap_seconds": 5.161915085045621,
+      "peak_probe_seconds": 0.09952159295789897,
+      "rates": {
+        "processed_fps": [
+          27.58136214349856,
+          29.41456446119333
+        ],
+        "low_detection_fps": [
+          3.8330593915436064,
+          4.19969985508256
+        ],
+        "high_detection_fps": [
+          1.183248768693896,
+          1.3998999516941868
+        ]
+      },
+      "maximum_p95_ms": 106.99746,
+      "fairness_percent": 6.2322946175637455,
+      "process": {
+        "pid": 122501,
+        "cpu_average_percent_of_host": 36.596588243325876,
+        "cpu_peak_percent_of_host": 38.22980322886848,
+        "rss_start_bytes": 708857856,
+        "rss_end_bytes": 720826368,
+        "rss_growth_percent": 1.6884220014908038,
+        "host_logical_cpus": 64
+      },
+      "peak_rss_kib": 787560,
+      "resource_weighted_means": {
+        "host_busy_percent": 36.487476248361,
+        "service_cpu_percent_of_host": 36.10327522950065,
+        "driver_cpu_percent_of_host": 0.0682630655617217,
+        "host_busy_minus_service_and_driver_percent": 0.3159379532986235
+      },
+      "resource_other_busy_range_percent": [
+        -0.36713073169245525,
+        1.067564647442172
+      ],
+      "cpu_cgroup_endpoints": [
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        },
+        {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "cpu.cfs_quota_us": "-1",
+            "cpu.cfs_period_us": "100000",
+            "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+          }
+        }
+      ],
+      "numa_pages_start_end": [
+        {
+          "0": 76220,
+          "1": 6031
+        },
+        {
+          "0": 157467,
+          "1": 6481
+        }
+      ],
+      "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+      "journal_sha256": "e7e5464671b31901e4c06674244bfade0cb394d594111af2ca5bdb9045959de5",
+      "retirement_evidence": {
+        "active": 0.0,
+        "registered": 0.0,
+        "scheduler": {
+          "high": {
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          },
+          "low": {
+            "cancelled_total": 0,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      },
+      "owned_processes_alive": {
+        "driver": false,
+        "service": false,
+        "collector": false
+      },
+      "affinity_evidence": {
+        "scope": "sampled thread masks and endpoint CPUs; not memory binding or migration counts",
+        "expected_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "thread_observations": 1554,
+        "observed_masks": [
+          "0-15,32-47"
+        ],
+        "observed_endpoint_cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ]
+      },
+      "configured_high_low_threads": [
+        16,
+        8
+      ],
+      "collection_started_at": "2026-09-28T06:19:23.297828+00:00",
+      "stopped_at": "2026-09-28T06:21:24.877957+00:00",
+      "runtime_records": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "YES",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "8",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "4",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "4",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "4",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 4,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "source_delivered_fps": [
+        29.99991092169132,
+        29.999929888627346,
+        29.999902286190057,
+        29.999889386313573
+      ],
+      "approximate_post_warmup_diagnostic": {
+        "from_seconds": 61.50221933494322,
+        "to_seconds": 112.916033882997,
+        "duration_seconds": 51.41381454805378,
+        "fps_ranges": {
+          "processed_frames": [
+            27.54123599750685,
+            29.466788514281692
+          ],
+          "low_detections": [
+            3.792754957283782,
+            4.181755465723144
+          ],
+          "high_detections": [
+            1.1864515507400548,
+            1.400401830381704
+          ]
+        },
+        "per_stream_fps": {
+          "acceptance-1-20260928_061923_727803": {
+            "processed_frames": 27.891336455102273,
+            "low_detections": 3.792754957283782,
+            "high_detections": 1.1864515507400548
+          },
+          "acceptance-2-20260928_061923_727803": {
+            "processed_frames": 27.54123599750685,
+            "low_detections": 3.9094551098155907,
+            "high_detections": 1.3226017286938316
+          },
+          "acceptance-3-20260928_061923_727803": {
+            "processed_frames": 29.466788514281692,
+            "low_detections": 4.181755465723144,
+            "high_detections": 1.400401830381704
+          },
+          "acceptance-4-20260928_061923_727803": {
+            "processed_frames": 29.116688056686264,
+            "low_detections": 4.103955364035272,
+            "high_detections": 1.3420517541157997
+          }
+        },
+        "fairness_percent": 6.534653465346534,
+        "diagnostic_rate_checks": {
+          "output_ge_25": true,
+          "low_ge_4": false,
+          "high_ge_0_5": true,
+          "fairness_le_10": true
+        },
+        "rss_kib": {
+          "start": 713184,
+          "end": 755640,
+          "peak": 787560
+        },
+        "weak_flow_mean_ms": 18.206987824245633,
+        "prepare_mean_ms": 20.632656543252004,
+        "inference": {
+          "high": {
+            "mean_ms": 128.06350877192983,
+            "applied": 271,
+            "expired": 14
+          },
+          "low": {
+            "mean_ms": 175.77927927927928,
+            "applied": 820,
+            "expired": 68
+          }
+        },
+        "resources": {
+          "elapsed_seconds": 51.43173264001962,
+          "host_busy_percent": 36.974628746780645,
+          "service_cpu_percent_of_host": 36.6049548277338,
+          "driver_cpu_percent_of_host": 0.07048177873710881,
+          "host_busy_minus_service_and_driver_percent": 0.2991921403097375,
+          "active_threads_with_different_endpoint_cpu": 40
+        },
+        "cgroup_throttling": {
+          "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          },
+          "/sys/fs/cgroup/cpu,cpuacct": {
+            "scope_changed": false,
+            "deltas": {
+              "throttled_time": 0,
+              "nr_periods": 0,
+              "nr_throttled": 0
+            },
+            "quota_us": "-1",
+            "period_us": "100000"
+          }
+        },
+        "numa_mapping_pages_start_end": [
+          {
+            "0": 179568,
+            "1": 6481
+          },
+          {
+            "0": 183148,
+            "1": 6481
+          }
+        ],
+        "frequency_endpoints": [
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2100000,
+              "cpu16": 1000074
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          },
+          {
+            "count": 2,
+            "by_cpu": {
+              "cpu0": 2100000,
+              "cpu16": 1000028
+            },
+            "scope": "one representative CPU per NUMA node; not an all-core measurement"
+          }
+        ]
+      }
+    }
+  }
+}

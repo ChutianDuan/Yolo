@@ -1,0 +1,42 @@
+{
+  "observed_at_utc": "2026-09-24T04:35:21.298043+00:00",
+  "case": "yolo_onnx_cpp/test_outputs/multistream_local_20260923/diag65_four_soak_8h",
+  "status": "INCOMPLETE_INTERRUPTED",
+  "recorded_state": "collecting",
+  "owned_pids_absent": {
+    "driver": 79763,
+    "service": 80223,
+    "collector": 80280
+  },
+  "last_progress": {
+    "sample_count": 231,
+    "observed_at": "2026-09-23T07:05:22.840349+00:00",
+    "service_pid": 80223,
+    "memory": {
+      "monotonic_seconds": 192685.190427384,
+      "Rss_kib": 725864,
+      "Pss_kib": 724216,
+      "Shared_Clean_kib": 1692,
+      "Shared_Dirty_kib": 0,
+      "Private_Clean_kib": 32556,
+      "Private_Dirty_kib": 691616,
+      "Anonymous_kib": 691616,
+      "AnonHugePages_kib": 0,
+      "threads": 93
+    },
+    "metrics_monotonic_seconds": 192685.154972904
+  },
+  "missing_artifacts": [
+    "acceptance/acceptance.json",
+    "diagnostic.json",
+    "timing_metrics.json"
+  ],
+  "exit_cause": "not established; no terminal state or exit signal was preserved",
+  "sha256": {
+    "run_state.json": "7734b3b1fda6f5c32fe8e7c3724bbaeeb91b5fa6c21083a218337fae288f40de",
+    "progress.json": "5e6d3bd71430e2bc34488208b66c410fac095f45d214dbab2b77d21e1adcc495",
+    "diagnostic-config.yaml": "6d9ee13a74f3b11d4e0aeb2e182f6c60281feab3b9f5acc0c1ba948d50fba92c",
+    "live_samples.jsonl": "a66625445d3f1e424ceaa1c722ad2ad0ef90a09d35892f05acad4a289700ec49",
+    "server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

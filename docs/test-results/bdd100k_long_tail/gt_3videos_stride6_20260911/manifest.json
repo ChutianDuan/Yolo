@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-11T01:04:39.521129+00:00",
+  "source_labels": {
+    "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/mot_labels.csv",
+    "file_size_bytes": 462806153,
+    "videos": {
+      "002d290d-90f2bab2": {
+        "selected_rows": 4692,
+        "selected_rows_sha256": "f22670998fa8cc5e86ecc83338854ed1ac1f03af7f273dbe6a1885e7a66fc0fd",
+        "annotated_frame_count": 203,
+        "ignored_categories": {}
+      },
+      "0090c713-9d58a186": {
+        "selected_rows": 2998,
+        "selected_rows_sha256": "759be44f495949df732259e1337b83bdddfb1f5d40a492e1abe4cf2fdb7533b6",
+        "annotated_frame_count": 202,
+        "ignored_categories": {}
+      },
+      "02344f0c-d5d916ff": {
+        "selected_rows": 3422,
+        "selected_rows_sha256": "fafe02d903a5cd58432a4b2379b42b41cbe6f632ebcf59b890b9a8a0dc25c198",
+        "annotated_frame_count": 202,
+        "ignored_categories": {}
+      }
+    },
+    "sha256": "59adc72b1ca03d3de6951db14cb69363223d27c32bd2ec633e80d640bf806e33"
+  },
+  "videos": {
+    "002d290d-90f2bab2": {
+      "frame_stride": 6,
+      "input_label_frames": 203,
+      "evaluated_label_frames": 202,
+      "skipped_tail_label_frames": [
+        202
+      ],
+      "video": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov",
+        "file_size_bytes": 19714756,
+        "sha256": "adea3374f6098607418006a6970b5e2bbb9dd84aecd94eaad7ffe6bb8a746912",
+        "decoded_frame_count": 1210,
+        "width": 1280,
+        "height": 720,
+        "fps": 30.10699178900224
+      }
+    },
+    "0090c713-9d58a186": {
+      "frame_stride": 6,
+      "input_label_frames": 202,
+      "evaluated_label_frames": 200,
+      "skipped_tail_label_frames": [
+        200,
+        201
+      ],
+      "video": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov",
+        "file_size_bytes": 17612658,
+        "sha256": "c7499e3ad2bb789a9e165accf6d79e03b309c116295862a23a43834c1cfdb529",
+        "decoded_frame_count": 1197,
+        "width": 1280,
+        "height": 720,
+        "fps": 29.898838516298238
+      }
+    },
+    "02344f0c-d5d916ff": {
+      "frame_stride": 6,
+      "input_label_frames": 202,
+      "evaluated_label_frames": 201,
+      "skipped_tail_label_frames": [
+        201
+      ],
+      "video": {
+        "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov",
+        "file_size_bytes": 19619917,
+        "sha256": "29ff144d9d33a0fbdea81cc810edda8a9f0f704e2cc9e2cc70cdeb7008ac4105",
+        "decoded_frame_count": 1204,
+        "width": 1280,
+        "height": 720,
+        "fps": 30.034924330616995
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "gt/002d290d-90f2bab2.json",
+      "sha256": "f270fc340d9dd3ecc78ecd907129c705d3204fcfccbb46428ed8e3e31df4f0d1"
+    },
+    {
+      "path": "gt/0090c713-9d58a186.json",
+      "sha256": "d53a33153c03ed2372337e4475242c0df784db7662574dad5031b31df17737fb"
+    },
+    {
+      "path": "gt/02344f0c-d5d916ff.json",
+      "sha256": "edff2fdaf1a8fedae176813879defae706c412306b568dca7ec7b036da553f10"
+    }
+  ]
+}

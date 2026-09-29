@@ -1,0 +1,670 @@
+{
+  "purpose": "single-variable request-pool/performance-hint local short-window evidence, not RTSP/NUMA/soak/quality acceptance",
+  "controls_verified": true,
+  "runtime_without_request_stream_properties": [
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 736,
+      "input_width": 1280,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    },
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 384,
+      "input_width": 640,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    }
+  ],
+  "model_sha256": [
+    "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+    "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf"
+  ],
+  "source_sha256": {
+    "0000f77c-6257be58.mov": "313eed7b8e46ae388c9d59f4e6068d5ab6fb98ce13e0d63b48b8cdd604d76767",
+    "00268999-cb063914.mov": "87380c9b303b9c913522d09c58a14e48b856a88f6a1e366831bdda5777b3a856",
+    "012fdff1-9d1d0d1d.mov": "3ce62fa669dcc8fba22d552da1e4398eb15949c26419c323c475daace57b1fcd",
+    "0000f77c-cb820c98.mov": "e6608a6ef6a15e2dfb31ce4f3df3b8307ce1bbe57a1931eb8e1feab3a5c35670"
+  },
+  "rows": [
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 1,
+      "performance_mode": "latency",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag54_six_latency_h1_l1",
+      "status": "FAIL",
+      "elapsed_seconds": 30.00488797505386,
+      "warmup_seconds": 10.002994895912707,
+      "output_fps": [
+        21.26320219993605,
+        25.59582960744653
+      ],
+      "low_fps": [
+        3.3661182166042964,
+        3.932692569894128
+      ],
+      "high_fps": [
+        0.66655806269392,
+        1.066492900310272
+      ],
+      "p95_ms": [
+        123.412179,
+        180.631306
+      ],
+      "fairness_percent": 16.92708333333333,
+      "cpu_host_percent": 61.138107379152615,
+      "rss_growth_percent": -4.605810048435543,
+      "failed_gates": [
+        "acceptance-1-20260914_075146_417450: processed FPS",
+        "acceptance-1-20260914_075146_417450: low detection FPS",
+        "acceptance-2-20260914_075146_417450: processed FPS",
+        "acceptance-2-20260914_075146_417450: low detection FPS",
+        "acceptance-3-20260914_075146_417450: processed FPS",
+        "acceptance-3-20260914_075146_417450: low detection FPS",
+        "acceptance-4-20260914_075146_417450: low detection FPS",
+        "acceptance-5-20260914_075146_417450: processed FPS",
+        "acceptance-5-20260914_075146_417450: low detection FPS",
+        "acceptance-6-20260914_075146_417450: processed FPS",
+        "acceptance-6-20260914_075146_417450: low detection FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 66,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999694505957795,
+        29.999794309355256
+      ],
+      "stages": {
+        "high": {
+          "completed": 246,
+          "applied": 188,
+          "expired": 58,
+          "evicted": 0,
+          "queue_wait_mean_ms": 24.076951219512196,
+          "infer_mean_ms": 157.08170731707315,
+          "result_age_mean_ms": 266.0012195121951,
+          "replay_mean_ms": 0.736100529100529,
+          "commit_age_mean_ms": 241.75343915343916,
+          "updated": 3599,
+          "scheduler": {
+            "submitted_total": 253,
+            "completed_total": 247,
+            "replaced_total": 0,
+            "stale_total": 1,
+            "failed_total": 0,
+            "cancelled_total": 5,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 874,
+          "applied": 844,
+          "expired": 30,
+          "evicted": 0,
+          "queue_wait_mean_ms": 25.591990846681924,
+          "infer_mean_ms": 44.67688787185355,
+          "result_age_mean_ms": 151.92219679633868,
+          "replay_mean_ms": 0.7207760663507108,
+          "commit_age_mean_ms": 145.13862559241707,
+          "updated": 2759,
+          "scheduler": {
+            "submitted_total": 879,
+            "completed_total": 876,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 3,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "latency",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag54_six_latency_h1_l2",
+      "status": "FAIL",
+      "elapsed_seconds": 30.00542926392518,
+      "warmup_seconds": 10.003019771073014,
+      "output_fps": [
+        21.32947322201642,
+        26.76182343324873
+      ],
+      "low_fps": [
+        3.099439077574261,
+        3.8326397195810755
+      ],
+      "high_fps": [
+        0.6665460381880132,
+        0.8665098496444171
+      ],
+      "p95_ms": [
+        151.853658,
+        235.639408
+      ],
+      "fairness_percent": 20.298879202988793,
+      "cpu_host_percent": 60.614144532116455,
+      "rss_growth_percent": 3.6143717707564464,
+      "failed_gates": [
+        "acceptance-1-20260914_075513_749108: processed FPS",
+        "acceptance-1-20260914_075513_749108: low detection FPS",
+        "acceptance-2-20260914_075513_749108: processed FPS",
+        "acceptance-2-20260914_075513_749108: low detection FPS",
+        "acceptance-3-20260914_075513_749108: low detection FPS",
+        "acceptance-4-20260914_075513_749108: low detection FPS",
+        "acceptance-5-20260914_075513_749108: processed FPS",
+        "acceptance-5-20260914_075513_749108: low detection FPS",
+        "acceptance-6-20260914_075513_749108: processed FPS",
+        "acceptance-6-20260914_075513_749108: low detection FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 66,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.99963670053687,
+        29.999708044260075
+      ],
+      "stages": {
+        "high": {
+          "completed": 242,
+          "applied": 186,
+          "expired": 56,
+          "evicted": 0,
+          "queue_wait_mean_ms": 23.722561983471074,
+          "infer_mean_ms": 158.8384297520661,
+          "result_age_mean_ms": 268.30867768595044,
+          "replay_mean_ms": 1.1366791443850268,
+          "commit_age_mean_ms": 243.32941176470587,
+          "updated": 3609,
+          "scheduler": {
+            "submitted_total": 247,
+            "completed_total": 243,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 4,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 871,
+          "applied": 828,
+          "expired": 43,
+          "evicted": 0,
+          "queue_wait_mean_ms": 23.248335246842714,
+          "infer_mean_ms": 89.52996555683121,
+          "result_age_mean_ms": 190.08840413318026,
+          "replay_mean_ms": 0.7065929951690821,
+          "commit_age_mean_ms": 182.1280193236715,
+          "updated": 1999,
+          "scheduler": {
+            "submitted_total": 877,
+            "completed_total": 875,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "throughput",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "2",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag54_six_throughput_h1_l2",
+      "status": "FAIL",
+      "elapsed_seconds": 30.005016194889322,
+      "warmup_seconds": 10.00364865316078,
+      "output_fps": [
+        21.22978357560422,
+        25.862342315021785
+      ],
+      "low_fps": [
+        3.632725917960534,
+        4.499247696556624
+      ],
+      "high_fps": [
+        0.6665552143046851,
+        0.7665384964503879
+      ],
+      "p95_ms": [
+        178.05252,
+        232.340077
+      ],
+      "fairness_percent": 17.91237113402063,
+      "cpu_host_percent": 60.2849145583116,
+      "rss_growth_percent": -1.6780575888783178,
+      "failed_gates": [
+        "acceptance-1-20260914_075645_727411: processed FPS",
+        "acceptance-1-20260914_075645_727411: low detection FPS",
+        "acceptance-2-20260914_075645_727411: processed FPS",
+        "acceptance-2-20260914_075645_727411: low detection FPS",
+        "acceptance-5-20260914_075645_727411: processed FPS",
+        "acceptance-6-20260914_075645_727411: processed FPS",
+        "acceptance-6-20260914_075645_727411: low detection FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 66,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999752896504226,
+        29.99980078038076
+      ],
+      "stages": {
+        "high": {
+          "completed": 227,
+          "applied": 154,
+          "expired": 73,
+          "evicted": 0,
+          "queue_wait_mean_ms": 26.784933920704848,
+          "infer_mean_ms": 169.8237885462555,
+          "result_age_mean_ms": 288.7220264317181,
+          "replay_mean_ms": 0.8714193548387096,
+          "commit_age_mean_ms": 252.6877419354839,
+          "updated": 3688,
+          "scheduler": {
+            "submitted_total": 233,
+            "completed_total": 228,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 5,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 1000,
+          "applied": 931,
+          "expired": 69,
+          "evicted": 0,
+          "queue_wait_mean_ms": 23.5601,
+          "infer_mean_ms": 77.4054,
+          "result_age_mean_ms": 188.508,
+          "replay_mean_ms": 0.7076781115879829,
+          "commit_age_mean_ms": 176.8283261802575,
+          "updated": 1420,
+          "scheduler": {
+            "submitted_total": 1006,
+            "completed_total": 1004,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 2,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "throughput",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "2",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag54_six_throughput_h1_l2_cv2",
+      "status": "FAIL",
+      "elapsed_seconds": 30.003783493069932,
+      "warmup_seconds": 10.004740281961858,
+      "output_fps": [
+        19.064262349850534,
+        23.36372011756158
+      ],
+      "low_fps": [
+        3.6328751680659233,
+        4.53276167758684
+      ],
+      "high_fps": [
+        0.5999243396806112,
+        0.8332282495564044
+      ],
+      "p95_ms": [
+        139.446006,
+        253.858844
+      ],
+      "fairness_percent": 18.40228245363766,
+      "cpu_host_percent": 57.862110605366254,
+      "rss_growth_percent": 0.38650138737463247,
+      "failed_gates": [
+        "acceptance-1-20260914_075937_483362: processed FPS",
+        "acceptance-2-20260914_075937_483362: processed FPS",
+        "acceptance-2-20260914_075937_483362: low detection FPS",
+        "acceptance-3-20260914_075937_483362: processed FPS",
+        "acceptance-4-20260914_075937_483362: processed FPS",
+        "acceptance-5-20260914_075937_483362: processed FPS",
+        "acceptance-6-20260914_075937_483362: processed FPS",
+        "acceptance-6-20260914_075937_483362: low detection FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 66,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999696633099273,
+        29.999831565438264
+      ],
+      "stages": {
+        "high": {
+          "completed": 240,
+          "applied": 154,
+          "expired": 86,
+          "evicted": 0,
+          "queue_wait_mean_ms": 30.781833333333335,
+          "infer_mean_ms": 160.65250000000003,
+          "result_age_mean_ms": 295.2945833333333,
+          "replay_mean_ms": 0.8153766233766234,
+          "commit_age_mean_ms": 249.3564935064935,
+          "updated": 3177,
+          "scheduler": {
+            "submitted_total": 245,
+            "completed_total": 242,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 3,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 1032,
+          "applied": 958,
+          "expired": 74,
+          "evicted": 0,
+          "queue_wait_mean_ms": 23.474612403100775,
+          "infer_mean_ms": 74.00581395348837,
+          "result_age_mean_ms": 191.67926356589146,
+          "replay_mean_ms": 0.6717145833333333,
+          "commit_age_mean_ms": 179.50625,
+          "updated": 1037,
+          "scheduler": {
+            "submitted_total": 1038,
+            "completed_total": 1037,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 1,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    }
+  ]
+}

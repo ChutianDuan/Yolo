@@ -1,0 +1,107 @@
+{
+  "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260924/diag66_detached_smoke_60s",
+  "scope": "local MJPEG, resource means include warmup and retirement",
+  "original_acceptance_status": "PASS",
+  "failed_gates": [],
+  "duration_seconds": 60.00407659297343,
+  "acceptance_samples": 13,
+  "durable_samples": 15,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.143709791998845,
+  "peak_probe_seconds": 0.09040568204363808,
+  "rates": {
+    "processed_fps": [
+      28.564725887319327,
+      29.647985620502382
+    ],
+    "low_detection_fps": [
+      4.9663292382853905,
+      4.982994772642053
+    ],
+    "high_detection_fps": [
+      1.3332427485329907,
+      1.3999048859596404
+    ]
+  },
+  "maximum_p95_ms": 109.108369,
+  "fairness_percent": 3.6537380550871292,
+  "process": {
+    "pid": 86972,
+    "cpu_average_percent_of_host": 39.17180035803868,
+    "cpu_peak_percent_of_host": 41.78760471331573,
+    "rss_start_bytes": 703979520,
+    "rss_end_bytes": 687058944,
+    "rss_growth_percent": -2.4035608308605343,
+    "host_logical_cpus": 64
+  },
+  "peak_rss_kib": 748016,
+  "resource_weighted_means": {
+    "host_busy_percent": 38.86780112483236,
+    "service_cpu_percent_of_host": 38.5204697264441,
+    "driver_cpu_percent_of_host": 0.06867771609601295,
+    "host_busy_minus_service_and_driver_percent": 0.27865368229225296
+  },
+  "resource_other_busy_range_percent": [
+    -0.05926568192512301,
+    1.045256853320664
+  ],
+  "cpu_cgroup_endpoints": [
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    },
+    {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "cpu.cfs_quota_us": "-1",
+        "cpu.cfs_period_us": "100000",
+        "cpu.stat": "nr_periods 0\nnr_throttled 0\nthrottled_time 0"
+      }
+    }
+  ],
+  "numa_pages_start_end": [
+    {
+      "1": 77895,
+      "0": 7190
+    },
+    {
+      "1": 117373,
+      "0": 32575
+    }
+  ],
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "journal_sha256": "4d6fd89c5649e67fd20d76145c45465ae0e89f1a980564b4bbe548bcf2923bb5",
+  "retirement_evidence": {
+    "active": 0.0,
+    "registered": 0.0,
+    "scheduler": {
+      "high": {
+        "cancelled_total": 1,
+        "queue_depth": 0,
+        "in_flight": 0
+      },
+      "low": {
+        "cancelled_total": 0,
+        "queue_depth": 0,
+        "in_flight": 0
+      }
+    }
+  },
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  }
+}

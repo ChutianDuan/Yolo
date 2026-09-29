@@ -1,0 +1,485 @@
+{
+  "purpose": "bounded local six-stream weak-flow internal attribution; wall time includes contention, not CPU or true RTSP acceptance",
+  "validated_against_previous_profile": true,
+  "service_binary_sha256": "d03c6dfc6bcbeaafbff156e25414ab1a2476f8045c96e8bbca0420e3c604b929",
+  "status": "FAIL",
+  "failed_gates": [
+    "stream fairness spread"
+  ],
+  "sample_count": 61,
+  "elapsed_seconds": 60.00372912199964,
+  "metrics_samples": 69,
+  "selected_global_monotonic_series": 108,
+  "output_fps": [
+    25.13177134264327,
+    28.3649037302247
+  ],
+  "low_fps": [
+    4.766370427053034,
+    4.999689259146539
+  ],
+  "high_fps": [
+    0.983272220965486,
+    1.2165910530589912
+  ],
+  "p95_ms": [
+    108.020022,
+    192.981849
+  ],
+  "cpu_host_percent": 60.14493436544157,
+  "rss_growth_percent": 2.181346148534814,
+  "fairness_percent": 11.398354876615754,
+  "processing_global": {
+    "frame_work": {
+      "count": 11325,
+      "sum_ms": 362418,
+      "mean_ms": 32.00158940397351,
+      "max_ms": 327.611
+    },
+    "prepare": {
+      "count": 11325,
+      "sum_ms": 282785,
+      "mean_ms": 24.96997792494481,
+      "max_ms": 327.608
+    },
+    "poll": {
+      "count": 11325,
+      "sum_ms": 2116.65,
+      "mean_ms": 0.18690066225165564,
+      "max_ms": 8.33393
+    },
+    "publish": {
+      "count": 11324,
+      "sum_ms": 144.56,
+      "mean_ms": 0.012765807135287884,
+      "max_ms": 6.25866
+    },
+    "gray": {
+      "count": 11325,
+      "sum_ms": 18725.3,
+      "mean_ms": 1.653448123620309,
+      "max_ms": 11.5624
+    },
+    "weak_flow": {
+      "count": 11205,
+      "sum_ms": 242149,
+      "mean_ms": 21.610798750557787,
+      "max_ms": 189.107
+    },
+    "motion": {
+      "count": 11205,
+      "sum_ms": 21774.7,
+      "mean_ms": 1.9433020972780009,
+      "max_ms": 137.887
+    },
+    "projection": {
+      "count": 11205,
+      "sum_ms": 113.074,
+      "mean_ms": 0.010091387773315485,
+      "max_ms": 0.09449
+    },
+    "frame_diff": {
+      "count": 11205,
+      "sum_ms": 10396.2,
+      "mean_ms": 0.9278179384203481,
+      "max_ms": 8.63163
+    },
+    "roi_features": {
+      "count": 11205,
+      "sum_ms": 60287.799999999996,
+      "mean_ms": 5.380437304774654,
+      "max_ms": 21.4083
+    },
+    "pyramid_build": {
+      "count": 11205,
+      "sum_ms": 30299.7,
+      "mean_ms": 2.704123159303882,
+      "max_ms": 9.62955
+    },
+    "lk_forward": {
+      "count": 11205,
+      "sum_ms": 77997.1,
+      "mean_ms": 6.960919232485498,
+      "max_ms": 119.059
+    },
+    "lk_backward": {
+      "count": 11205,
+      "sum_ms": 61979.100000000006,
+      "mean_ms": 5.531378848728247,
+      "max_ms": 71.414
+    },
+    "flow_quality": {
+      "count": 11205,
+      "sum_ms": 1002.14,
+      "mean_ms": 0.08943685854529228,
+      "max_ms": 0.412129
+    }
+  },
+  "processing_by_stream_last_registered_scrape": {
+    "acceptance-1-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1863,
+        "mean_ms": 32.515780998389694
+      },
+      "prepare": {
+        "count": 1863,
+        "mean_ms": 26.383038110574343
+      },
+      "poll": {
+        "count": 1864,
+        "mean_ms": 0.12088948497854078
+      },
+      "publish": {
+        "count": 1863,
+        "mean_ms": 0.0143020397208803
+      },
+      "gray": {
+        "count": 1863,
+        "mean_ms": 1.64020397208803
+      },
+      "weak_flow": {
+        "count": 1853,
+        "mean_ms": 22.73988127361036
+      },
+      "motion": {
+        "count": 1853,
+        "mean_ms": 2.1240582838640045
+      },
+      "projection": {
+        "count": 1853,
+        "mean_ms": 0.008091419320021588
+      },
+      "frame_diff": {
+        "count": 1853,
+        "mean_ms": 0.9292660550458716
+      },
+      "roi_features": {
+        "count": 1853,
+        "mean_ms": 9.374851592012954
+      },
+      "pyramid_build": {
+        "count": 1853,
+        "mean_ms": 2.5629627630868863
+      },
+      "lk_forward": {
+        "count": 1853,
+        "mean_ms": 5.411225040474905
+      },
+      "lk_backward": {
+        "count": 1853,
+        "mean_ms": 4.379929843497031
+      },
+      "flow_quality": {
+        "count": 1853,
+        "mean_ms": 0.06498434970318402
+      }
+    },
+    "acceptance-2-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1787,
+        "mean_ms": 34.39367655288193
+      },
+      "prepare": {
+        "count": 1787,
+        "mean_ms": 27.53855623950755
+      },
+      "poll": {
+        "count": 1788,
+        "mean_ms": 0.24207829977628637
+      },
+      "publish": {
+        "count": 1786,
+        "mean_ms": 0.010700000000000001
+      },
+      "gray": {
+        "count": 1787,
+        "mean_ms": 1.553094571908226
+      },
+      "weak_flow": {
+        "count": 1769,
+        "mean_ms": 22.57580553985302
+      },
+      "motion": {
+        "count": 1769,
+        "mean_ms": 3.660288298473714
+      },
+      "projection": {
+        "count": 1769,
+        "mean_ms": 0.012107574901074055
+      },
+      "frame_diff": {
+        "count": 1769,
+        "mean_ms": 0.9478462408140192
+      },
+      "roi_features": {
+        "count": 1769,
+        "mean_ms": 3.6267495760316564
+      },
+      "pyramid_build": {
+        "count": 1769,
+        "mean_ms": 2.694392312040701
+      },
+      "lk_forward": {
+        "count": 1769,
+        "mean_ms": 8.329564725833805
+      },
+      "lk_backward": {
+        "count": 1769,
+        "mean_ms": 6.84951950254381
+      },
+      "flow_quality": {
+        "count": 1769,
+        "mean_ms": 0.1074968908988129
+      }
+    },
+    "acceptance-3-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1988,
+        "mean_ms": 28.288732394366196
+      },
+      "prepare": {
+        "count": 1988,
+        "mean_ms": 21.230784708249498
+      },
+      "poll": {
+        "count": 1989,
+        "mean_ms": 0.179078431372549
+      },
+      "publish": {
+        "count": 1988,
+        "mean_ms": 0.01328848088531187
+      },
+      "gray": {
+        "count": 1988,
+        "mean_ms": 1.7909657947686115
+      },
+      "weak_flow": {
+        "count": 1973,
+        "mean_ms": 18.99219462747086
+      },
+      "motion": {
+        "count": 1973,
+        "mean_ms": 0.5843892549417131
+      },
+      "projection": {
+        "count": 1973,
+        "mean_ms": 0.009366396350734921
+      },
+      "frame_diff": {
+        "count": 1973,
+        "mean_ms": 0.901429295489103
+      },
+      "roi_features": {
+        "count": 1973,
+        "mean_ms": 3.5530562595032946
+      },
+      "pyramid_build": {
+        "count": 1973,
+        "mean_ms": 2.8268525088697416
+      },
+      "lk_forward": {
+        "count": 1973,
+        "mean_ms": 6.594728839330968
+      },
+      "lk_backward": {
+        "count": 1973,
+        "mean_ms": 5.009295489102889
+      },
+      "flow_quality": {
+        "count": 1973,
+        "mean_ms": 0.09176127724277751
+      }
+    },
+    "acceptance-4-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1972,
+        "mean_ms": 29.623630831643002
+      },
+      "prepare": {
+        "count": 1972,
+        "mean_ms": 22.438438133874243
+      },
+      "poll": {
+        "count": 1973,
+        "mean_ms": 0.2348682209832742
+      },
+      "publish": {
+        "count": 1972,
+        "mean_ms": 0.009663286004056795
+      },
+      "gray": {
+        "count": 1972,
+        "mean_ms": 1.6798529411764704
+      },
+      "weak_flow": {
+        "count": 1951,
+        "mean_ms": 19.940389543823677
+      },
+      "motion": {
+        "count": 1951,
+        "mean_ms": 1.0284674525884163
+      },
+      "projection": {
+        "count": 1951,
+        "mean_ms": 0.011424038954382367
+      },
+      "frame_diff": {
+        "count": 1951,
+        "mean_ms": 0.9977139928241927
+      },
+      "roi_features": {
+        "count": 1951,
+        "mean_ms": 2.8545515120451053
+      },
+      "pyramid_build": {
+        "count": 1951,
+        "mean_ms": 2.8372014351614556
+      },
+      "lk_forward": {
+        "count": 1951,
+        "mean_ms": 7.398667350076884
+      },
+      "lk_backward": {
+        "count": 1951,
+        "mean_ms": 5.734136340338289
+      },
+      "flow_quality": {
+        "count": 1951,
+        "mean_ms": 0.10072578165043566
+      }
+    },
+    "acceptance-5-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1764,
+        "mean_ms": 36.548752834467116
+      },
+      "prepare": {
+        "count": 1764,
+        "mean_ms": 28.5468820861678
+      },
+      "poll": {
+        "count": 1765,
+        "mean_ms": 0.12423059490084985
+      },
+      "publish": {
+        "count": 1764,
+        "mean_ms": 0.015786791383219954
+      },
+      "gray": {
+        "count": 1764,
+        "mean_ms": 1.7208049886621315
+      },
+      "weak_flow": {
+        "count": 1736,
+        "mean_ms": 25.20835253456221
+      },
+      "motion": {
+        "count": 1736,
+        "mean_ms": 2.041077188940092
+      },
+      "projection": {
+        "count": 1736,
+        "mean_ms": 0.007827764976958525
+      },
+      "frame_diff": {
+        "count": 1736,
+        "mean_ms": 0.9111405529953918
+      },
+      "roi_features": {
+        "count": 1736,
+        "mean_ms": 9.952649769585253
+      },
+      "pyramid_build": {
+        "count": 1736,
+        "mean_ms": 2.7637557603686638
+      },
+      "lk_forward": {
+        "count": 1736,
+        "mean_ms": 6.254147465437788
+      },
+      "lk_backward": {
+        "count": 1736,
+        "mean_ms": 5.244458525345623
+      },
+      "flow_quality": {
+        "count": 1736,
+        "mean_ms": 0.06864458525345622
+      }
+    },
+    "acceptance-6-20260921_102635_082288": {
+      "frame_work": {
+        "count": 1905,
+        "mean_ms": 31.499055118110235
+      },
+      "prepare": {
+        "count": 1905,
+        "mean_ms": 24.449448818897636
+      },
+      "poll": {
+        "count": 1906,
+        "mean_ms": 0.21831269674711437
+      },
+      "publish": {
+        "count": 1905,
+        "mean_ms": 0.01327984251968504
+      },
+      "gray": {
+        "count": 1905,
+        "mean_ms": 1.5293333333333334
+      },
+      "weak_flow": {
+        "count": 1877,
+        "mean_ms": 20.79493873201918
+      },
+      "motion": {
+        "count": 1877,
+        "mean_ms": 2.453867874267448
+      },
+      "projection": {
+        "count": 1877,
+        "mean_ms": 0.011658284496537026
+      },
+      "frame_diff": {
+        "count": 1877,
+        "mean_ms": 0.880628662759723
+      },
+      "roi_features": {
+        "count": 1877,
+        "mean_ms": 3.4199786893979756
+      },
+      "pyramid_build": {
+        "count": 1877,
+        "mean_ms": 2.5304421949920086
+      },
+      "lk_forward": {
+        "count": 1877,
+        "mean_ms": 7.808151305274375
+      },
+      "lk_backward": {
+        "count": 1877,
+        "mean_ms": 6.036654235482152
+      },
+      "flow_quality": {
+        "count": 1877,
+        "mean_ms": 0.10188545551411828
+      }
+    }
+  },
+  "memory_full_lifecycle": {
+    "Rss_kib": {
+      "first": 339836,
+      "peak": 843296,
+      "last": 672172
+    },
+    "Anonymous_kib": {
+      "first": 307988,
+      "peak": 808932,
+      "last": 637780
+    },
+    "threads": {
+      "first": 34,
+      "peak": 97,
+      "last": 85
+    }
+  }
+}

@@ -1,0 +1,1117 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-10T10:47:27.062888+00:00",
+  "trackeval": {
+    "source": "https://github.com/JonathonLuiten/TrackEval",
+    "git_commit": "12c8791b303e0a0b50f753af204249e622d0281a",
+    "hota_sha256": "c582255c3d36bdb49c3ceeb2a5bd912cee009190dfcfe465b4173d03aaa97d6a",
+    "bdd100k_sha256": "e9d5c62f164185bc996b02c61f54f0cf02c09098a715ed04aa9971d6a8de927d",
+    "numpy_compatibility_aliases": [
+      "np.bool=bool",
+      "np.int=int",
+      "np.float=float"
+    ]
+  },
+  "input": {
+    "export_manifest": "/home/ubuntu/YOLO/docs/test-results/bdd100k_trackeval/export_stride6_20260910/manifest.json",
+    "export_manifest_sha256": "8ff798cefd4aa072a7e0366e9d9cddfbbc9acf2d71bd37d39fd0110b3a95066f",
+    "video_count": 3,
+    "evaluated_categories": [
+      "pedestrian",
+      "rider",
+      "car",
+      "bus",
+      "truck",
+      "train",
+      "motorcycle",
+      "bicycle"
+    ]
+  },
+  "runs": {
+    "full_high": {
+      "cls_comb_det_av": {
+        "HOTA": {
+          "HOTA": 58.577,
+          "DetA": 55.314,
+          "AssA": 62.993,
+          "DetRe": 66.292,
+          "DetPr": 70.034,
+          "AssRe": 67.591,
+          "AssPr": 85.287,
+          "LocA": 83.649,
+          "OWTA": 64.399,
+          "HOTA(0)": 74.154,
+          "LocA(0)": 77.699,
+          "HOTALocA(0)": 57.617
+        },
+        "CLEAR": {
+          "MOTA": 56.16,
+          "MOTP": 82.132,
+          "MODA": 57.624,
+          "CLR_Re": 76.141,
+          "CLR_Pr": 80.438,
+          "MTR": 30.726,
+          "PTR": 27.374,
+          "MLR": 41.899,
+          "sMOTA": 42.555,
+          "CLR_TP": 3121.0,
+          "CLR_FN": 978.0,
+          "CLR_FP": 759.0,
+          "IDSW": 60.0,
+          "MT": 55.0,
+          "PT": 49.0,
+          "ML": 75.0,
+          "Frag": 103.0
+        },
+        "Identity": {
+          "IDF1": 66.876,
+          "IDR": 65.089,
+          "IDP": 68.763,
+          "IDTP": 2668.0,
+          "IDFN": 1431.0,
+          "IDFP": 1212.0
+        }
+      },
+      "cls_comb_cls_av": {
+        "HOTA": {
+          "HOTA": 7.9922,
+          "DetA": 7.5473,
+          "AssA": 8.6366,
+          "DetRe": 9.0086,
+          "DetPr": 15.23,
+          "AssRe": 9.2131,
+          "AssPr": 20.967,
+          "LocA": 95.169,
+          "OWTA": 8.7555,
+          "HOTA(0)": 10.154,
+          "LocA(0)": 93.724,
+          "HOTALocA(0)": 7.8515
+        },
+        "CLEAR": {
+          "MOTA": -117.51,
+          "MOTP": 19.279,
+          "MODA": -117.17,
+          "CLR_Re": 10.426,
+          "CLR_Pr": 18.834,
+          "MTR": 4.1168,
+          "PTR": 3.6677,
+          "MLR": 17.216,
+          "sMOTA": -119.42,
+          "CLR_TP": 3121.0,
+          "CLR_FN": 978.0,
+          "CLR_FP": 759.0,
+          "IDSW": 60.0,
+          "MT": 55.0,
+          "PT": 49.0,
+          "ML": 75.0,
+          "Frag": 103.0
+        },
+        "Identity": {
+          "IDF1": 9.2591,
+          "IDR": 8.8404,
+          "IDP": 14.874,
+          "IDTP": 2668.0,
+          "IDFN": 1431.0,
+          "IDFP": 1212.0
+        }
+      },
+      "VEHICLE": {
+        "HOTA": {
+          "HOTA": 58.624,
+          "DetA": 55.405,
+          "AssA": 62.993,
+          "DetRe": 66.292,
+          "DetPr": 70.179,
+          "AssRe": 67.591,
+          "AssPr": 85.287,
+          "LocA": 83.649,
+          "OWTA": 64.399,
+          "HOTA(0)": 74.219,
+          "LocA(0)": 77.699,
+          "HOTALocA(0)": 57.667
+        },
+        "CLEAR": {
+          "MOTA": 56.355,
+          "MOTP": 82.132,
+          "MODA": 57.819,
+          "CLR_Re": 76.141,
+          "CLR_Pr": 80.604,
+          "MTR": 30.726,
+          "PTR": 27.374,
+          "MLR": 41.899,
+          "sMOTA": 42.751,
+          "CLR_TP": 3121.0,
+          "CLR_FN": 978.0,
+          "CLR_FP": 751.0,
+          "IDSW": 60.0,
+          "MT": 55.0,
+          "PT": 49.0,
+          "ML": 75.0,
+          "Frag": 103.0
+        },
+        "Identity": {
+          "IDF1": 66.943,
+          "IDR": 65.089,
+          "IDP": 68.905,
+          "IDTP": 2668.0,
+          "IDFN": 1431.0,
+          "IDFP": 1204.0
+        }
+      },
+      "HUMAN": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": -800.0,
+          "MOTP": 0.0,
+          "MODA": -800.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": -800.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 8.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 8.0
+        }
+      },
+      "BIKE": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      }
+    },
+    "high_dynamic_flow": {
+      "cls_comb_det_av": {
+        "HOTA": {
+          "HOTA": 36.735,
+          "DetA": 29.924,
+          "AssA": 46.544,
+          "DetRe": 39.943,
+          "DetPr": 45.887,
+          "AssRe": 53.933,
+          "AssPr": 65.84,
+          "LocA": 74.105,
+          "OWTA": 42.783,
+          "HOTA(0)": 59.654,
+          "LocA(0)": 56.676,
+          "HOTALocA(0)": 33.81
+        },
+        "CLEAR": {
+          "MOTA": -1.1466,
+          "MOTP": 73.112,
+          "MODA": -0.39034,
+          "CLR_Re": 43.328,
+          "CLR_Pr": 49.776,
+          "MTR": 5.5866,
+          "PTR": 20.112,
+          "MLR": 74.302,
+          "sMOTA": -12.797,
+          "CLR_TP": 1776.0,
+          "CLR_FN": 2323.0,
+          "CLR_FP": 1792.0,
+          "IDSW": 31.0,
+          "MT": 10.0,
+          "PT": 36.0,
+          "ML": 133.0,
+          "Frag": 83.0
+        },
+        "Identity": {
+          "IDF1": 41.894,
+          "IDR": 39.18,
+          "IDP": 45.011,
+          "IDTP": 1606.0,
+          "IDFN": 2493.0,
+          "IDFP": 1962.0
+        }
+      },
+      "cls_comb_cls_av": {
+        "HOTA": {
+          "HOTA": 4.9904,
+          "DetA": 4.0179,
+          "AssA": 6.4856,
+          "DetRe": 5.3547,
+          "DetPr": 10.134,
+          "AssRe": 7.4219,
+          "AssPr": 12.616,
+          "LocA": 93.243,
+          "OWTA": 5.7836,
+          "HOTA(0)": 8.5282,
+          "LocA(0)": 86.712,
+          "HOTALocA(0)": 4.6519
+        },
+        "CLEAR": {
+          "MOTA": -75.568,
+          "MOTP": 9.139,
+          "MODA": -75.47,
+          "CLR_Re": 5.6417,
+          "CLR_Pr": 6.243,
+          "MTR": 0.7485,
+          "PTR": 2.6946,
+          "MLR": 21.557,
+          "sMOTA": -77.085,
+          "CLR_TP": 1776.0,
+          "CLR_FN": 2323.0,
+          "CLR_FP": 1792.0,
+          "IDSW": 31.0,
+          "MT": 10.0,
+          "PT": 36.0,
+          "ML": 133.0,
+          "Frag": 83.0
+        },
+        "Identity": {
+          "IDF1": 5.3598,
+          "IDR": 5.1017,
+          "IDP": 5.6454,
+          "IDTP": 1606.0,
+          "IDFN": 2493.0,
+          "IDFP": 1962.0
+        }
+      },
+      "VEHICLE": {
+        "HOTA": {
+          "HOTA": 36.755,
+          "DetA": 29.957,
+          "AssA": 46.544,
+          "DetRe": 39.943,
+          "DetPr": 45.965,
+          "AssRe": 53.933,
+          "AssPr": 65.84,
+          "LocA": 74.105,
+          "OWTA": 42.783,
+          "HOTA(0)": 59.692,
+          "LocA(0)": 56.676,
+          "HOTALocA(0)": 33.831
+        },
+        "CLEAR": {
+          "MOTA": -1.0002,
+          "MOTP": 73.112,
+          "MODA": -0.24396,
+          "CLR_Re": 43.328,
+          "CLR_Pr": 49.86,
+          "MTR": 5.5866,
+          "PTR": 20.112,
+          "MLR": 74.302,
+          "sMOTA": -12.65,
+          "CLR_TP": 1776.0,
+          "CLR_FN": 2323.0,
+          "CLR_FP": 1786.0,
+          "IDSW": 31.0,
+          "MT": 10.0,
+          "PT": 36.0,
+          "ML": 133.0,
+          "Frag": 83.0
+        },
+        "Identity": {
+          "IDF1": 41.927,
+          "IDR": 39.18,
+          "IDP": 45.087,
+          "IDTP": 1606.0,
+          "IDFN": 2493.0,
+          "IDFP": 1956.0
+        }
+      },
+      "HUMAN": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": -600.0,
+          "MOTP": 0.0,
+          "MODA": -600.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": -600.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 6.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 6.0
+        }
+      },
+      "BIKE": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      }
+    },
+    "high_fixed_flow": {
+      "cls_comb_det_av": {
+        "HOTA": {
+          "HOTA": 34.887,
+          "DetA": 28.612,
+          "AssA": 43.918,
+          "DetRe": 38.423,
+          "DetPr": 44.616,
+          "AssRe": 51.358,
+          "AssPr": 65.196,
+          "LocA": 74.009,
+          "OWTA": 40.751,
+          "HOTA(0)": 57.485,
+          "LocA(0)": 56.05,
+          "HOTALocA(0)": 32.22
+        },
+        "CLEAR": {
+          "MOTA": -3.1715,
+          "MOTP": 72.744,
+          "MODA": -2.2444,
+          "CLR_Re": 41.937,
+          "CLR_Pr": 48.697,
+          "MTR": 5.5866,
+          "PTR": 20.67,
+          "MLR": 73.743,
+          "sMOTA": -14.602,
+          "CLR_TP": 1719.0,
+          "CLR_FN": 2380.0,
+          "CLR_FP": 1811.0,
+          "IDSW": 38.0,
+          "MT": 10.0,
+          "PT": 37.0,
+          "ML": 132.0,
+          "Frag": 85.0
+        },
+        "Identity": {
+          "IDF1": 40.713,
+          "IDR": 37.887,
+          "IDP": 43.994,
+          "IDTP": 1553.0,
+          "IDFN": 2546.0,
+          "IDFP": 1977.0
+        }
+      },
+      "cls_comb_cls_av": {
+        "HOTA": {
+          "HOTA": 4.7288,
+          "DetA": 3.8394,
+          "AssA": 6.0923,
+          "DetRe": 5.1529,
+          "DetPr": 7.5656,
+          "AssRe": 7.0321,
+          "AssPr": 12.089,
+          "LocA": 93.358,
+          "OWTA": 5.5029,
+          "HOTA(0)": 8.2813,
+          "LocA(0)": 85.401,
+          "HOTALocA(0)": 4.3672
+        },
+        "CLEAR": {
+          "MOTA": -13.859,
+          "MOTP": 9.0931,
+          "MODA": -13.739,
+          "CLR_Re": 5.4606,
+          "CLR_Pr": 6.1113,
+          "MTR": 0.7485,
+          "PTR": 2.7695,
+          "MLR": 21.482,
+          "sMOTA": -15.348,
+          "CLR_TP": 1719.0,
+          "CLR_FN": 2380.0,
+          "CLR_FP": 1811.0,
+          "IDSW": 38.0,
+          "MT": 10.0,
+          "PT": 37.0,
+          "ML": 132.0,
+          "Frag": 85.0
+        },
+        "Identity": {
+          "IDF1": 5.2107,
+          "IDR": 4.9333,
+          "IDP": 5.5212,
+          "IDTP": 1553.0,
+          "IDFN": 2546.0,
+          "IDFP": 1977.0
+        }
+      },
+      "VEHICLE": {
+        "HOTA": {
+          "HOTA": 34.89,
+          "DetA": 28.617,
+          "AssA": 43.918,
+          "DetRe": 38.423,
+          "DetPr": 44.629,
+          "AssRe": 51.358,
+          "AssPr": 65.196,
+          "LocA": 74.009,
+          "OWTA": 40.751,
+          "HOTA(0)": 57.491,
+          "LocA(0)": 56.05,
+          "HOTALocA(0)": 32.224
+        },
+        "CLEAR": {
+          "MOTA": -3.1471,
+          "MOTP": 72.744,
+          "MODA": -2.2201,
+          "CLR_Re": 41.937,
+          "CLR_Pr": 48.711,
+          "MTR": 5.5866,
+          "PTR": 20.67,
+          "MLR": 73.743,
+          "sMOTA": -14.577,
+          "CLR_TP": 1719.0,
+          "CLR_FN": 2380.0,
+          "CLR_FP": 1810.0,
+          "IDSW": 38.0,
+          "MT": 10.0,
+          "PT": 37.0,
+          "ML": 132.0,
+          "Frag": 85.0
+        },
+        "Identity": {
+          "IDF1": 40.718,
+          "IDR": 37.887,
+          "IDP": 44.007,
+          "IDTP": 1553.0,
+          "IDFN": 2546.0,
+          "IDFP": 1976.0
+        }
+      },
+      "HUMAN": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": -100.0,
+          "MOTP": 0.0,
+          "MODA": -100.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": -100.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 1.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 1.0
+        }
+      },
+      "BIKE": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      }
+    },
+    "low_dynamic_flow": {
+      "cls_comb_det_av": {
+        "HOTA": {
+          "HOTA": 51.429,
+          "DetA": 45.308,
+          "AssA": 59.598,
+          "DetRe": 54.396,
+          "DetPr": 63.47,
+          "AssRe": 65.065,
+          "AssPr": 79.083,
+          "LocA": 79.277,
+          "OWTA": 56.698,
+          "HOTA(0)": 71.005,
+          "LocA(0)": 70.415,
+          "HOTALocA(0)": 49.998
+        },
+        "CLEAR": {
+          "MOTA": 40.351,
+          "MOTP": 77.164,
+          "MODA": 41.498,
+          "CLR_Re": 63.601,
+          "CLR_Pr": 74.21,
+          "MTR": 11.173,
+          "PTR": 39.665,
+          "MLR": 49.162,
+          "sMOTA": 25.828,
+          "CLR_TP": 2607.0,
+          "CLR_FN": 1492.0,
+          "CLR_FP": 906.0,
+          "IDSW": 47.0,
+          "MT": 20.0,
+          "PT": 71.0,
+          "ML": 88.0,
+          "Frag": 116.0
+        },
+        "Identity": {
+          "IDF1": 62.927,
+          "IDR": 58.429,
+          "IDP": 68.175,
+          "IDTP": 2395.0,
+          "IDFN": 1704.0,
+          "IDFP": 1118.0
+        }
+      },
+      "cls_comb_cls_av": {
+        "HOTA": {
+          "HOTA": 7.8838,
+          "DetA": 6.7278,
+          "AssA": 9.5775,
+          "DetRe": 8.0017,
+          "DetPr": 12.728,
+          "AssRe": 10.296,
+          "AssPr": 20.366,
+          "LocA": 93.882,
+          "OWTA": 8.6279,
+          "HOTA(0)": 11.392,
+          "LocA(0)": 90.608,
+          "HOTALocA(0)": 7.6544
+        },
+        "CLEAR": {
+          "MOTA": 4.3776,
+          "MOTP": 18.431,
+          "MODA": 4.6,
+          "CLR_Re": 9.0849,
+          "CLR_Pr": 13.491,
+          "MTR": 1.497,
+          "PTR": 6.2812,
+          "MLR": 17.222,
+          "sMOTA": 2.2475,
+          "CLR_TP": 2607.0,
+          "CLR_FN": 1492.0,
+          "CLR_FP": 906.0,
+          "IDSW": 47.0,
+          "MT": 20.0,
+          "PT": 71.0,
+          "ML": 88.0,
+          "Frag": 116.0
+        },
+        "Identity": {
+          "IDF1": 9.3102,
+          "IDR": 8.3384,
+          "IDP": 12.355,
+          "IDTP": 2395.0,
+          "IDFN": 1704.0,
+          "IDFP": 1118.0
+        }
+      },
+      "VEHICLE": {
+        "HOTA": {
+          "HOTA": 51.429,
+          "DetA": 45.308,
+          "AssA": 59.598,
+          "DetRe": 54.396,
+          "DetPr": 63.47,
+          "AssRe": 65.065,
+          "AssPr": 79.083,
+          "LocA": 79.277,
+          "OWTA": 56.698,
+          "HOTA(0)": 71.005,
+          "LocA(0)": 70.415,
+          "HOTALocA(0)": 49.998
+        },
+        "CLEAR": {
+          "MOTA": 40.351,
+          "MOTP": 77.164,
+          "MODA": 41.498,
+          "CLR_Re": 63.601,
+          "CLR_Pr": 74.21,
+          "MTR": 11.173,
+          "PTR": 39.665,
+          "MLR": 49.162,
+          "sMOTA": 25.828,
+          "CLR_TP": 2607.0,
+          "CLR_FN": 1492.0,
+          "CLR_FP": 906.0,
+          "IDSW": 47.0,
+          "MT": 20.0,
+          "PT": 71.0,
+          "ML": 88.0,
+          "Frag": 116.0
+        },
+        "Identity": {
+          "IDF1": 62.927,
+          "IDR": 58.429,
+          "IDP": 68.175,
+          "IDTP": 2395.0,
+          "IDFN": 1704.0,
+          "IDFP": 1118.0
+        }
+      },
+      "HUMAN": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      },
+      "BIKE": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      }
+    },
+    "integrated_high_low_flow": {
+      "cls_comb_det_av": {
+        "HOTA": {
+          "HOTA": 46.148,
+          "DetA": 39.26,
+          "AssA": 55.074,
+          "DetRe": 69.634,
+          "DetPr": 44.696,
+          "AssRe": 69.868,
+          "AssPr": 66.975,
+          "LocA": 83.395,
+          "OWTA": 61.687,
+          "HOTA(0)": 57.491,
+          "LocA(0)": 76.388,
+          "HOTALocA(0)": 43.916
+        },
+        "CLEAR": {
+          "MOTA": 3.5862,
+          "MOTP": 81.672,
+          "MODA": 5.2208,
+          "CLR_Re": 80.507,
+          "CLR_Pr": 51.676,
+          "MTR": 30.168,
+          "PTR": 41.341,
+          "MLR": 28.492,
+          "sMOTA": -11.169,
+          "CLR_TP": 3300.0,
+          "CLR_FN": 799.0,
+          "CLR_FP": 3086.0,
+          "IDSW": 67.0,
+          "MT": 54.0,
+          "PT": 74.0,
+          "ML": 51.0,
+          "Frag": 96.0
+        },
+        "Identity": {
+          "IDF1": 54.173,
+          "IDR": 69.285,
+          "IDP": 44.472,
+          "IDTP": 2840.0,
+          "IDFN": 1259.0,
+          "IDFP": 3546.0
+        }
+      },
+      "cls_comb_cls_av": {
+        "HOTA": {
+          "HOTA": 8.314,
+          "DetA": 6.1448,
+          "AssA": 12.374,
+          "DetRe": 10.336,
+          "DetPr": 9.876,
+          "AssRe": 14.317,
+          "AssPr": 18.694,
+          "LocA": 95.819,
+          "OWTA": 10.543,
+          "HOTA(0)": 10.304,
+          "LocA(0)": 94.676,
+          "HOTALocA(0)": 8.0093
+        },
+        "CLEAR": {
+          "MOTA": -300.11,
+          "MOTP": 20.34,
+          "MODA": -299.9,
+          "CLR_Re": 12.017,
+          "CLR_Pr": 11.642,
+          "MTR": 4.0419,
+          "PTR": 6.5057,
+          "MLR": 14.452,
+          "sMOTA": -302.33,
+          "CLR_TP": 3300.0,
+          "CLR_FN": 799.0,
+          "CLR_FP": 3086.0,
+          "IDSW": 67.0,
+          "MT": 54.0,
+          "PT": 74.0,
+          "ML": 51.0,
+          "Frag": 96.0
+        },
+        "Identity": {
+          "IDF1": 9.3202,
+          "IDR": 10.556,
+          "IDP": 10.731,
+          "IDTP": 2840.0,
+          "IDFN": 1259.0,
+          "IDFP": 3546.0
+        }
+      },
+      "VEHICLE": {
+        "HOTA": {
+          "HOTA": 46.224,
+          "DetA": 39.391,
+          "AssA": 55.074,
+          "DetRe": 69.634,
+          "DetPr": 44.865,
+          "AssRe": 69.868,
+          "AssPr": 66.975,
+          "LocA": 83.395,
+          "OWTA": 61.687,
+          "HOTA(0)": 57.592,
+          "LocA(0)": 76.388,
+          "HOTALocA(0)": 43.994
+        },
+        "CLEAR": {
+          "MOTA": 4.1717,
+          "MOTP": 81.672,
+          "MODA": 5.8063,
+          "CLR_Re": 80.507,
+          "CLR_Pr": 51.87,
+          "MTR": 30.168,
+          "PTR": 41.341,
+          "MLR": 28.492,
+          "sMOTA": -10.583,
+          "CLR_TP": 3300.0,
+          "CLR_FN": 799.0,
+          "CLR_FP": 3062.0,
+          "IDSW": 67.0,
+          "MT": 54.0,
+          "PT": 74.0,
+          "ML": 51.0,
+          "Frag": 96.0
+        },
+        "Identity": {
+          "IDF1": 54.297,
+          "IDR": 69.285,
+          "IDP": 44.64,
+          "IDTP": 2840.0,
+          "IDFN": 1259.0,
+          "IDFP": 3522.0
+        }
+      },
+      "HUMAN": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": -2400.0,
+          "MOTP": 0.0,
+          "MODA": -2400.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": -2400.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 24.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 24.0
+        }
+      },
+      "BIKE": {
+        "HOTA": {
+          "HOTA": 0.0,
+          "DetA": 0.0,
+          "AssA": 0.0,
+          "DetRe": 0.0,
+          "DetPr": 0.0,
+          "AssRe": 0.0,
+          "AssPr": 0.0,
+          "LocA": 100.0,
+          "OWTA": 0.0,
+          "HOTA(0)": 0.0,
+          "LocA(0)": 100.0,
+          "HOTALocA(0)": 0.0
+        },
+        "CLEAR": {
+          "MOTA": 0.0,
+          "MOTP": 0.0,
+          "MODA": 0.0,
+          "CLR_Re": 0.0,
+          "CLR_Pr": 0.0,
+          "MTR": 0.0,
+          "PTR": 0.0,
+          "MLR": 0.0,
+          "sMOTA": 0.0,
+          "CLR_TP": 0.0,
+          "CLR_FN": 0.0,
+          "CLR_FP": 0.0,
+          "IDSW": 0.0,
+          "MT": 0.0,
+          "PT": 0.0,
+          "ML": 0.0,
+          "Frag": 0.0
+        },
+        "Identity": {
+          "IDF1": 0.0,
+          "IDR": 0.0,
+          "IDP": 0.0,
+          "IDTP": 0.0,
+          "IDFN": 0.0,
+          "IDFP": 0.0
+        }
+      }
+    }
+  }
+}

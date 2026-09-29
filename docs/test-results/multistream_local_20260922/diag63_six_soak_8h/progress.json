@@ -1,0 +1,18 @@
+{
+  "sample_count": 5690,
+  "observed_at": "2026-09-22T09:26:54.788148+00:00",
+  "service_pid": 51235,
+  "memory": {
+    "monotonic_seconds": 114777.233854609,
+    "Rss_kib": 951240,
+    "Pss_kib": 949635,
+    "Shared_Clean_kib": 1660,
+    "Shared_Dirty_kib": 0,
+    "Private_Clean_kib": 32548,
+    "Private_Dirty_kib": 917032,
+    "Anonymous_kib": 917032,
+    "AnonHugePages_kib": 0,
+    "threads": 97
+  },
+  "metrics_monotonic_seconds": 114777.189187677
+}

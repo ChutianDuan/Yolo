@@ -1,0 +1,1038 @@
+{
+  "purpose": "same-profile gray-pyramid reuse local short-window evidence; historical before/after windows are not a controlled speedup benchmark, not RTSP/NUMA/soak/quality acceptance",
+  "controls_verified": true,
+  "runtime_without_request_stream_properties": [
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 736,
+      "input_width": 1280,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    },
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 384,
+      "input_width": 640,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    }
+  ],
+  "model_sha256": [
+    "96ecf0117bc10499c611fbabc38dbf92457bfaec53b9e099fe67041cbb26fc59",
+    "439a56ee159a52ffafdce6befa4e8486c8e311f8d6095ffb9cbbad0443fdfcbf"
+  ],
+  "source_sha256": {
+    "0000f77c-6257be58.mov": "313eed7b8e46ae388c9d59f4e6068d5ab6fb98ce13e0d63b48b8cdd604d76767",
+    "00268999-cb063914.mov": "87380c9b303b9c913522d09c58a14e48b856a88f6a1e366831bdda5777b3a856",
+    "012fdff1-9d1d0d1d.mov": "3ce62fa669dcc8fba22d552da1e4398eb15949c26419c323c475daace57b1fcd",
+    "0000f77c-cb820c98.mov": "e6608a6ef6a15e2dfb31ce4f3df3b8307ce1bbe57a1931eb8e1feab3a5c35670"
+  },
+  "rows": [
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "throughput",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "2",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag55_six_throughput_processing",
+      "status": "FAIL",
+      "elapsed_seconds": 30.00442270305939,
+      "warmup_seconds": 10.00646052788943,
+      "output_fps": [
+        19.397140406925963,
+        23.69650657959512
+      ],
+      "low_fps": [
+        4.032738813123783,
+        4.6326503721008745
+      ],
+      "high_fps": [
+        0.7332252387497786,
+        0.9665241783519809
+      ],
+      "p95_ms": [
+        124.438025,
+        254.415326
+      ],
+      "fairness_percent": 18.14345991561181,
+      "cpu_host_percent": 60.785585404300704,
+      "rss_growth_percent": -2.6771007055805,
+      "failed_gates": [
+        "acceptance-1-20260914_081820_896907: processed FPS",
+        "acceptance-2-20260914_081820_896907: processed FPS",
+        "acceptance-3-20260914_081820_896907: processed FPS",
+        "acceptance-4-20260914_081820_896907: processed FPS",
+        "acceptance-5-20260914_081820_896907: processed FPS",
+        "acceptance-6-20260914_081820_896907: processed FPS",
+        "stream fairness spread"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 78,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.9993426501656,
+        29.99971565474903
+      ],
+      "processing_global": {
+        "frame_work": {
+          "count": 5296,
+          "sum_ms": 226326,
+          "mean_ms": 42.735271903323266,
+          "max_ms": 381.467
+        },
+        "prepare": {
+          "count": 5296,
+          "sum_ms": 177433,
+          "mean_ms": 33.50320996978852,
+          "max_ms": 381.46200000000005
+        },
+        "poll": {
+          "count": 5296,
+          "sum_ms": 1024.81,
+          "mean_ms": 0.19350641993957704,
+          "max_ms": 7.14739
+        },
+        "publish": {
+          "count": 5294,
+          "sum_ms": 111.554,
+          "mean_ms": 0.021071779372874952,
+          "max_ms": 10.2485
+        }
+      },
+      "processing_by_stream": {
+        "acceptance-1-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 879,
+              "mean_ms": 42.462002275312855,
+              "max_ms": 350.361
+            },
+            "prepare": {
+              "count": 879,
+              "mean_ms": 33.82286689419795,
+              "max_ms": 350.354
+            },
+            "poll": {
+              "count": 880,
+              "mean_ms": 0.12005,
+              "max_ms": 1.63805
+            },
+            "publish": {
+              "count": 878,
+              "mean_ms": 0.018647608200455582,
+              "max_ms": 4.166569999999999
+            }
+          }
+        },
+        "acceptance-2-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 883,
+              "mean_ms": 42.56976217440543,
+              "max_ms": 293.72700000000003
+            },
+            "prepare": {
+              "count": 883,
+              "mean_ms": 34.06806342015855,
+              "max_ms": 288.80699999999996
+            },
+            "poll": {
+              "count": 884,
+              "mean_ms": 0.24538800904977376,
+              "max_ms": 7.14739
+            },
+            "publish": {
+              "count": 883,
+              "mean_ms": 0.016256964892412233,
+              "max_ms": 2.63451
+            }
+          }
+        },
+        "acceptance-3-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 923,
+              "mean_ms": 40.18840736728061,
+              "max_ms": 188.569
+            },
+            "prepare": {
+              "count": 923,
+              "mean_ms": 29.38114842903575,
+              "max_ms": 181.72299999999998
+            },
+            "poll": {
+              "count": 924,
+              "mean_ms": 0.16294372294372295,
+              "max_ms": 3.1448
+            },
+            "publish": {
+              "count": 923,
+              "mean_ms": 0.02349479956663055,
+              "max_ms": 4.12704
+            }
+          }
+        },
+        "acceptance-4-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 892,
+              "mean_ms": 41.949215246636776,
+              "max_ms": 288.725
+            },
+            "prepare": {
+              "count": 893,
+              "mean_ms": 32.816909294512875,
+              "max_ms": 288.633
+            },
+            "poll": {
+              "count": 893,
+              "mean_ms": 0.27746360582306834,
+              "max_ms": 3.37665
+            },
+            "publish": {
+              "count": 892,
+              "mean_ms": 0.016519843049327354,
+              "max_ms": 2.5680400000000003
+            }
+          }
+        },
+        "acceptance-5-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 890,
+              "mean_ms": 41.67089887640449,
+              "max_ms": 381.467
+            },
+            "prepare": {
+              "count": 890,
+              "mean_ms": 32.42269662921348,
+              "max_ms": 381.46200000000005
+            },
+            "poll": {
+              "count": 891,
+              "mean_ms": 0.11682154882154881,
+              "max_ms": 5.5685400000000005
+            },
+            "publish": {
+              "count": 889,
+              "mean_ms": 0.03509842519685039,
+              "max_ms": 10.2485
+            }
+          }
+        },
+        "acceptance-6-20260914_081820_896907": {
+          "last_registered_monotonic_seconds": 1062643.647731319,
+          "processing": {
+            "frame_work": {
+              "count": 764,
+              "mean_ms": 48.73520942408376,
+              "max_ms": 237.228
+            },
+            "prepare": {
+              "count": 764,
+              "mean_ms": 39.597643979057594,
+              "max_ms": 218.818
+            },
+            "poll": {
+              "count": 765,
+              "mean_ms": 0.2515830065359477,
+              "max_ms": 4.87663
+            },
+            "publish": {
+              "count": 764,
+              "mean_ms": 0.016887303664921464,
+              "max_ms": 1.70447
+            }
+          }
+        }
+      },
+      "stages": {
+        "high": {
+          "completed": 252,
+          "applied": 190,
+          "expired": 62,
+          "evicted": 0,
+          "queue_wait_mean_ms": 29.673888888888893,
+          "infer_mean_ms": 153.1670634920635,
+          "result_age_mean_ms": 276.53214285714284,
+          "replay_mean_ms": 0.8862552083333334,
+          "commit_age_mean_ms": 246.15104166666666,
+          "updated": 3384,
+          "scheduler": {
+            "submitted_total": 257,
+            "completed_total": 253,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 4,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 1064,
+          "applied": 1018,
+          "expired": 46,
+          "evicted": 0,
+          "queue_wait_mean_ms": 21.88421052631579,
+          "infer_mean_ms": 71.86287593984963,
+          "result_age_mean_ms": 182.11466165413535,
+          "replay_mean_ms": 0.8143905789990187,
+          "commit_age_mean_ms": 175.6251226692836,
+          "updated": 1071,
+          "scheduler": {
+            "submitted_total": 1070,
+            "completed_total": 1068,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "throughput",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "2",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag56_six_throughput_shared_pyramids",
+      "status": "FAIL",
+      "elapsed_seconds": 30.004276158986613,
+      "warmup_seconds": 10.003285435959697,
+      "output_fps": [
+        22.09685034516069,
+        27.362766415349814
+      ],
+      "low_fps": [
+        4.2660585885076445,
+        4.899301660239248
+      ],
+      "high_fps": [
+        0.7665574026224674,
+        0.9998574816814791
+      ],
+      "p95_ms": [
+        127.819484,
+        245.049929
+      ],
+      "fairness_percent": 19.244823386114497,
+      "cpu_host_percent": 61.03714566373654,
+      "rss_growth_percent": 5.621260320606964,
+      "failed_gates": [
+        "acceptance-2-20260914_083726_229569: processed FPS",
+        "acceptance-5-20260914_083726_229569: processed FPS",
+        "acceptance-6-20260914_083726_229569: processed FPS",
+        "stream fairness spread",
+        "process RSS growth"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 78,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999372883534246,
+        29.999771547039707
+      ],
+      "processing_global": {
+        "frame_work": {
+          "count": 5935,
+          "sum_ms": 219548,
+          "mean_ms": 36.99208087615838,
+          "max_ms": 327.896
+        },
+        "prepare": {
+          "count": 5935,
+          "sum_ms": 170341,
+          "mean_ms": 28.701095197978095,
+          "max_ms": 327.889
+        },
+        "poll": {
+          "count": 5935,
+          "sum_ms": 1107.33,
+          "mean_ms": 0.18657624262847514,
+          "max_ms": 8.368640000000001
+        },
+        "publish": {
+          "count": 5934,
+          "sum_ms": 84.4564,
+          "mean_ms": 0.014232625547691271,
+          "max_ms": 2.88291
+        }
+      },
+      "processing_by_stream": {
+        "acceptance-1-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 998,
+              "mean_ms": 36.91583166332666,
+              "max_ms": 217.95700000000002
+            },
+            "prepare": {
+              "count": 998,
+              "mean_ms": 28.544488977955915,
+              "max_ms": 205.537
+            },
+            "poll": {
+              "count": 999,
+              "mean_ms": 0.1153043043043043,
+              "max_ms": 4.91532
+            },
+            "publish": {
+              "count": 998,
+              "mean_ms": 0.014377855711422846,
+              "max_ms": 1.86401
+            }
+          }
+        },
+        "acceptance-2-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 936,
+              "mean_ms": 38.25705128205128,
+              "max_ms": 262.467
+            },
+            "prepare": {
+              "count": 936,
+              "mean_ms": 30.22809829059829,
+              "max_ms": 253.206
+            },
+            "poll": {
+              "count": 937,
+              "mean_ms": 0.22842369263607257,
+              "max_ms": 4.69705
+            },
+            "publish": {
+              "count": 936,
+              "mean_ms": 0.013633760683760685,
+              "max_ms": 1.01332
+            }
+          }
+        },
+        "acceptance-3-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 1072,
+              "mean_ms": 32.416044776119406,
+              "max_ms": 168.877
+            },
+            "prepare": {
+              "count": 1072,
+              "mean_ms": 23.67089552238806,
+              "max_ms": 163.363
+            },
+            "poll": {
+              "count": 1073,
+              "mean_ms": 0.16289748369058712,
+              "max_ms": 3.8761300000000003
+            },
+            "publish": {
+              "count": 1072,
+              "mean_ms": 0.012765111940298508,
+              "max_ms": 1.16527
+            }
+          }
+        },
+        "acceptance-4-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 1024,
+              "mean_ms": 34.5208984375,
+              "max_ms": 238.88899999999998
+            },
+            "prepare": {
+              "count": 1024,
+              "mean_ms": 26.81171875,
+              "max_ms": 231.344
+            },
+            "poll": {
+              "count": 1025,
+              "mean_ms": 0.2579151219512195,
+              "max_ms": 8.368640000000001
+            },
+            "publish": {
+              "count": 1024,
+              "mean_ms": 0.0131279296875,
+              "max_ms": 1.4597499999999999
+            }
+          }
+        },
+        "acceptance-5-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 942,
+              "mean_ms": 39.250424628450105,
+              "max_ms": 271.96500000000003
+            },
+            "prepare": {
+              "count": 942,
+              "mean_ms": 30.769532908704885,
+              "max_ms": 259.469
+            },
+            "poll": {
+              "count": 943,
+              "mean_ms": 0.11337433722163308,
+              "max_ms": 2.02305
+            },
+            "publish": {
+              "count": 942,
+              "mean_ms": 0.015012101910828026,
+              "max_ms": 0.8746780000000001
+            }
+          }
+        },
+        "acceptance-6-20260914_083726_229569": {
+          "last_registered_monotonic_seconds": 1063788.857704271,
+          "processing": {
+            "frame_work": {
+              "count": 878,
+              "mean_ms": 41.614920273348524,
+              "max_ms": 327.896
+            },
+            "prepare": {
+              "count": 878,
+              "mean_ms": 33.322779043280185,
+              "max_ms": 327.889
+            },
+            "poll": {
+              "count": 879,
+              "mean_ms": 0.24965301478953356,
+              "max_ms": 2.90043
+            },
+            "publish": {
+              "count": 877,
+              "mean_ms": 0.017920068415051314,
+              "max_ms": 2.88291
+            }
+          }
+        }
+      },
+      "stages": {
+        "high": {
+          "completed": 256,
+          "applied": 205,
+          "expired": 51,
+          "evicted": 0,
+          "queue_wait_mean_ms": 26.7377734375,
+          "infer_mean_ms": 150.26093749999998,
+          "result_age_mean_ms": 266.46875,
+          "replay_mean_ms": 0.9634830917874396,
+          "commit_age_mean_ms": 240.37342995169084,
+          "updated": 3810,
+          "scheduler": {
+            "submitted_total": 261,
+            "completed_total": 258,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 3,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 1131,
+          "applied": 1104,
+          "expired": 27,
+          "evicted": 0,
+          "queue_wait_mean_ms": 19.908311229000887,
+          "infer_mean_ms": 68.28523430592395,
+          "result_age_mean_ms": 163.2263483642794,
+          "replay_mean_ms": 0.7998678733031674,
+          "commit_age_mean_ms": 159.7131221719457,
+          "updated": 1343,
+          "scheduler": {
+            "submitted_total": 1136,
+            "completed_total": 1134,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 2,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "high_threads": 16,
+      "low_threads": 16,
+      "opencv_threads": 4,
+      "high_requests": 1,
+      "low_requests": 2,
+      "performance_mode": "throughput",
+      "runtime": [
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 736,
+          "input_width": 1280,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "1",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 1,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        },
+        {
+          "backend": "openvino",
+          "component": "model_runtime",
+          "configured_cpu_pinning": false,
+          "input_height": 384,
+          "input_width": 640,
+          "properties": {
+            "ENABLE_CPU_PINNING": "NO",
+            "ENABLE_CPU_RESERVATION": "NO",
+            "ENABLE_HYPER_THREADING": "NO",
+            "EXECUTION_DEVICES": "CPU",
+            "INFERENCE_NUM_THREADS": "16",
+            "INFERENCE_PRECISION_HINT": "f32",
+            "NUM_STREAMS": "2",
+            "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+            "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+            "SCHEDULING_CORE_TYPE": "ANY_CORE"
+          },
+          "request_pool_size": 2,
+          "runtime_build": "2026.1.0-000--",
+          "runtime_description": "OpenVINO Runtime",
+          "schema_version": 1
+        }
+      ],
+      "case": "diag56_six_throughput_released_pyramids",
+      "status": "FAIL",
+      "elapsed_seconds": 30.004191437968984,
+      "warmup_seconds": 10.003111576894298,
+      "output_fps": [
+        20.963737726457385,
+        26.063025281541613
+      ],
+      "low_fps": [
+        4.1994132806576,
+        4.799329463608686
+      ],
+      "high_fps": [
+        0.6999022134429334,
+        1.0665176585797078
+      ],
+      "p95_ms": [
+        110.906153,
+        233.009623
+      ],
+      "fairness_percent": 19.565217391304344,
+      "cpu_host_percent": 61.07180427907426,
+      "rss_growth_percent": 11.101713412637784,
+      "failed_gates": [
+        "acceptance-1-20260914_084818_189027: processed FPS",
+        "acceptance-2-20260914_084818_189027: processed FPS",
+        "acceptance-5-20260914_084818_189027: processed FPS",
+        "acceptance-6-20260914_084818_189027: processed FPS",
+        "stream fairness spread",
+        "process RSS growth"
+      ],
+      "metrics_samples": 41,
+      "monotonic_global_series": 78,
+      "service_exited_and_streams_removed": true,
+      "post_delete_gauges": {
+        "yolo_streams_active": 0,
+        "yolo_streams_registered": 0,
+        "yolo_scheduler_queue_depth{tier=\"high\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"high\"}": 0,
+        "yolo_scheduler_queue_depth{tier=\"low\"}": 0,
+        "yolo_scheduler_in_flight{tier=\"low\"}": 0
+      },
+      "distinct_source_contents": 4,
+      "source_fps": [
+        29.999571429307267,
+        29.999791365086676
+      ],
+      "processing_global": {
+        "frame_work": {
+          "count": 5764,
+          "sum_ms": 221395,
+          "mean_ms": 38.40995836224844,
+          "max_ms": 329.129
+        },
+        "prepare": {
+          "count": 5764,
+          "sum_ms": 171911,
+          "mean_ms": 29.824947952810547,
+          "max_ms": 328.436
+        },
+        "poll": {
+          "count": 5764,
+          "sum_ms": 1122.1000000000001,
+          "mean_ms": 0.19467383761276894,
+          "max_ms": 29.0324
+        },
+        "publish": {
+          "count": 5761,
+          "sum_ms": 196.433,
+          "mean_ms": 0.03409703176531852,
+          "max_ms": 69.00739999999999
+        }
+      },
+      "processing_by_stream": {
+        "acceptance-1-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 921,
+              "mean_ms": 41.148642779587405,
+              "max_ms": 329.129
+            },
+            "prepare": {
+              "count": 921,
+              "mean_ms": 31.96102062975027,
+              "max_ms": 328.436
+            },
+            "poll": {
+              "count": 922,
+              "mean_ms": 0.1263839479392625,
+              "max_ms": 3.54459
+            },
+            "publish": {
+              "count": 920,
+              "mean_ms": 0.03060652173913043,
+              "max_ms": 15.9452
+            }
+          }
+        },
+        "acceptance-2-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 888,
+              "mean_ms": 41.59572072072072,
+              "max_ms": 292.402
+            },
+            "prepare": {
+              "count": 888,
+              "mean_ms": 33.40912162162162,
+              "max_ms": 286.78999999999996
+            },
+            "poll": {
+              "count": 889,
+              "mean_ms": 0.24056805399325085,
+              "max_ms": 2.68221
+            },
+            "publish": {
+              "count": 888,
+              "mean_ms": 0.012789076576576576,
+              "max_ms": 0.812882
+            }
+          }
+        },
+        "acceptance-3-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 1022,
+              "mean_ms": 34.34843444227006,
+              "max_ms": 254.51800000000003
+            },
+            "prepare": {
+              "count": 1022,
+              "mean_ms": 25.092661448140902,
+              "max_ms": 239.51
+            },
+            "poll": {
+              "count": 1023,
+              "mean_ms": 0.17147214076246334,
+              "max_ms": 4.53279
+            },
+            "publish": {
+              "count": 1022,
+              "mean_ms": 0.02226751467710372,
+              "max_ms": 2.65904
+            }
+          }
+        },
+        "acceptance-4-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 1038,
+              "mean_ms": 35.06657032755299,
+              "max_ms": 187.519
+            },
+            "prepare": {
+              "count": 1038,
+              "mean_ms": 26.457418111753373,
+              "max_ms": 187.46699999999998
+            },
+            "poll": {
+              "count": 1039,
+              "mean_ms": 0.26746871992300286,
+              "max_ms": 29.0324
+            },
+            "publish": {
+              "count": 1038,
+              "mean_ms": 0.01736233140655106,
+              "max_ms": 6.04336
+            }
+          }
+        },
+        "acceptance-5-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 974,
+              "mean_ms": 37.427618069815196,
+              "max_ms": 218.235
+            },
+            "prepare": {
+              "count": 974,
+              "mean_ms": 29.23593429158111,
+              "max_ms": 218.20600000000002
+            },
+            "poll": {
+              "count": 975,
+              "mean_ms": 0.1161548717948718,
+              "max_ms": 6.09832
+            },
+            "publish": {
+              "count": 974,
+              "mean_ms": 0.02111047227926078,
+              "max_ms": 5.15465
+            }
+          }
+        },
+        "acceptance-6-20260914_084818_189027": {
+          "last_registered_monotonic_seconds": 1064441.007562792,
+          "processing": {
+            "frame_work": {
+              "count": 869,
+              "mean_ms": 41.987917146144994,
+              "max_ms": 307.06899999999996
+            },
+            "prepare": {
+              "count": 869,
+              "mean_ms": 34.10943613348677,
+              "max_ms": 307.063
+            },
+            "poll": {
+              "count": 870,
+              "mean_ms": 0.25065747126436777,
+              "max_ms": 4.44688
+            },
+            "publish": {
+              "count": 867,
+              "mean_ms": 0.10722975778546712,
+              "max_ms": 69.00739999999999
+            }
+          }
+        }
+      },
+      "stages": {
+        "high": {
+          "completed": 259,
+          "applied": 205,
+          "expired": 54,
+          "evicted": 0,
+          "queue_wait_mean_ms": 26.345482625482624,
+          "infer_mean_ms": 148.28185328185327,
+          "result_age_mean_ms": 263.85945945945946,
+          "replay_mean_ms": 0.877495145631068,
+          "commit_age_mean_ms": 236.3873786407767,
+          "updated": 3526,
+          "scheduler": {
+            "submitted_total": 265,
+            "completed_total": 261,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 4,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        },
+        "low": {
+          "completed": 1117,
+          "applied": 1089,
+          "expired": 28,
+          "evicted": 0,
+          "queue_wait_mean_ms": 21.055237242614147,
+          "infer_mean_ms": 68.65416293643688,
+          "result_age_mean_ms": 167.822739480752,
+          "replay_mean_ms": 0.836635445362718,
+          "commit_age_mean_ms": 164.06978879706153,
+          "updated": 1134,
+          "scheduler": {
+            "submitted_total": 1123,
+            "completed_total": 1122,
+            "replaced_total": 0,
+            "stale_total": 0,
+            "failed_total": 0,
+            "cancelled_total": 1,
+            "queue_depth": 0,
+            "in_flight": 0
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "case": "diag63_journal_smoke_60s",
+  "purpose": "local MJPEG soak; not real-camera RTSP or quality acceptance",
+  "status": "FAIL",
+  "duration_seconds": 60.005622215991025,
+  "acceptance_samples": 13,
+  "durable_samples": 15,
+  "selected_global_monotonic_series": 111,
+  "metrics_maximum_gap_seconds": 5.073531854999601,
+  "failed_gates": [
+    "stream fairness spread"
+  ],
+  "output_fps": [
+    25.747587358377057,
+    28.863962009520428
+  ],
+  "low_fps": [
+    4.766220054689863,
+    4.999531525898457
+  ],
+  "high_fps": [
+    1.033236515352348,
+    1.1665573560429734
+  ],
+  "maximum_p95_ms": 147.199072,
+  "cpu_host_percent": 58.95291888601908,
+  "rss_growth_percent": -8.549297881490622,
+  "fairness_percent": 10.796766743648957,
+  "peak_rss_kib": 914660,
+  "peak_anonymous_kib": 880912,
+  "service_binary_sha256": "44286a8410d69b909c6ec4b6bedf12e50e59f65f65345325b631868c3bad1012",
+  "owned_processes_alive": {
+    "driver": false,
+    "service": false,
+    "collector": false
+  }
+}

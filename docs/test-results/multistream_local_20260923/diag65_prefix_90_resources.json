@@ -1,0 +1,394 @@
+{
+  "scope": "fixed prefix; five-minute rates/resources only, not formal acceptance or causal proof",
+  "warmup_scope": "first all-stream metric plus configured warmup; approximate collector boundary",
+  "case": "/home/ubuntu/YOLO/yolo_onnx_cpp/test_outputs/multistream_local_20260923/diag65_four_soak_8h",
+  "stream_count": 4,
+  "samples": 90,
+  "journal_prefix_sha256": "94310e15c9fac57e526fff9f1539ad85575d69336f41146429ff5f3569214ea8",
+  "last_full_stream_monotonic_seconds": 191960.812203517,
+  "retirement_seen": false,
+  "complete_windows": 1,
+  "failed_window_counts": {
+    "output_ge_25": 0,
+    "low_ge_4": 0,
+    "high_ge_0_5": 0,
+    "fairness_le_10": 0
+  },
+  "observed_total": {
+    "from_seconds": 61.49257167900214,
+    "to_seconds": 452.0940501160221,
+    "duration_seconds": 390.60147843702,
+    "fps_ranges": {
+      "processed_frames": [
+        28.445872873959235,
+        29.700348412456222
+      ],
+      "low_detections": [
+        4.948777991662605,
+        4.999981074866564
+      ],
+      "high_detections": [
+        1.2826372342591645,
+        1.4106449422690612
+      ]
+    },
+    "per_stream_fps": {
+      "acceptance-1-20260923_064541_609879": {
+        "processed_frames": 28.445872873959235,
+        "low_detections": 4.948777991662605,
+        "high_detections": 1.2826372342591645
+      },
+      "acceptance-2-20260923_064541_609879": {
+        "processed_frames": 28.842696768789917,
+        "low_detections": 4.971819379104386,
+        "high_detections": 1.3184793925019356
+      },
+      "acceptance-3-20260923_064541_609879": {
+        "processed_frames": 29.700348412456222,
+        "low_detections": 4.999981074866564,
+        "high_detections": 1.4106449422690612
+      },
+      "acceptance-4-20260923_064541_609879": {
+        "processed_frames": 29.47249469219861,
+        "low_detections": 4.997420920706365,
+        "high_detections": 1.3696824757058943
+      }
+    },
+    "fairness_percent": 4.22377381260236,
+    "diagnostic_rate_checks": {
+      "output_ge_25": true,
+      "low_ge_4": true,
+      "high_ge_0_5": true,
+      "fairness_le_10": true
+    },
+    "rss_kib": {
+      "start": 698640,
+      "end": 736392,
+      "peak": 762100
+    },
+    "weak_flow_mean_ms": 14.57287315893603,
+    "prepare_mean_ms": 16.986150802374148,
+    "inference": {
+      "high": {
+        "mean_ms": 126.19901454716094,
+        "applied": 2102,
+        "expired": 29
+      },
+      "low": {
+        "mean_ms": 56.79141719131441,
+        "applied": 7781,
+        "expired": 2
+      }
+    },
+    "resources": {
+      "elapsed_seconds": 390.6144953800249,
+      "host_busy_percent": 39.37939911856175,
+      "service_cpu_percent_of_host": 39.05117015731734,
+      "driver_cpu_percent_of_host": 0.0686818469803564,
+      "host_busy_minus_service_and_driver_percent": 0.25954711426405674,
+      "active_threads_with_different_endpoint_cpu": 57
+    },
+    "cgroup_throttling": {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "scope_changed": false,
+        "deltas": {
+          "throttled_time": 0,
+          "nr_throttled": 0,
+          "nr_periods": 0
+        },
+        "quota_us": "-1",
+        "period_us": "100000"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "scope_changed": false,
+        "deltas": {
+          "throttled_time": 0,
+          "nr_throttled": 0,
+          "nr_periods": 0
+        },
+        "quota_us": "-1",
+        "period_us": "100000"
+      }
+    },
+    "numa_mapping_pages_start_end": [
+      {
+        "1": 104184,
+        "0": 80228
+      },
+      {
+        "1": 122290,
+        "0": 61807
+      }
+    ],
+    "frequency_endpoints": [
+      {
+        "count": 2,
+        "by_cpu": {
+          "cpu0": 2202893,
+          "cpu16": 2126574
+        },
+        "scope": "one representative CPU per NUMA node; not an all-core measurement"
+      },
+      {
+        "count": 2,
+        "by_cpu": {
+          "cpu0": 2001850,
+          "cpu16": 2227254
+        },
+        "scope": "one representative CPU per NUMA node; not an all-core measurement"
+      }
+    ]
+  },
+  "windows": [
+    {
+      "from_seconds": 61.49257167900214,
+      "to_seconds": 364.54093715400086,
+      "duration_seconds": 303.0483654749987,
+      "fps_ranges": {
+        "processed_frames": [
+          28.460803563421816,
+          29.688330395374617
+        ],
+        "low_detections": [
+          4.94970496755162,
+          4.9992020172271365
+        ],
+        "high_detections": [
+          1.2869232915634212,
+          1.4156156207197632
+        ]
+      },
+      "per_stream_fps": {
+        "acceptance-1-20260923_064541_609879": {
+          "processed_frames": 28.460803563421816,
+          "low_detections": 4.94970496755162,
+          "high_detections": 1.2869232915634212
+        },
+        "acceptance-2-20260923_064541_609879": {
+          "processed_frames": 28.90297720718976,
+          "low_detections": 4.972803590733528,
+          "high_detections": 1.3265209313038342
+        },
+        "acceptance-3-20260923_064541_609879": {
+          "processed_frames": 29.688330395374617,
+          "low_detections": 4.9992020172271365,
+          "high_detections": 1.4156156207197632
+        },
+        "acceptance-4-20260923_064541_609879": {
+          "processed_frames": 29.467243573490645,
+          "low_detections": 4.9992020172271365,
+          "high_detections": 1.3727181776676494
+        }
+      },
+      "fairness_percent": 4.134711570523505,
+      "diagnostic_rate_checks": {
+        "output_ge_25": true,
+        "low_ge_4": true,
+        "high_ge_0_5": true,
+        "fairness_le_10": true
+      },
+      "rss_kib": {
+        "start": 698640,
+        "end": 759172,
+        "peak": 762052
+      },
+      "weak_flow_mean_ms": 14.479128908019938,
+      "prepare_mean_ms": 16.883099229723605,
+      "inference": {
+        "high": {
+          "mean_ms": 124.82795893719808,
+          "applied": 1637,
+          "expired": 19
+        },
+        "low": {
+          "mean_ms": 56.28933774834438,
+          "applied": 6038,
+          "expired": 2
+        }
+      },
+      "resources": {
+        "elapsed_seconds": 303.0531475680182,
+        "host_busy_percent": 39.077134665746335,
+        "service_cpu_percent_of_host": 38.75207234851159,
+        "driver_cpu_percent_of_host": 0.06805736936083417,
+        "host_busy_minus_service_and_driver_percent": 0.2570049478739118,
+        "active_threads_with_different_endpoint_cpu": 56
+      },
+      "cgroup_throttling": {
+        "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+          "scope_changed": false,
+          "deltas": {
+            "throttled_time": 0,
+            "nr_throttled": 0,
+            "nr_periods": 0
+          },
+          "quota_us": "-1",
+          "period_us": "100000"
+        },
+        "/sys/fs/cgroup/cpu,cpuacct": {
+          "scope_changed": false,
+          "deltas": {
+            "throttled_time": 0,
+            "nr_throttled": 0,
+            "nr_periods": 0
+          },
+          "quota_us": "-1",
+          "period_us": "100000"
+        }
+      },
+      "numa_mapping_pages_start_end": [
+        {
+          "1": 104184,
+          "0": 80228
+        },
+        {
+          "1": 115824,
+          "0": 73968
+        }
+      ],
+      "frequency_endpoints": [
+        {
+          "count": 2,
+          "by_cpu": {
+            "cpu0": 2202893,
+            "cpu16": 2126574
+          },
+          "scope": "one representative CPU per NUMA node; not an all-core measurement"
+        },
+        {
+          "count": 2,
+          "by_cpu": {
+            "cpu0": 2159585,
+            "cpu16": 2142598
+          },
+          "scope": "one representative CPU per NUMA node; not an all-core measurement"
+        }
+      ]
+    }
+  ],
+  "unfinished_tail": {
+    "from_seconds": 364.54093715400086,
+    "to_seconds": 452.0940501160221,
+    "duration_seconds": 87.55311296202126,
+    "fps_ranges": {
+      "processed_frames": [
+        28.39419314626055,
+        29.74194648144106
+      ],
+      "low_detections": [
+        4.945569441806444,
+        5.002677633975109
+      ],
+      "high_detections": [
+        1.267801866144377,
+        1.3934398889154413
+      ]
+    },
+    "per_stream_fps": {
+      "acceptance-1-20260923_064541_609879": {
+        "processed_frames": 28.39419314626055,
+        "low_detections": 4.945569441806444,
+        "high_detections": 1.267801866144377
+      },
+      "acceptance-2-20260923_064541_609879": {
+        "processed_frames": 28.634047553368948,
+        "low_detections": 4.96841271867391,
+        "high_detections": 1.2906451430118433
+      },
+      "acceptance-3-20260923_064541_609879": {
+        "processed_frames": 29.74194648144106,
+        "low_detections": 5.002677633975109,
+        "high_detections": 1.3934398889154413
+      },
+      "acceptance-4-20260923_064541_609879": {
+        "processed_frames": 29.490670435898934,
+        "low_detections": 4.991255995541376,
+        "high_detections": 1.359174973614242
+      }
+    },
+    "fairness_percent": 4.531490015360987,
+    "diagnostic_rate_checks": {
+      "output_ge_25": true,
+      "low_ge_4": true,
+      "high_ge_0_5": true,
+      "fairness_le_10": true
+    },
+    "rss_kib": {
+      "start": 759172,
+      "end": 736392,
+      "peak": 762100
+    },
+    "weak_flow_mean_ms": 14.898113578306141,
+    "prepare_mean_ms": 17.3436824523482,
+    "inference": {
+      "high": {
+        "mean_ms": 130.97894736842105,
+        "applied": 465,
+        "expired": 10
+      },
+      "low": {
+        "mean_ms": 58.531267928858284,
+        "applied": 1743,
+        "expired": 0
+      }
+    },
+    "resources": {
+      "elapsed_seconds": 87.56134781200672,
+      "host_busy_percent": 40.425417705936454,
+      "service_cpu_percent_of_host": 40.086359023800846,
+      "driver_cpu_percent_of_host": 0.0708431877192896,
+      "host_busy_minus_service_and_driver_percent": 0.2682154944163185,
+      "active_threads_with_different_endpoint_cpu": 53
+    },
+    "cgroup_throttling": {
+      "/sys/fs/cgroup/cpu,cpuacct/user.slice": {
+        "scope_changed": false,
+        "deltas": {
+          "throttled_time": 0,
+          "nr_throttled": 0,
+          "nr_periods": 0
+        },
+        "quota_us": "-1",
+        "period_us": "100000"
+      },
+      "/sys/fs/cgroup/cpu,cpuacct": {
+        "scope_changed": false,
+        "deltas": {
+          "throttled_time": 0,
+          "nr_throttled": 0,
+          "nr_periods": 0
+        },
+        "quota_us": "-1",
+        "period_us": "100000"
+      }
+    },
+    "numa_mapping_pages_start_end": [
+      {
+        "1": 115824,
+        "0": 73968
+      },
+      {
+        "1": 122290,
+        "0": 61807
+      }
+    ],
+    "frequency_endpoints": [
+      {
+        "count": 2,
+        "by_cpu": {
+          "cpu0": 2159585,
+          "cpu16": 2142598
+        },
+        "scope": "one representative CPU per NUMA node; not an all-core measurement"
+      },
+      {
+        "count": 2,
+        "by_cpu": {
+          "cpu0": 2001850,
+          "cpu16": 2227254
+        },
+        "scope": "one representative CPU per NUMA node; not an all-core measurement"
+      }
+    ]
+  }
+}

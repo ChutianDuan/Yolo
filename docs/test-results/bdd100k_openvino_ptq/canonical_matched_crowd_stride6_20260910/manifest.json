@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "quantization_evaluation.json",
+      "sha256": "b597ae34e76aa4cd8e357c70cf92562cb32cf71dc5cb1294bba9bfcb3a4186d6"
+    },
+    {
+      "path": "quantization_evaluation.md",
+      "sha256": "b31f0f81449028caa52107b0a11d977753088f165f4e1d8242dfc297f32b5845"
+    }
+  ]
+}

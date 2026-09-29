@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-10T10:46:54.023357+00:00",
+  "format": "TrackEval BDD100K JSON",
+  "evaluated_categories": [
+    "pedestrian",
+    "rider",
+    "car",
+    "bus",
+    "truck",
+    "train",
+    "motorcycle",
+    "bicycle"
+  ],
+  "distractor_categories": [
+    "other person",
+    "trailer",
+    "other vehicle"
+  ],
+  "labels": {
+    "path": "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/mot_labels.csv",
+    "file_size_bytes": 462806153,
+    "videos": {
+      "0000f77c-6257be58": {
+        "selected_rows": 1126,
+        "selected_rows_sha256": "9a0d4c7324b248b2884984e370a193a4cca6da7ddec4b911a5af8478f73cda32",
+        "annotated_frame_count": 203,
+        "ignored_categories": {}
+      },
+      "00268999-cb063914": {
+        "selected_rows": 1401,
+        "selected_rows_sha256": "2cae6d0f1579ca496976c3fb6bcd9927932f3d6f59565a6635f5ba5aa22436cd",
+        "annotated_frame_count": 200,
+        "ignored_categories": {}
+      },
+      "012fdff1-9d1d0d1d": {
+        "selected_rows": 1684,
+        "selected_rows_sha256": "3c6179f63ce550f214b2b7d7b31c9279c41095dc025820c8f80997d4914331db",
+        "annotated_frame_count": 203,
+        "ignored_categories": {}
+      }
+    }
+  },
+  "reports": [
+    {
+      "path": "/home/ubuntu/YOLO/docs/test-results/bdd100k_ground_truth/0000f77c-6257be58_stride6_continuity_20260910/bdd100k_ground_truth_evaluation.json",
+      "sha256": "4fad11b9a43cb750ceefc016fc33817097d661f1ff18620d075991dd7e404650",
+      "video_name": "0000f77c-6257be58"
+    },
+    {
+      "path": "/home/ubuntu/YOLO/docs/test-results/bdd100k_ground_truth/00268999-cb063914_stride6_continuity_20260910/bdd100k_ground_truth_evaluation.json",
+      "sha256": "1c7b89cf81012f2a66277d002b530807b13de51a3310bf84fba9a10591b0b68f",
+      "video_name": "00268999-cb063914"
+    },
+    {
+      "path": "/home/ubuntu/YOLO/docs/test-results/bdd100k_ground_truth/012fdff1-9d1d0d1d_stride6_continuity_20260910/bdd100k_ground_truth_evaluation.json",
+      "sha256": "90a5dbaba5ed5c70ccb784b5b50ecfe6a869d5f0fdf5bda71fe95b37f37742c4",
+      "video_name": "012fdff1-9d1d0d1d"
+    }
+  ],
+  "runs": [
+    "full_high",
+    "high_dynamic_flow",
+    "high_fixed_flow",
+    "low_dynamic_flow",
+    "integrated_high_low_flow"
+  ],
+  "videos": {
+    "0000f77c-6257be58": {
+      "frame_stride": 6,
+      "input_label_frames": 203,
+      "evaluated_label_frames": 203,
+      "skipped_tail_label_frames": []
+    },
+    "00268999-cb063914": {
+      "frame_stride": 6,
+      "input_label_frames": 200,
+      "evaluated_label_frames": 199,
+      "skipped_tail_label_frames": [
+        199
+      ]
+    },
+    "012fdff1-9d1d0d1d": {
+      "frame_stride": 6,
+      "input_label_frames": 203,
+      "evaluated_label_frames": 202,
+      "skipped_tail_label_frames": [
+        202
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": "gt/0000f77c-6257be58.json",
+      "sha256": "fa245a4a939801cb2736d634b5650738a8554f3aaca62e2b7636b8391797dae1"
+    },
+    {
+      "path": "gt/00268999-cb063914.json",
+      "sha256": "3e55ed07177a05e51d9ea06ba36664a740f473f7245b7baa661c737d8a642ab7"
+    },
+    {
+      "path": "gt/012fdff1-9d1d0d1d.json",
+      "sha256": "8699c02465b36b14fe26b1cbeaddbc41ba302756b895a9e65a0eb522ad4adfce"
+    },
+    {
+      "path": "trackers/full_high/data/0000f77c-6257be58.json",
+      "sha256": "7a8afdf3d1cec17d7f060ec70fab8fd0558bd7e2f26c30bb90a7ed5cc3765499"
+    },
+    {
+      "path": "trackers/full_high/data/00268999-cb063914.json",
+      "sha256": "df6c645744d4f68e6bd030e736f2bd7917191faba0092a4274067410a8c799e4"
+    },
+    {
+      "path": "trackers/full_high/data/012fdff1-9d1d0d1d.json",
+      "sha256": "457dc3ab71f0b0df79a300bdc09fb27038b1ef4431780e6b5bec76eba2f56b27"
+    },
+    {
+      "path": "trackers/high_dynamic_flow/data/0000f77c-6257be58.json",
+      "sha256": "5c644718691827eef1c32bd66c927fc18f28b62a6d25d4e5b8c25106c669f281"
+    },
+    {
+      "path": "trackers/high_dynamic_flow/data/00268999-cb063914.json",
+      "sha256": "786b7102df3baa24246e5d4ba47b43f9ccc462908a66c7421bd25d6eb03f4df8"
+    },
+    {
+      "path": "trackers/high_dynamic_flow/data/012fdff1-9d1d0d1d.json",
+      "sha256": "1a36289cf88e3fee8e1d2dbd13ae9ba8167dc7eaa83092c43e79a181ff4af81a"
+    },
+    {
+      "path": "trackers/high_fixed_flow/data/0000f77c-6257be58.json",
+      "sha256": "da0352c42e5e0a57ab51c3ad872226d35538c02df8a1fd1c09786039a4eb3024"
+    },
+    {
+      "path": "trackers/high_fixed_flow/data/00268999-cb063914.json",
+      "sha256": "1ba70277297e35413207d47e2eecae71a92c0c35b3545d4031bc13673f260b1d"
+    },
+    {
+      "path": "trackers/high_fixed_flow/data/012fdff1-9d1d0d1d.json",
+      "sha256": "9c5a738dc062072952afc2a00cfed9fa48097e3de178f115d1714b26febd83a3"
+    },
+    {
+      "path": "trackers/integrated_high_low_flow/data/0000f77c-6257be58.json",
+      "sha256": "416c4724ac4ba6d7083c136b017fc49ee527f17cce70f348fc4eae64775b002b"
+    },
+    {
+      "path": "trackers/integrated_high_low_flow/data/00268999-cb063914.json",
+      "sha256": "73a2926234e91f4c1d86279fb6a1af24300c73a194842d2d44640a949c5c418f"
+    },
+    {
+      "path": "trackers/integrated_high_low_flow/data/012fdff1-9d1d0d1d.json",
+      "sha256": "cfc5f3ceb4d0b6101a401091aca3edebf9bb2b63a8dc15f5777431911170304f"
+    },
+    {
+      "path": "trackers/low_dynamic_flow/data/0000f77c-6257be58.json",
+      "sha256": "11ffaa1ab56204f3f22569ac47d036d130cf0c6d2c0597e77e793f0ef2e97aac"
+    },
+    {
+      "path": "trackers/low_dynamic_flow/data/00268999-cb063914.json",
+      "sha256": "41b003e47a4ae6e59864260087095aa88be9e05cec8ab96dda97d8d08cbade18"
+    },
+    {
+      "path": "trackers/low_dynamic_flow/data/012fdff1-9d1d0d1d.json",
+      "sha256": "5d417611fc8bfb448214d7da2c5e962a0335f5fcc18d2fb78e3ce6b0bfda9872"
+    }
+  ]
+}

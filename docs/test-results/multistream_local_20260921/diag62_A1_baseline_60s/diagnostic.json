@@ -1,0 +1,199 @@
+{
+  "runtime_records": [
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 736,
+      "input_width": 1280,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_NUM_THREADS": "16",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "NUM_STREAMS": "1",
+        "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "1",
+        "PERFORMANCE_HINT_NUM_REQUESTS": "1",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "request_pool_size": 1,
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    },
+    {
+      "backend": "openvino",
+      "component": "model_runtime",
+      "configured_cpu_pinning": false,
+      "input_height": 384,
+      "input_width": 640,
+      "properties": {
+        "ENABLE_CPU_PINNING": "NO",
+        "ENABLE_CPU_RESERVATION": "NO",
+        "ENABLE_HYPER_THREADING": "NO",
+        "EXECUTION_DEVICES": "CPU",
+        "INFERENCE_NUM_THREADS": "16",
+        "INFERENCE_PRECISION_HINT": "f32",
+        "NUM_STREAMS": "2",
+        "OPTIMAL_NUMBER_OF_INFER_REQUESTS": "2",
+        "PERFORMANCE_HINT_NUM_REQUESTS": "2",
+        "SCHEDULING_CORE_TYPE": "ANY_CORE"
+      },
+      "request_pool_size": 2,
+      "runtime_build": "2026.1.0-000--",
+      "runtime_description": "OpenVINO Runtime",
+      "schema_version": 1
+    }
+  ],
+  "service_binary": "yolo_api_baseline",
+  "service_binary_sha256": "6a1863dd52f2a3e427246c39f7a8642c6a802f3f450a62df6a0129cdd10298c3",
+  "service_binary_sha256_after": "6a1863dd52f2a3e427246c39f7a8642c6a802f3f450a62df6a0129cdd10298c3",
+  "actual_executable_verified": true,
+  "memory_sample_count": 69,
+  "retirement_evidence": {
+    "active": 0.0,
+    "registered": 0.0,
+    "scheduler": {
+      "high": {
+        "cancelled_total": 4,
+        "queue_depth": 0,
+        "in_flight": 0
+      },
+      "low": {
+        "cancelled_total": 0,
+        "queue_depth": 0,
+        "in_flight": 0
+      }
+    }
+  },
+  "detection_mode": "high_low",
+  "acceptance_detection_minima": {
+    "high": 0.5,
+    "low": 4
+  },
+  "configured_opencv_threads": 4,
+  "configured_high_threads": 16,
+  "configured_low_threads": 16,
+  "configured_cpu_pinning": "false",
+  "timing_metrics_file": "timing_metrics.json",
+  "timing_metrics_sample_count": 69,
+  "timing_metrics_errors": [],
+  "purpose": "bounded local MJPEG diagnostic, not RTSP or production acceptance",
+  "stream_count": 6,
+  "configured_high_requests": 1,
+  "configured_low_requests": 2,
+  "distinct_source_contents": 4,
+  "source_content_reused": true,
+  "performance_mode": "throughput",
+  "requested_seconds": 60.0,
+  "sampling_includes_stream_startup": false,
+  "configured_low_detect_fps": 5,
+  "requested_warmup_seconds": 10,
+  "source_loop_seconds": 6,
+  "inputs": [
+    {
+      "basename": "0000f77c-6257be58.mov",
+      "sha256": "313eed7b8e46ae388c9d59f4e6068d5ab6fb98ce13e0d63b48b8cdd604d76767",
+      "original_fps": 30.148637489677952,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    },
+    {
+      "basename": "00268999-cb063914.mov",
+      "sha256": "87380c9b303b9c913522d09c58a14e48b856a88f6a1e366831bdda5777b3a856",
+      "original_fps": 30.057900478308298,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    },
+    {
+      "basename": "012fdff1-9d1d0d1d.mov",
+      "sha256": "3ce62fa669dcc8fba22d552da1e4398eb15949c26419c323c475daace57b1fcd",
+      "original_fps": 30.02363086107541,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    },
+    {
+      "basename": "0000f77c-cb820c98.mov",
+      "sha256": "e6608a6ef6a15e2dfb31ce4f3df3b8307ce1bbe57a1931eb8e1feab3a5c35670",
+      "original_fps": 30.151377285135247,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    },
+    {
+      "basename": "0000f77c-6257be58.mov",
+      "sha256": "313eed7b8e46ae388c9d59f4e6068d5ab6fb98ce13e0d63b48b8cdd604d76767",
+      "original_fps": 30.148637489677952,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    },
+    {
+      "basename": "00268999-cb063914.mov",
+      "sha256": "87380c9b303b9c913522d09c58a14e48b856a88f6a1e366831bdda5777b3a856",
+      "original_fps": 30.057900478308298,
+      "width": 1280,
+      "height": 720,
+      "cached_frames": 180,
+      "jpeg_quality": 80,
+      "send_fps": 30
+    }
+  ],
+  "source_connections": [
+    {
+      "path": "/camera/5.mjpg",
+      "sent_frames": 2102,
+      "elapsed_seconds": 70.03368802700425,
+      "delivered_fps": 29.999848061548274
+    },
+    {
+      "path": "/camera/6.mjpg",
+      "sent_frames": 2102,
+      "elapsed_seconds": 70.03362288000062,
+      "delivered_fps": 29.99987596814699
+    },
+    {
+      "path": "/camera/4.mjpg",
+      "sent_frames": 2104,
+      "elapsed_seconds": 70.1005013059912,
+      "delivered_fps": 29.99978546259362
+    },
+    {
+      "path": "/camera/3.mjpg",
+      "sent_frames": 2104,
+      "elapsed_seconds": 70.10054745800153,
+      "delivered_fps": 29.999765711672143
+    },
+    {
+      "path": "/camera/1.mjpg",
+      "sent_frames": 2105,
+      "elapsed_seconds": 70.13372118999541,
+      "delivered_fps": 29.999834092649515
+    },
+    {
+      "path": "/camera/2.mjpg",
+      "sent_frames": 2105,
+      "elapsed_seconds": 70.13363279000623,
+      "delivered_fps": 29.999871905962525
+    }
+  ],
+  "collector_returncode": 2,
+  "server_returncode": 0,
+  "server_log_scope": "full local debug log, not a sanitized production log",
+  "cpu_scope": "yolo_api only; source serving uses same host, pre-encoding finishes before collection"
+}
