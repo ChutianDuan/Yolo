@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "drogon/response_json.h"
+#include "stream/realtime_stream_manager.h"
 
 namespace {
 
@@ -22,6 +23,7 @@ yolo::VideoInferResult makeVideoResult() {
     yolo::VideoInferResult result;
     result.frame_count = 3;
     result.display_frame_count = 3;
+    result.roi_high_res_detection_count = 2;
     result.output_shapes = {{1, 300, 6}};
 
     for (int i = 0; i < 3; ++i) {
@@ -51,6 +53,8 @@ void testDefaultReturnsAllFrames() {
 
     expect(json["frames"].size() == 3, "Default response did not return all frames");
     expect(json["frames_returned"].asUInt64() == 3, "Default frames_returned mismatch");
+    expect(json["roi_high_res_detection_count"].asInt64() == 2,
+           "ROI high-resolution count was not serialized");
     expect(json["frame_offset"].asUInt64() == 0, "Default frame_offset mismatch");
     expect(json["frame_limit"].isNull(), "Default frame_limit should be null");
     expect(!json["has_more_frames"].asBool(), "Default response should not have more frames");
@@ -122,9 +126,47 @@ void testHighLowDiagnosticsAreAdditive() {
     );
 }
 
+
+void testRealtimeSourceContextSerialization() {
+    yolo::RealtimeFrameEvent event;
+    event.sequence = 9;
+    event.frame_index = 8;
+    event.timestamp_ms = 320.0;
+    auto plain = yolo::realtimeFrameEventToJson(event, {});
+    expect(plain.getMemberNames().size() == 10 && !plain.isMember("inference_updates"),
+           "ordinary event changed the legacy SSE field set");
+    event.detection_frame = true;
+    event.model_tier = "high";
+    event.high_res_roi = true;
+    event.inference_updates.push_back({{"camera", 2, 80.0}, "high", true});
+    event.inference_updates.push_back({{"camera", 6, 240.0}, "low", false});
+    const auto corrected = yolo::realtimeFrameEventToJson(event, {});
+    expect(corrected["frame_index"].asInt64() == 8
+               && corrected["timestamp_ms"].asDouble() == 320.0,
+           "source correction overwrote the current output frame");
+    const auto& updates = corrected["inference_updates"];
+    expect(updates.isArray() && updates.size() == 2, "simultaneous corrections were lost");
+    expect(updates[0]["stream_id"].asString() == "camera"
+               && updates[0]["frame_index"].asInt64() == 2
+               && updates[0]["timestamp_ms"].asDouble() == 80.0
+               && updates[0]["model_tier"].asString() == "high"
+               && updates[0]["high_res_roi"].asBool(),
+           "high correction lost its source context/ROI");
+    expect(updates[1]["frame_index"].asInt64() == 6
+               && updates[1]["model_tier"].asString() == "low"
+               && !updates[1]["high_res_roi"].asBool(),
+           "low correction lost its independent context");
+    event.inference_updates.clear();
+    event.terminal = true;
+    const auto terminal = yolo::realtimeFrameEventToJson(event, {});
+    expect(!terminal.isMember("inference_updates") && terminal.getMemberNames().size() == 10,
+           "terminal event gained empty correction metadata");
+}
+
 }  // namespace
 
 int main() {
+    testRealtimeSourceContextSerialization();
     testDefaultReturnsAllFrames();
     testSummaryOmitsFrames();
     testFrameWindow();

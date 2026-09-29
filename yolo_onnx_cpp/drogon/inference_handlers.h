@@ -9,12 +9,15 @@
 
 #include "config/app_config.h"
 #include "model/yolo_engine.h"
+#include "drogon/video_job_executor.h"
 #include "video/video_inference.h"
 
 namespace yolo::api {
 
 using ResponseCallback = std::function<void(const drogon::HttpResponsePtr&)>;
-using VideoInferRunner = std::function<VideoInferResult(const std::filesystem::path&)>;
+using VideoInferRunner = std::function<VideoInferResult(
+    const std::filesystem::path&, const std::string&
+)>;
 
 class ImageInferenceHandler {
 public:
@@ -43,6 +46,7 @@ public:
         std::string route,
         std::string upload_field,
         AppConfig config,
+        std::shared_ptr<VideoJobExecutor> executor,
         VideoInferRunner runner
     );
 
@@ -55,6 +59,7 @@ private:
     std::string route_;
     std::string upload_field_;
     AppConfig config_;
+    std::shared_ptr<VideoJobExecutor> executor_;
     VideoInferRunner runner_;
 };
 

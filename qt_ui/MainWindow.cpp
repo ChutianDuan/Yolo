@@ -211,7 +211,12 @@ bool MainWindow::loadModelFromUi(bool show_success) {
     try {
         WaitCursor cursor;
         yolo::AppConfig config = yolo::loadAppConfig(config_path.toStdString());
-        auto engine = std::make_unique<yolo::YoloEngine>(config);
+        if (config.opencv_threads > 0) {
+            cv::setNumThreads(config.opencv_threads);
+        }
+        auto engine = std::make_unique<yolo::YoloEngine>(
+            yolo::makeHighResAppConfig(config)
+        );
 
         config_ = std::move(config);
         engine_ = std::move(engine);

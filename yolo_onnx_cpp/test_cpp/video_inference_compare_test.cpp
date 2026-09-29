@@ -528,6 +528,7 @@ void printDetailedMetrics(
               << " async_requests=" << result.async_infer_request_count
               << " async_corrections=" << result.async_correction_count
               << " async_corrected_frames=" << result.async_corrected_frame_count
+              << " roi_high_res=" << result.roi_high_res_detection_count
               << " weak_tracked_frames=" << result.weak_tracked_frame_count
               << " interpolated_frames=" << result.interpolated_frame_count
               << " empty_frames=" << result.empty_frame_count << '\n';
@@ -677,6 +678,32 @@ int main() {
     const yolo::VideoInferResult high_low_result =
         yolo::inferVideoFileHighLow(high_engine, low_engine, config, short_video);
 
+    AppConfig roi_config = config;
+    roi_config.video_detect_fps = 100.0F;
+    roi_config.high_res_roi_enabled = true;
+    roi_config.high_res_roi_x = 0.10F;
+    roi_config.high_res_roi_y = 0.10F;
+    roi_config.high_res_roi_width = 0.80F;
+    roi_config.high_res_roi_height = 0.60F;
+    roi_config.high_res_roi_full_frame_interval = 4;
+    roi_config.video_model_async = false;
+    roi_config.video_onnx_async = false;
+    const yolo::VideoInferResult roi_sync_result =
+        yolo::inferVideoFileHighLow(
+            high_engine, low_engine, roi_config, short_video
+        );
+    roi_config.video_model_async = true;
+    roi_config.video_onnx_async = true;
+    const yolo::VideoInferResult roi_async_result =
+        yolo::inferVideoFileHighLow(
+            high_engine, low_engine, roi_config, short_video
+        );
+
+    std::cout << "roi_integration sync_count="
+              << roi_sync_result.roi_high_res_detection_count
+              << " async_count="
+              << roi_async_result.roi_high_res_detection_count << '\n';
+
     const VideoMetrics single_metrics = collectMetrics(single_result);
     const VideoMetrics high_low_metrics = collectMetrics(high_low_result);
     printMetrics("single_infer", single_metrics);
@@ -699,6 +726,13 @@ int main() {
     expect(high_low_result.processed_frame_count > 0, "high-low infer processed no frames");
     expect(single_metrics.track_observations > 0, "single infer produced no tracks");
     expect(high_low_metrics.track_observations > 0, "high-low infer produced no tracks");
+    expect(roi_sync_result.roi_high_res_detection_count > 0,
+           "synchronous high-low run did not execute an ROI refresh");
+    expect(roi_async_result.roi_high_res_detection_count > 0,
+           "asynchronous high-low replay did not execute an ROI refresh");
+    expect(roi_sync_result.frame_count == high_low_result.frame_count
+               && roi_async_result.frame_count == high_low_result.frame_count,
+           "ROI integration runs changed the source frame count");
 
     std::error_code ignored;
     std::filesystem::remove(short_video, ignored);

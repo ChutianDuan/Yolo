@@ -4,8 +4,10 @@
 
 ## 正式报告
 
+- [初始化到多 IP 任务提交完整流程（源码精读）](reports/初始化到多IP任务提交完整流程.md)
 - [代码审核报告（2026-07-10）](reports/代码审核报告_20260710.md)
 - [High/Low 重复框与光流漂移优化计划](reports/优化计划.md)
+- [CPU 多路实时监测实施记录（2026-09-05）](reports/多路实时监测实施记录_20260905.md)
 - [视频算法对比报告（2026-07-10）](reports/video_algorithm_comparison_20260710.md)
 - [C++ ONNX Runtime / OpenVINO 双模型线程性能对比（2026-09-03）](test-results/onnx_thread_benchmark/20260903_020914_utc/combined_report.md)
 - [ONNX Runtime / OpenVINO CPU 对比（历史，2026-07-09）](reports/onnx_openvino_cpu_benchmark_20260709.md)

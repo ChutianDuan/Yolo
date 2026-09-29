@@ -11,8 +11,11 @@
 #include "config/app_config.h"
 #include "model/inference_types.h"
 #include "model/yolo_engine.h"
+#include "tracking/authority_tracker.h"
 
 namespace yolo {
+
+class InferenceScheduler;
 
 struct VideoFrameTracks {
     int64_t frame_index = 0;
@@ -22,44 +25,6 @@ struct VideoFrameTracks {
     int64_t correction_latency_frames = 0;
     std::string tracks_source = "empty";
     std::vector<TrackedDetection> tracks;
-};
-
-struct HighLowDiagnostics {
-    int64_t stable_track_count = 0;
-    int64_t provisional_track_count = 0;
-    int64_t max_stable_track_count = 0;
-    int64_t max_provisional_track_count = 0;
-    int64_t provisional_created_count = 0;
-    int64_t provisional_promoted_count = 0;
-    int64_t provisional_expired_count = 0;
-    int64_t provisional_deduplicated_count = 0;
-    int64_t stable_stable_duplicate_count = 0;
-    int64_t stable_provisional_duplicate_count = 0;
-    int64_t provisional_provisional_duplicate_count = 0;
-    int64_t output_suppressed_duplicate_count = 0;
-    int64_t low_res_geometry_rejection_count = 0;
-    int64_t low_res_class_conflict_count = 0;
-    int64_t flow_track_count = 0;
-    int64_t flow_rejected_track_count = 0;
-    int64_t flow_low_point_rejection_count = 0;
-    int64_t flow_invalid_ratio_rejection_count = 0;
-    int64_t flow_forward_backward_rejection_count = 0;
-    int64_t flow_motion_dispersion_rejection_count = 0;
-    int64_t flow_motion_jump_rejection_count = 0;
-    int64_t flow_boundary_rejection_count = 0;
-    int64_t direct_flow_update_count = 0;
-    int64_t global_flow_update_count = 0;
-    int64_t flow_age_output_suppression_count = 0;
-    int64_t flow_age_expired_count = 0;
-    int64_t exiting_track_suppression_count = 0;
-    int64_t urgent_low_res_detection_count = 0;
-    int64_t urgent_high_res_detection_count = 0;
-    int64_t urgent_flow_quality_count = 0;
-    int64_t urgent_track_change_count = 0;
-    int64_t urgent_duplicate_count = 0;
-    int64_t urgent_flow_age_count = 0;
-    int64_t urgent_geometry_count = 0;
-    int64_t urgent_class_conflict_count = 0;
 };
 
 struct VideoInferResult {
@@ -84,6 +49,7 @@ struct VideoInferResult {
     int64_t processed_frame_count = 0;
     int64_t display_frame_count = 0;
     int64_t detected_frame_count = 0;
+    int64_t roi_high_res_detection_count = 0;
     int64_t async_infer_request_count = 0;
     int64_t async_correction_count = 0;
     int64_t async_corrected_frame_count = 0;
@@ -131,14 +97,19 @@ private:
 VideoInferResult inferVideoFile(
     const std::shared_ptr<YoloEngine>& engine,
     const AppConfig& config,
-    const std::filesystem::path& video_path
+    const std::filesystem::path& video_path,
+    std::shared_ptr<InferenceScheduler> scheduler = nullptr,
+    std::string stream_id = {}
 );
 
 VideoInferResult inferVideoFileHighLow(
     const std::shared_ptr<YoloEngine>& high_res_engine,
     const std::shared_ptr<YoloEngine>& low_res_engine,
     const AppConfig& config,
-    const std::filesystem::path& video_path
+    const std::filesystem::path& video_path,
+    std::shared_ptr<InferenceScheduler> high_res_scheduler = nullptr,
+    std::shared_ptr<InferenceScheduler> low_res_scheduler = nullptr,
+    std::string stream_id = {}
 );
 
 }  // namespace yolo

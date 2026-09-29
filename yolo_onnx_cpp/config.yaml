@@ -10,6 +10,10 @@ low_res_input_height: 384
 low_res_conf_threshold: 0.25
 low_res_iou_threshold: 0.45
 conf_threshold: 0.25
+# Class-ID order; [] keeps scalar defaults. -1 uses the model's scalar threshold.
+class_conf_thresholds: []
+# [] inherits the high-model list; an all -1 list uses only low scalar defaults.
+low_res_class_conf_thresholds: []
 iou_threshold: 0.45
 num_classes: 10
 class_names:
@@ -24,12 +28,53 @@ class_names:
   - traffic light
   - traffic sign
 thread_num: 4
+# Scoped resources. Zero inherits thread_num; infer_request_count zero asks
+# OpenVINO to use its reported optimal request count.
+server_io_threads: 0
+opencv_threads: 0
+high_model_threads: 0
+low_model_threads: 0
+infer_request_count: 1
+low_res_infer_request_count: 0
+openvino_performance_mode: latency
+# Realtime stream and uploaded-video admission limits.
+max_streams: 4
+per_stream_queue_depth: 2
+max_request_age_ms: 300
+# Live streams only: maximum local decode-to-result age; 0 disables dropping.
+max_result_age_ms: 300
+# 0 means no automatic lifetime limit.
+max_stream_duration_seconds: 0
+# Stop one stream after this many consecutive model/preprocess failures.
+stream_max_consecutive_errors: 5
+video_job_threads: 2
+video_job_queue_depth: 4
 # true keeps the source aspect ratio with padding; false resizes directly.
 # For a static model, input_width/input_height must match the exported shape.
 use_letterbox: true
 # 0 disables video frame sampling and runs detection on every frame.
 video_detect_fps: 4.0
+# Periodic high-resolution authority refresh; zero keeps urgent refresh only.
+video_high_detect_fps: 1.0
+# Optional normalized high-resolution crop for scheduled High+Low refreshes.
+# First/urgent calls stay full-frame; every Nth high-model call is a full-frame fallback.
+high_res_roi_enabled: false
+high_res_roi_x: 0.0
+high_res_roi_y: 0.0
+high_res_roi_width: 1.0
+high_res_roi_height: 1.0
+high_res_roi_full_frame_interval: 4
 # dynamic adapts the model sampling stride; fixed keeps the base stride.
 video_stride_mode: dynamic
 video_model_async: true
 client_max_body_mb: 256
+# Larger request bodies spill to Drogon's temporary-file storage.
+client_max_memory_body_mb: 16
+# Authentication is enabled only when this environment-variable name is set.
+api_bearer_token_env: ""
+# Zero disables the per-client token-bucket rate limit.
+api_rate_limit_requests_per_second: 0
+api_rate_limit_burst: 20
+# Configure both paths to enable Drogon HTTPS; empty keeps HTTP.
+tls_certificate_path: ""
+tls_private_key_path: ""

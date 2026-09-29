@@ -1,6 +1,7 @@
 #include "optical_flow_tracker.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <utility>
@@ -124,12 +125,18 @@ FrameMotion estimateGlobalFrameMotion(
         return motion;
     }
 
+    // Share the same gray pyramids across both directions; LK still computes its source derivatives.
+    std::vector<cv::Mat> previous_pyramid;
+    std::vector<cv::Mat> current_pyramid;
+    cv::buildOpticalFlowPyramid(previous_gray, previous_pyramid, cv::Size(21, 21), 3, false);
+    cv::buildOpticalFlowPyramid(current_gray, current_pyramid, cv::Size(21, 21), 3, false);
+
     std::vector<cv::Point2f> current_points;
     std::vector<unsigned char> status;
     std::vector<float> error;
     cv::calcOpticalFlowPyrLK(
-        previous_gray,
-        current_gray,
+        previous_pyramid,
+        current_pyramid,
         previous_points,
         current_points,
         status,
@@ -142,8 +149,8 @@ FrameMotion estimateGlobalFrameMotion(
     std::vector<unsigned char> backward_status;
     std::vector<float> backward_error;
     cv::calcOpticalFlowPyrLK(
-        current_gray,
-        previous_gray,
+        current_pyramid,
+        previous_pyramid,
         current_points,
         backward_points,
         backward_status,
@@ -151,6 +158,9 @@ FrameMotion estimateGlobalFrameMotion(
         cv::Size(21, 21),
         3
     );
+
+    previous_pyramid.clear();
+    current_pyramid.clear();
 
     std::vector<float> valid_dx;
     std::vector<float> valid_dy;
@@ -238,16 +248,24 @@ cv::Point2f accumulatedMotion(
 
 }  // namespace
 
-WeakTrackResult weakTrackWithOpticalFlow(
+static WeakTrackResult weakTrackWithOpticalFlowImpl(
     const cv::Mat& previous_gray,
     const cv::Mat& current_gray,
     const std::vector<TrackedDetection>& previous_tracks,
     int image_width,
-    int image_height
+    int image_height,
+    const std::vector<cv::Mat>& cached_previous,
+    std::vector<cv::Mat>* cached_current
 ) {
+    if (cached_current != nullptr) {
+        cached_current->clear();
+    }
     WeakTrackResult result;
     result.quality.previous_track_count = previous_tracks.size();
+    const auto diff_start = std::chrono::steady_clock::now();
     result.quality.mean_frame_diff = normalizedMeanAbsDiff(previous_gray, current_gray);
+    result.stage_ms[0] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - diff_start).count();
     result.track_qualities.reserve(previous_tracks.size());
 
     if (previous_gray.empty() || current_gray.empty() || previous_tracks.empty()) {
@@ -271,6 +289,7 @@ WeakTrackResult weakTrackWithOpticalFlow(
     std::vector<size_t> point_track_indices;
     std::vector<size_t> sampled_points_by_track(previous_tracks.size(), 0);
 
+    const auto features_start = std::chrono::steady_clock::now();
     for (size_t i = 0; i < previous_tracks.size(); ++i) {
         const cv::Rect roi = detectionRoi(
             previous_tracks[i].detection,
@@ -280,6 +299,9 @@ WeakTrackResult weakTrackWithOpticalFlow(
         if (roi.width < 4 || roi.height < 4) {
             continue;
         }
+        ++result.roi_count;
+        result.roi_pixels += static_cast<uint64_t>(roi.width)
+            * static_cast<uint64_t>(roi.height);
 
         std::vector<cv::Point2f> local_points;
         cv::goodFeaturesToTrack(
@@ -301,16 +323,31 @@ WeakTrackResult weakTrackWithOpticalFlow(
     }
 
     result.quality.sampled_point_count = previous_points.size();
+    result.stage_ms[1] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - features_start).count();
     if (previous_points.empty()) {
         return result;
     }
 
+    std::vector<cv::Mat> previous_pyramid = cached_previous;
+    std::vector<cv::Mat> current_pyramid;
+    const auto pyramid_start = std::chrono::steady_clock::now();
+    if (previous_pyramid.empty()) {
+        cv::buildOpticalFlowPyramid(previous_gray, previous_pyramid, cv::Size(21, 21), 3, false);
+    }
+    // The current derivatives serve backward LK now and forward LK on the next accepted frame.
+    cv::buildOpticalFlowPyramid(current_gray, current_pyramid, cv::Size(21, 21), 3,
+                               cached_current != nullptr);
+    result.stage_ms[2] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - pyramid_start).count();
+
     std::vector<cv::Point2f> current_points;
     std::vector<unsigned char> status;
     std::vector<float> error;
+    const auto forward_start = std::chrono::steady_clock::now();
     cv::calcOpticalFlowPyrLK(
-        previous_gray,
-        current_gray,
+        previous_pyramid,
+        current_pyramid,
         previous_points,
         current_points,
         status,
@@ -318,13 +355,16 @@ WeakTrackResult weakTrackWithOpticalFlow(
         cv::Size(21, 21),
         3
     );
+    result.stage_ms[3] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - forward_start).count();
 
     std::vector<cv::Point2f> backward_points;
     std::vector<unsigned char> backward_status;
     std::vector<float> backward_error;
+    const auto backward_start = std::chrono::steady_clock::now();
     cv::calcOpticalFlowPyrLK(
-        current_gray,
-        previous_gray,
+        current_pyramid,
+        previous_pyramid,
         current_points,
         backward_points,
         backward_status,
@@ -332,7 +372,16 @@ WeakTrackResult weakTrackWithOpticalFlow(
         cv::Size(21, 21),
         3
     );
+    result.stage_ms[4] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - backward_start).count();
 
+    previous_pyramid.clear();
+    if (cached_current != nullptr) {
+        *cached_current = std::move(current_pyramid);
+    }
+    current_pyramid.clear();
+
+    const auto quality_start = std::chrono::steady_clock::now();
     std::vector<std::vector<float>> dx_by_track(previous_tracks.size());
     std::vector<std::vector<float>> dy_by_track(previous_tracks.size());
     std::vector<std::vector<float>> fb_error_by_track(previous_tracks.size());
@@ -519,7 +568,26 @@ WeakTrackResult weakTrackWithOpticalFlow(
         result.quality.min_score = 0.0F;
     }
 
+    result.stage_ms[5] = std::chrono::duration<double, std::milli>(
+        std::chrono::steady_clock::now() - quality_start).count();
     return result;
+}
+
+WeakTrackResult weakTrackWithOpticalFlow(
+    const cv::Mat& previous_gray, const cv::Mat& current_gray,
+    const std::vector<TrackedDetection>& previous_tracks, int image_width, int image_height
+) {
+    return weakTrackWithOpticalFlowImpl(previous_gray, current_gray, previous_tracks,
+                                       image_width, image_height, {}, nullptr);
+}
+
+WeakTrackResult weakTrackWithOpticalFlow(
+    const cv::Mat& previous_gray, const cv::Mat& current_gray,
+    const std::vector<TrackedDetection>& previous_tracks, int image_width, int image_height,
+    const std::vector<cv::Mat>& previous_pyramid, std::vector<cv::Mat>& current_pyramid
+) {
+    return weakTrackWithOpticalFlowImpl(previous_gray, current_gray, previous_tracks,
+                                       image_width, image_height, previous_pyramid, &current_pyramid);
 }
 
 FrameMotion frameMotionForCurrentFrame(

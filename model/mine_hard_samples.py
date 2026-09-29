@@ -13,6 +13,12 @@ import yaml
 ROOT = Path(__file__).resolve().parent
 DEFAULT_DATASET_DIR = ROOT / "data" / "bdd100k_yolo_det"
 DEFAULT_IMGSZ = (384, 640)
+DEFAULT_TOP_RATIO = 0.1
+DEFAULT_MAX_SAMPLES = 8_000
+DEFAULT_TAIL_FREQUENCY_THRESHOLD = 0.1
+DEFAULT_CLASS_BALANCE_RATIO = 0.5
+DEFAULT_SMALL_OBJECT_SIZE = 16.0
+DEFAULT_SMALL_OBJECT_WEIGHT = 1.5
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 BDD100K_NAMES = (
     "person",
@@ -49,13 +55,35 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_IMGSZ,
         metavar=("HEIGHT", "WIDTH"),
     )
-    parser.add_argument("--confidence", type=float, default=0.25)
+    parser.add_argument("--confidence", type=float, default=0.15)
     parser.add_argument("--match-iou", type=float, default=0.5)
     parser.add_argument("--batch", type=int, default=32)
     parser.add_argument("--device", default="0")
-    parser.add_argument("--top-ratio", type=float, default=0.2)
-    parser.add_argument("--max-samples", type=int, default=15_000)
-    parser.add_argument("--tail-frequency-threshold", type=float, default=0.05)
+    parser.add_argument("--top-ratio", type=float, default=DEFAULT_TOP_RATIO)
+    parser.add_argument("--max-samples", type=int, default=DEFAULT_MAX_SAMPLES)
+    parser.add_argument(
+        "--class-balance-ratio",
+        type=float,
+        default=DEFAULT_CLASS_BALANCE_RATIO,
+        help="用于按漏检类别分层选样的预算比例，其余预算按全局分数补齐",
+    )
+    parser.add_argument(
+        "--tail-frequency-threshold",
+        type=float,
+        default=DEFAULT_TAIL_FREQUENCY_THRESHOLD,
+    )
+    parser.add_argument(
+        "--small-object-size",
+        type=float,
+        default=DEFAULT_SMALL_OBJECT_SIZE,
+        help="部署输入上最短边小于该像素值时视为小目标",
+    )
+    parser.add_argument(
+        "--small-object-weight",
+        type=float,
+        default=DEFAULT_SMALL_OBJECT_WEIGHT,
+        help="小目标漏检相对普通目标的权重",
+    )
     return parser.parse_args()
 
 
@@ -72,15 +100,21 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--top-ratio 必须在 (0, 1] 范围内")
     if args.max_samples < 1:
         raise ValueError("--max-samples 不能小于 1")
+    if not 0.0 <= args.class_balance_ratio <= 1.0:
+        raise ValueError("--class-balance-ratio 必须在 [0, 1] 范围内")
     if not 0.0 < args.tail_frequency_threshold <= 1.0:
         raise ValueError("--tail-frequency-threshold 必须在 (0, 1] 范围内")
+    if args.small_object_size <= 0.0:
+        raise ValueError("--small-object-size 必须为正数")
+    if args.small_object_weight < 1.0:
+        raise ValueError("--small-object-weight 不能小于 1")
 
 
 def image_files(image_dir: Path) -> list[Path]:
     if not image_dir.is_dir():
         raise FileNotFoundError(f"train 图片目录不存在: {image_dir}")
     images = sorted(
-        path.resolve()
+        path
         for path in image_dir.rglob("*")
         if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES
     )
@@ -245,18 +279,49 @@ def score_result(
     frequencies: dict[int, float],
     frequency_threshold: float,
     iou_threshold: float,
+    input_size: tuple[int, int] = DEFAULT_IMGSZ,
+    image_size: tuple[int, int] | None = None,
+    small_object_size: float = DEFAULT_SMALL_OBJECT_SIZE,
+    small_object_weight: float = DEFAULT_SMALL_OBJECT_WEIGHT,
 ) -> dict:
     matched_ious, unmatched_gt, unmatched_predictions = greedy_match(
         ground_truth,
         predictions,
         iou_threshold,
     )
-    missed_score = sum(3.0 * tail_weights[ground_truth[index][0]] for index in unmatched_gt)
-    false_positive_score = float(len(unmatched_predictions))
-    localization_score = sum(1.0 - iou for iou in matched_ious)
-    score = (missed_score + false_positive_score + localization_score) / math.sqrt(
-        max(1, len(ground_truth))
+    input_height, input_width = input_size
+    image_height, image_width = image_size or input_size
+
+    ground_truth_weights = []
+    small_object_indices = set()
+    for index, (class_id, box) in enumerate(ground_truth):
+        box_width = max(0.0, box[2] - box[0]) * input_width / max(1, image_width)
+        box_height = max(0.0, box[3] - box[1]) * input_height / max(1, image_height)
+        is_small = min(box_width, box_height) < small_object_size
+        if is_small:
+            small_object_indices.add(index)
+        size_weight = small_object_weight if is_small else 1.0
+        ground_truth_weights.append(tail_weights[class_id] * size_weight)
+
+    total_ground_truth_weight = sum(ground_truth_weights)
+    missed_weight = sum(ground_truth_weights[index] for index in unmatched_gt)
+    false_negative_rate = (
+        missed_weight / total_ground_truth_weight
+        if total_ground_truth_weight > 0.0
+        else 0.0
     )
+    false_positive_rate = min(
+        1.0,
+        len(unmatched_predictions) / max(1, len(ground_truth)),
+    )
+    localization_error = (
+        sum(1.0 - iou for iou in matched_ious) / len(matched_ious)
+        if matched_ious
+        else 0.0
+    )
+    score = 3.0 * false_negative_rate + false_positive_rate + localization_error
+    missed_classes = sorted({ground_truth[index][0] for index in unmatched_gt})
+    small_object_misses = sum(index in small_object_indices for index in unmatched_gt)
     rare_classes = sorted(
         {
             BDD100K_NAMES[class_id]
@@ -274,8 +339,98 @@ def score_result(
         "false_positives": len(unmatched_predictions),
         "average_iou": average_iou,
         "rare_classes": ";".join(rare_classes),
+        "_false_negative_rate": false_negative_rate,
+        "_false_positive_rate": false_positive_rate,
+        "_small_object_count": len(small_object_indices),
+        "_small_object_misses": small_object_misses,
+        "_missed_classes": tuple(missed_classes),
     }
 
+
+def select_hard_records(
+    records: list[dict],
+    top_ratio: float,
+    max_samples: int,
+    class_balance_ratio: float,
+) -> tuple[list[dict], dict]:
+    positive_records = sorted(
+        (record for record in records if record["score"] > 0.0),
+        key=lambda record: (-record["score"], record["path"]),
+    )
+    selected_count = min(
+        max_samples,
+        int(math.ceil(len(positive_records) * top_ratio)),
+    )
+    if selected_count == 0:
+        return [], {
+            "target_count": 0,
+            "class_balanced_budget": 0,
+            "per_class_limit": 0,
+            "selected_by_missed_class": {},
+        }
+
+    missed_class_ids = sorted(
+        {
+            class_id
+            for record in positive_records
+            for class_id in record.get("_missed_classes", ())
+        }
+    )
+    class_balanced_budget = int(math.floor(selected_count * class_balance_ratio))
+    per_class_limit = (
+        max(1, int(math.ceil(class_balanced_budget / len(missed_class_ids))))
+        if class_balanced_budget > 0 and missed_class_ids
+        else 0
+    )
+
+    selected = []
+    selected_paths = set()
+    selected_by_missed_class = Counter()
+    for class_id in missed_class_ids:
+        candidates = [
+            record
+            for record in positive_records
+            if class_id in record.get("_missed_classes", ())
+        ]
+        quota = min(
+            per_class_limit,
+            int(math.ceil(len(candidates) * top_ratio)),
+            class_balanced_budget - len(selected),
+        )
+        if quota == 0:
+            selected_by_missed_class[class_id] = 0
+            continue
+        added = 0
+        for record in candidates:
+            if record["path"] in selected_paths:
+                continue
+            selected.append(record)
+            selected_paths.add(record["path"])
+            added += 1
+            if added >= quota or len(selected) >= selected_count:
+                break
+        selected_by_missed_class[class_id] = added
+        if len(selected) >= selected_count:
+            break
+
+    for record in positive_records:
+        if len(selected) >= selected_count:
+            break
+        if record["path"] in selected_paths:
+            continue
+        selected.append(record)
+        selected_paths.add(record["path"])
+
+    selected.sort(key=lambda record: (-record["score"], record["path"]))
+    return selected, {
+        "target_count": selected_count,
+        "class_balanced_budget": class_balanced_budget,
+        "per_class_limit": per_class_limit,
+        "selected_by_missed_class": {
+            int(class_id): int(count)
+            for class_id, count in sorted(selected_by_missed_class.items())
+        },
+    }
 
 def percentile(values: list[float], quantile: float) -> float | None:
     if not values:
@@ -300,6 +455,7 @@ def write_outputs(
     image_counts: dict[int, int],
     frequencies: dict[int, float],
     tail_weights: dict[int, float],
+    selection_summary: dict,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     txt_path = output_dir / "hard_samples.txt"
@@ -324,7 +480,7 @@ def write_outputs(
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for record in selected:
-            row = dict(record)
+            row = {field: record[field] for field in fieldnames}
             row["score"] = f"{record['score']:.8f}"
             row["average_iou"] = f"{record['average_iou']:.8f}"
             writer.writerow(row)
@@ -338,6 +494,11 @@ def write_outputs(
         }
         for class_id in range(len(BDD100K_NAMES))
     }
+    selection_summary = dict(selection_summary)
+    selection_summary["selected_by_missed_class"] = {
+        f"{class_id}:{BDD100K_NAMES[class_id]}": count
+        for class_id, count in selection_summary["selected_by_missed_class"].items()
+    }
     summary = {
         "weights": str(weights_path),
         "dataset_dir": str(dataset_dir),
@@ -349,7 +510,11 @@ def write_outputs(
         "match_iou": args.match_iou,
         "top_ratio": args.top_ratio,
         "max_samples": args.max_samples,
+        "class_balance_ratio": args.class_balance_ratio,
         "tail_frequency_threshold": args.tail_frequency_threshold,
+        "small_object_size": args.small_object_size,
+        "small_object_weight": args.small_object_weight,
+        "score_method": "normalized_weighted_fn_rate_plus_fp_rate_plus_mean_localization_error",
         "scanned_images": len(records),
         "positive_score_images": len(positive_scores),
         "selected_images": len(selected),
@@ -362,6 +527,13 @@ def write_outputs(
             "maximum": max(positive_scores) if positive_scores else None,
         },
         "classes": class_summary,
+        "selection": selection_summary,
+        "selected_small_object_images": sum(
+            record.get("_small_object_count", 0) > 0 for record in selected
+        ),
+        "selected_small_object_misses": sum(
+            record.get("_small_object_misses", 0) for record in selected
+        ),
         "outputs": {
             "train_list": str(txt_path),
             "details_csv": str(csv_path),
@@ -374,7 +546,6 @@ def write_outputs(
     print(f"details: {csv_path}")
     print(f"summary: {summary_path}")
     print(f"selected: {len(selected)} / {len(records)}")
-
 
 def main() -> None:
     args = parse_args()
@@ -417,38 +588,43 @@ def main() -> None:
         verbose=False,
     )
 
-    train_image_set = set(images)
+    # Ultralytics preserves symlink paths; match full paths to their train labels.
+    train_image_by_path = {image_path.absolute(): image_path for image_path in images}
     records = []
     for result in results:
-        image_path = Path(result.path).resolve()
-        if image_path not in train_image_set:
+        image_path = Path(result.path).absolute()
+        train_image_path = train_image_by_path.get(image_path)
+        if train_image_path is None:
             raise RuntimeError(f"模型返回了非 train 图片: {image_path}")
         image_height, image_width = result.orig_shape
-        label_path = label_path_for_image(image_path, train_dir, label_dir)
+        label_path = label_path_for_image(train_image_path, train_dir, label_dir)
         ground_truth = read_yolo_labels(label_path, image_width, image_height)
         predictions = predictions_from_result(result)
         records.append(
             score_result(
-                image_path,
+                train_image_path,
                 ground_truth,
                 predictions,
                 tail_weights,
                 frequencies,
                 args.tail_frequency_threshold,
                 args.match_iou,
+                input_size=(int(args.imgsz[0]), int(args.imgsz[1])),
+                image_size=(image_height, image_width),
+                small_object_size=args.small_object_size,
+                small_object_weight=args.small_object_weight,
             )
         )
 
     if len(records) != len(images):
         raise RuntimeError(f"推理结果数量不一致: expected={len(images)}, actual={len(records)}")
 
-    positive_records = [record for record in records if record["score"] > 0.0]
-    positive_records.sort(key=lambda record: (-record["score"], record["path"]))
-    selected_count = min(
-        args.max_samples,
-        int(math.ceil(len(positive_records) * args.top_ratio)),
+    selected, selection_summary = select_hard_records(
+        records,
+        top_ratio=args.top_ratio,
+        max_samples=args.max_samples,
+        class_balance_ratio=args.class_balance_ratio,
     )
-    selected = positive_records[:selected_count]
     write_outputs(
         output_dir,
         records,
@@ -459,6 +635,7 @@ def main() -> None:
         image_counts,
         frequencies,
         tail_weights,
+        selection_summary,
     )
 
 

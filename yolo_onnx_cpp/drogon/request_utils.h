@@ -2,7 +2,9 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -22,6 +24,12 @@ bool parseSizeParameter(
     std::string_view value,
     bool allow_zero,
     size_t& output,
+    std::string& error_message
+);
+
+bool parseLastEventId(
+    std::string_view value,
+    std::optional<uint64_t>& output,
     std::string& error_message
 );
 

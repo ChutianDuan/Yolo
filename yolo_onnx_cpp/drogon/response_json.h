@@ -13,6 +13,8 @@
 
 namespace yolo {
 
+struct RealtimeFrameEvent;
+
 drogon::HttpResponsePtr makeJsonResponse(
     int code,
     const std::string& message,
@@ -20,6 +22,11 @@ drogon::HttpResponsePtr makeJsonResponse(
 );
 
 Json::Value shapesToJson(const std::vector<std::vector<int64_t>>& shapes);
+
+Json::Value realtimeFrameEventToJson(
+    const RealtimeFrameEvent& event,
+    const std::vector<std::string>& class_names
+);
 
 Json::Value detectionsToJson(
     const std::vector<Detection>& detections,

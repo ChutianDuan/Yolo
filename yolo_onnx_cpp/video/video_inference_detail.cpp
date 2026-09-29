@@ -196,14 +196,16 @@ AsyncInferResult runAsyncInfer(
     const std::shared_ptr<YoloEngine>& engine,
     const AppConfig& config,
     cv::Mat frame,
-    int64_t frame_index
+    int64_t frame_index,
+    const std::shared_ptr<InferenceScheduler>& scheduler,
+    const std::string& stream_id
 ) {
     AsyncInferResult async_result;
     async_result.frame_index = frame_index;
 
     try {
         const auto preprocess_start = std::chrono::steady_clock::now();
-        const auto input = preprocessImageMat(frame, config);
+        auto input = preprocessImageMat(frame, config);
         const double preprocess_ms = elapsedMs(preprocess_start);
         if (!input.has_value()) {
             async_result.bad_request = true;
@@ -211,7 +213,12 @@ AsyncInferResult runAsyncInfer(
             return async_result;
         }
 
-        async_result.result = engine->infer(input.value());
+        InferenceContext context;
+        context.stream_id = stream_id;
+        context.frame_index = frame_index;
+        async_result.result = scheduler != nullptr
+            ? scheduler->infer(std::move(input.value()), std::move(context))
+            : engine->infer(input.value(), std::move(context));
         async_result.result.preprocess_ms = preprocess_ms;
         async_result.result.timing_samples.preprocess_ms.push_back(preprocess_ms);
         async_result.ok = true;
@@ -391,9 +398,16 @@ std::string invalidVideoFrameMessage(const AppConfig& config) {
     return "Failed to preprocess video frame";
 }
 
-AsyncInferWorker::AsyncInferWorker(std::shared_ptr<YoloEngine> engine, AppConfig config)
+AsyncInferWorker::AsyncInferWorker(
+    std::shared_ptr<YoloEngine> engine,
+    AppConfig config,
+    std::shared_ptr<InferenceScheduler> scheduler,
+    std::string stream_id
+)
     : engine_(std::move(engine)),
       config_(std::move(config)),
+      scheduler_(std::move(scheduler)),
+      stream_id_(std::move(stream_id)),
       worker_(&AsyncInferWorker::run, this) {}
 
 AsyncInferWorker::~AsyncInferWorker() {
@@ -498,9 +512,11 @@ void AsyncInferWorker::run() {
             engine_,
             config_,
             std::move(request.frame),
-            request.frame_index
+            request.frame_index,
+            scheduler_,
+            stream_id_
         );
-        result.result.queue_wait_ms = queue_wait_ms;
+        result.result.queue_wait_ms += queue_wait_ms;
         result.result.timing_samples.queue_wait_ms.push_back(queue_wait_ms);
 
         {

@@ -28,7 +28,12 @@ std::filesystem::path makeTempVideoPath(const std::string& extension) {
     const auto micros = std::chrono::duration_cast<std::chrono::microseconds>(now).count();
     const uint64_t id = next_id.fetch_add(1, std::memory_order_relaxed);
 
-    return std::filesystem::temp_directory_path()
+    std::error_code error;
+    const auto directory = std::filesystem::temp_directory_path(error);
+    if (error) {
+        throw std::runtime_error("Temporary video directory is unavailable");
+    }
+    return directory
         / ("yolo_video_" + std::to_string(micros) + "_" + std::to_string(id) + extension);
 }
 
@@ -89,6 +94,39 @@ bool parseSizeParameter(
     }
 }
 
+bool parseLastEventId(
+    std::string_view value,
+    std::optional<uint64_t>& output,
+    std::string& error_message
+) {
+    output.reset();
+    if (value.empty()) {
+        return true;
+    }
+    if (!std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+            return ch >= '0' && ch <= '9';
+        })) {
+        error_message = "Last-Event-ID must be an unsigned decimal integer";
+        return false;
+    }
+
+    try {
+        size_t parsed = 0;
+        const std::string text(value);
+        const unsigned long long result = std::stoull(text, &parsed);
+        if (parsed != text.size()
+            || result > static_cast<unsigned long long>(
+                std::numeric_limits<uint64_t>::max())) {
+            throw std::out_of_range("invalid event sequence");
+        }
+        output = static_cast<uint64_t>(result);
+        return true;
+    } catch (const std::exception&) {
+        error_message = "Last-Event-ID must be an unsigned decimal integer";
+        return false;
+    }
+}
+
 bool parseVideoFrameJsonOptions(
     std::string_view include_frames,
     std::string_view frame_offset,
@@ -142,14 +180,26 @@ std::string videoExtension(std::string_view file_name) {
 
 TempVideoFile::TempVideoFile(std::string_view content, const std::string& extension)
     : path_(makeTempVideoPath(extension)) {
-    std::ofstream output(path_, std::ios::binary);
-    if (!output.is_open()) {
-        throw std::runtime_error("Failed to create temp video file");
-    }
-
-    output.write(content.data(), static_cast<std::streamsize>(content.size()));
-    if (!output.good()) {
-        throw std::runtime_error("Failed to write temp video file");
+    bool created = false;
+    try {
+        std::ofstream output(path_, std::ios::binary);
+        if (!output.is_open()) {
+            throw std::runtime_error("Failed to create temp video file");
+        }
+        created = true;
+        output.write(content.data(), static_cast<std::streamsize>(content.size()));
+        // close() must succeed before the inference job can use the staged file.
+        output.close();
+        if (!output.good()) {
+            throw std::runtime_error("Failed to write temp video file");
+        }
+    } catch (...) {
+        // A throwing constructor does not invoke TempVideoFile's destructor.
+        if (created) {
+            std::error_code error;
+            std::filesystem::remove(path_, error);
+        }
+        throw;
     }
 }
 

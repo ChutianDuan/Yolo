@@ -15,6 +15,7 @@
 #include <opencv2/core.hpp>
 
 #include "config/app_config.h"
+#include "model/inference_scheduler.h"
 #include "model/inference_types.h"
 #include "model/yolo_engine.h"
 #include "video/optical_flow_tracker.h"
@@ -52,7 +53,12 @@ struct AsyncInferResult {
 
 class AsyncInferWorker final {
 public:
-    AsyncInferWorker(std::shared_ptr<YoloEngine> engine, AppConfig config);
+    AsyncInferWorker(
+        std::shared_ptr<YoloEngine> engine,
+        AppConfig config,
+        std::shared_ptr<InferenceScheduler> scheduler = nullptr,
+        std::string stream_id = {}
+    );
     ~AsyncInferWorker();
 
     AsyncInferWorker(const AsyncInferWorker&) = delete;
@@ -77,6 +83,8 @@ private:
 
     std::shared_ptr<YoloEngine> engine_;
     AppConfig config_;
+    std::shared_ptr<InferenceScheduler> scheduler_;
+    std::string stream_id_;
     mutable std::mutex mutex_;
     std::condition_variable request_ready_;
     std::condition_variable result_ready_;

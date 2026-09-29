@@ -1,11 +1,18 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "metrics/performance_metrics.h"
 
 namespace yolo {
+
+struct InferenceContext {
+    std::string stream_id;
+    int64_t frame_index = -1;
+    double timestamp_ms = -1.0;
+};
 
 struct LetterBoxInfo {
     float scale_x = 1.0F;
@@ -50,6 +57,7 @@ struct InferResult {
     double end_to_end_ms = 0.0;
     StageTimingSamples timing_samples;
     PerformanceMetrics metrics;
+    InferenceContext context;
 };
 
 }  // namespace yolo

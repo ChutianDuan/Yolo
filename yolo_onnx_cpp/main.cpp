@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#include <opencv2/core.hpp>
+
 #include "config/app_config.h"
 #include "drogon/api_server.h"
 #include "model/yolo_engine.h"
@@ -25,11 +27,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (config.opencv_threads > 0) {
+        cv::setNumThreads(config.opencv_threads);
+    }
+
+    const yolo::AppConfig high_res_config = yolo::makeHighResAppConfig(config);
     std::shared_ptr<yolo::YoloEngine> engine;
     try {
-        engine = std::make_shared<yolo::YoloEngine>(config);
+        engine = std::make_shared<yolo::YoloEngine>(high_res_config);
     } catch (const std::exception& e) {
-        std::cerr << "Failed to load model: " << config.model_path << '\n'
+        std::cerr << "Failed to load model: " << high_res_config.model_path << '\n'
                   << e.what() << '\n';
         return 1;
     }
@@ -47,6 +54,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    yolo::runApiServer(engine, low_res_engine, config, port);
+    try {
+        yolo::runApiServer(engine, low_res_engine, config, port);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to run API server:\n" << e.what() << '\n';
+        return 1;
+    }
+
     return 0;
 }

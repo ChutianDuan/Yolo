@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -318,12 +319,126 @@ void testGlobalMotionRequiresBackgroundInliers() {
     expect(!motion.valid, "Foreground-only points enabled global motion fallback");
 }
 
+void expectSameDetections(
+    const std::vector<yolo::Detection>& actual,
+    const std::vector<yolo::Detection>& expected
+) {
+    expect(actual.size() == expected.size(), "Scalar compatibility detection count mismatch");
+    for (size_t i = 0; i < actual.size(); ++i) {
+        expect(actual[i].class_id == expected[i].class_id, "Scalar compatibility class mismatch");
+        expectNear(actual[i].score, expected[i].score, kTolerance, "Scalar compatibility score");
+        expectNear(actual[i].x1, expected[i].x1, kTolerance, "Scalar compatibility x1");
+        expectNear(actual[i].y1, expected[i].y1, kTolerance, "Scalar compatibility y1");
+        expectNear(actual[i].x2, expected[i].x2, kTolerance, "Scalar compatibility x2");
+        expectNear(actual[i].y2, expected[i].y2, kTolerance, "Scalar compatibility y2");
+    }
+}
+
+void testRawClassThresholds() {
+    yolo::TensorInput input;
+    input.image_width = 512;
+    input.image_height = 512;
+    input.letterbox.scale_x = 0.5F;
+    input.letterbox.scale_y = 0.5F;
+    input.letterbox.pad_w = 10.0F;
+    input.letterbox.pad_h = 20.0F;
+    constexpr int kCandidates = 20;
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    const std::array<float, 7> scores{0.2F, 0.6F, 0.3F, 0.6F, 0.1F, nan, inf};
+    const std::array<int, 7> classes{0, 1, 2, 1, 0, 0, 0};
+    for (bool channel_first : {false, true}) {
+        for (bool has_objectness : {false, true}) {
+            const int features = has_objectness ? 8 : 7;
+            const int class_start = has_objectness ? 5 : 4;
+            const float objectness = has_objectness ? 0.8F : 1.0F;
+            std::vector<float> output(kCandidates * features, 0.0F);
+            const auto set = [&](int candidate, int feature, float value) {
+                output[channel_first ? feature * kCandidates + candidate
+                                     : candidate * features + feature] = value;
+            };
+            for (int i = 0; i < static_cast<int>(scores.size()); ++i) {
+                set(i, 0, 100.0F + 30.0F * i);
+                set(i, 1, 100.0F);
+                set(i, 2, 20.0F);
+                set(i, 3, 20.0F);
+                if (has_objectness) {
+                    set(i, 4, objectness);
+                }
+                set(i, class_start + classes[i], scores[i] / objectness);
+            }
+            // Reject the winning class without relabeling to a lower-threshold runner-up.
+            set(3, class_start, 0.5F / objectness);
+            const std::vector<int64_t> shape = channel_first
+                ? std::vector<int64_t>{1, features, kCandidates}
+                : std::vector<int64_t>{1, kCandidates, features};
+            const auto legacy = yolo::decode(output.data(), shape, input, 3, 0.25F);
+            expect(legacy.size() == 3, "Raw scalar baseline should keep three candidates");
+            expectSameDetections(yolo::decode(output.data(), shape, input, 3, 0.25F, {}), legacy);
+            expectSameDetections(
+                yolo::decode(output.data(), shape, input, 3, 0.25F, {-1.0F, -1.0F, -1.0F}), legacy
+            );
+
+            const auto filtered = yolo::decode(
+                output.data(), shape, input, 3, 0.25F, {0.1F, 0.7F, -1.0F}
+            );
+            expect(filtered.size() == 3, "Raw per-class threshold detection count mismatch");
+            expect(filtered[0].class_id == 0 && filtered[1].class_id == 2
+                       && filtered[2].class_id == 0, "Raw per-class threshold classes mismatch");
+            expectNear(filtered[0].score, 0.2F, kTolerance, "Lower class threshold was ignored");
+            expectNear(filtered[1].score, 0.3F, kTolerance, "Class scalar fallback was ignored");
+            expectNear(filtered[2].score, 0.1F, kTolerance, "Threshold equality should be accepted");
+            expectNear(filtered[0].x1, 160.0F, kTolerance, "Class filtering changed x mapping");
+            expectNear(filtered[0].y1, 140.0F, kTolerance, "Class filtering changed y mapping");
+        }
+    }
+}
+
+void testNmsClassThresholds() {
+    yolo::TensorInput input;
+    input.image_width = 512;
+    input.image_height = 512;
+    std::array<float, 300 * 6> output{};
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    const std::array<float, 11> scores{0.2F, 0.6F, 0.3F, 0.1F, 0.9F, 0.9F,
+                                     0.9F, 0.9F, 0.9F, nan, inf};
+    const std::array<float, 11> classes{0, 1, 2, 0, -1, 3, nan, inf, 2147483648.0F, 0, 0};
+    for (size_t i = 0; i < scores.size(); ++i) {
+        output[i * 6] = 20.0F + 20.0F * i;
+        output[i * 6 + 1] = 40.0F;
+        output[i * 6 + 2] = 30.0F + 20.0F * i;
+        output[i * 6 + 3] = 60.0F;
+        output[i * 6 + 4] = scores[i];
+        output[i * 6 + 5] = classes[i];
+    }
+    const std::vector<int64_t> shape{1, 300, 6};
+    const auto legacy = yolo::decode(output.data(), shape, input, 3, 0.25F);
+    expect(legacy.size() == 2, "NMS scalar baseline should keep two candidates");
+    expectSameDetections(yolo::decode(output.data(), shape, input, 3, 0.25F, {}), legacy);
+    expectSameDetections(
+        yolo::decode(output.data(), shape, input, 3, 0.25F, {-1.0F, -1.0F, -1.0F}), legacy
+    );
+    const auto filtered = yolo::decode(
+        output.data(), shape, input, 3, 0.25F, {0.1F, 0.7F, -1.0F}
+    );
+    expect(filtered.size() == 3, "NMS per-class threshold detection count mismatch");
+    expect(filtered[0].class_id == 0 && filtered[1].class_id == 2 && filtered[2].class_id == 0,
+           "NMS per-class threshold classes mismatch");
+    expectNear(filtered[0].score, 0.2F, kTolerance, "NMS lower class threshold was ignored");
+    expectNear(filtered[1].score, 0.3F, kTolerance, "NMS scalar fallback was ignored");
+    expectNear(filtered[2].score, 0.1F, kTolerance, "NMS threshold equality should be accepted");
+    expectNear(filtered[0].x1, 20.0F, kTolerance, "NMS filtering changed coordinates");
+}
+
 }  // namespace
 
 int main() {
     testDirectResizeRestoresOriginalCoordinates();
     testLetterboxRestoresOriginalCoordinates();
     testPreprocessWritesRgbChwTensor();
+    testRawClassThresholds();
+    testNmsClassThresholds();
     testOpticalFlowUsesOriginalCoordinates();
     testOpticalFlowRejectsOnlyTwoFeaturePoints();
     testOpticalFlowRejectsInconsistentPointMotion();

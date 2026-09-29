@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 #include "config/app_config.h"
@@ -15,7 +16,15 @@ public:
     YoloEngine(const YoloEngine&) = delete;
     YoloEngine& operator=(const YoloEngine&) = delete;
 
+    // Calls may run concurrently on the same engine instance.
     InferResult infer(const TensorInput& input);
+
+    // The context is copied to the result for routing out-of-order stream work.
+    InferResult infer(
+        const TensorInput& input, InferenceContext context
+    );
+
+    size_t maxConcurrency() const;
 
 private:
     class Impl;

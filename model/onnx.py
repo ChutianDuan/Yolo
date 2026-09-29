@@ -40,7 +40,11 @@ DEFAULT_PT_PATH = ROOT / "runs/detect/bdd100k_yolo26s_det_640x384_stage2/weights
 DEFAULT_DATA_YAML = ROOT / "data/bdd100k_yolo_det/data.yaml"
 DEFAULT_DEPLOY_DIR = ROOT.parent / "yolo_onnx_cpp" / "deploy"
 DEFAULT_CALIB_LIMIT = 200
+DEFAULT_ONNX_OPSET = 13
 QUANTIZE_OP_TYPES = ["Conv"]
+ACTIVATION_QUANT_TYPE = QuantType.QUInt8
+WEIGHT_QUANT_TYPE = QuantType.QInt8
+PER_CHANNEL_QUANTIZATION = True
 
 IMAGE_SUFFIXES = {".bmp", ".dng", ".jpeg", ".jpg", ".mpo", ".png", ".tif", ".tiff", ".webp"}
 
@@ -64,7 +68,9 @@ class ImageCalibrationDataReader(CalibrationDataReader):
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Export YOLO detection ONNX and ONNX Runtime INT8 model.")
+    parser = argparse.ArgumentParser(
+        description="Export YOLO ONNX and an OpenVINO-oriented U8/S8 QDQ INT8 model."
+    )
     parser.add_argument("--pt", default=str(DEFAULT_PT_PATH), help="YOLO .pt weight path")
     parser.add_argument("--data", default=str(DEFAULT_DATA_YAML), help="YOLO data.yaml for INT8 calibration")
     parser.add_argument("--deploy-dir", default=str(DEFAULT_DEPLOY_DIR), help="Directory for exported deploy files")
@@ -72,7 +78,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--int8-name", default="best_640x384_int8.onnx", help="INT8 ONNX filename under deploy dir")
     parser.add_argument("--classes-name", default="classes.json", help="Class metadata filename under deploy dir")
     parser.add_argument("--imgsz", nargs=2, type=int, default=IMG_SIZE, metavar=("HEIGHT", "WIDTH"))
-    parser.add_argument("--opset", type=int, default=12)
+    parser.add_argument("--opset", type=int, default=DEFAULT_ONNX_OPSET)
     parser.add_argument("--device", default="cpu", help="Ultralytics export device, e.g. cpu or cuda:0")
     parser.add_argument("--calib-split", default="val", help="Dataset split used for INT8 calibration")
     parser.add_argument(
@@ -90,6 +96,13 @@ def parse_args() -> argparse.Namespace:
 def require_file(path: Path, label: str) -> None:
     if not path.is_file():
         raise FileNotFoundError(f"{label} not found: {path}")
+
+
+def require_outputs_absent(paths: Iterable[Path]) -> None:
+    existing = [path for path in paths if path.exists()]
+    if existing:
+        joined = ", ".join(str(path) for path in existing)
+        raise FileExistsError(f"Refusing to overwrite existing output(s): {joined}")
 
 
 def load_data_yaml(data_yaml: Path) -> dict:
@@ -248,7 +261,10 @@ def quantize_int8_onnx(
     images = collect_calibration_images(data_yaml, split, calib_limit)
     print(f"INT8 calibration images: {len(images)} ({split})")
     print("INT8 quantized op types: " + ", ".join(QUANTIZE_OP_TYPES))
-
+    print(
+        "INT8 profile: QDQ, U8 activations, S8 weights, "
+        f"per_channel={PER_CHANNEL_QUANTIZATION}"
+    )
     with tempfile.TemporaryDirectory(prefix="yolo_onnx_quant_") as tmp_dir:
         quant_input = Path(tmp_dir) / "preprocessed.onnx"
         try:
@@ -270,10 +286,10 @@ def quantize_int8_onnx(
             model_output=str(int8_path),
             calibration_data_reader=reader,
             quant_format=QuantFormat.QDQ,
-            activation_type=QuantType.QInt8,
-            weight_type=QuantType.QInt8,
+            activation_type=ACTIVATION_QUANT_TYPE,
+            weight_type=WEIGHT_QUANT_TYPE,
             calibrate_method=CalibrationMethod.MinMax,
-            per_channel=False,
+            per_channel=PER_CHANNEL_QUANTIZATION,
             op_types_to_quantize=QUANTIZE_OP_TYPES,
         )
 
@@ -319,6 +335,12 @@ def main() -> None:
     fp32_path = deploy_dir / args.fp32_name
     int8_path = deploy_dir / args.int8_name
     classes_path = deploy_dir / args.classes_name
+    if not args.skip_int8 and args.opset < 13:
+        raise ValueError("Per-channel QDQ INT8 export requires --opset 13 or newer")
+    outputs = [fp32_path, classes_path]
+    if not args.skip_int8:
+        outputs.append(int8_path)
+    require_outputs_absent(outputs)
 
     names = export_fp32_onnx(
         pt_path=pt_path,

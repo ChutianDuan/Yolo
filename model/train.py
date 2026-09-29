@@ -2,17 +2,28 @@ import argparse
 import math
 import os
 import random
+import sys
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
-CUDA_VISIBLE_DEVICES = "4,5"
-os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
+DEFAULT_CUDA_VISIBLE_DEVICES = "4,5"
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", DEFAULT_CUDA_VISIBLE_DEVICES)
+
+REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
 
 import torch
 import yaml
 from PIL import Image, ImageDraw
+
+from model.distillation import (
+    DistillationDetectionTrainer,
+    DistillationSettings,
+    distillation_environment,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -20,7 +31,7 @@ SPLITS = ("train", "val", "test")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 384  # Reduced, stride-aligned input for CPU-friendly inference.
-TRAIN_IMGSZ = IMAGE_WIDTH  # Ultralytics train accepts one integer; rect keeps 16:9 batches.
+TRAIN_IMGSZ = IMAGE_WIDTH  # Ultralytics train/val use one integer; export keeps the 640x384 target.
 BDD100K_NAMES = (
     "person",
     "rider",
@@ -48,8 +59,8 @@ def get_yolo():
 class TrainConfig:
     # 项目路径。相对路径会基于 project_root 解析，避免机器路径写死。
     project_root: str = str(ROOT)
-    dataset_dir: str = "/home/ubuntu/YOLO/model/data/bdd100k_yolo_det"
-    data_yaml: str = "/home/ubuntu/YOLO/model/data/bdd100k_yolo_det/data.yaml"
+    dataset_dir: str = "data/bdd100k_yolo_det"
+    data_yaml: str = "data/bdd100k_yolo_det/data.yaml"
 
     # 模型配置。优先使用本地检测权重，找不到时回退到检测结构 yaml。
     model_path: str = "yolo26s.pt"
@@ -61,13 +72,14 @@ class TrainConfig:
 
     # 训练配置
     stage: str = "base"
-    epochs: int = 100
+    epochs: int = 70
     imgsz: int = TRAIN_IMGSZ
     input_width: int = IMAGE_WIDTH
     input_height: int = IMAGE_HEIGHT
-    rect: bool = True
+    rect: bool = False
     batch: int = 64
-    device: str = "0,1"  # Logical devices mapped to physical GPUs 4 and 5.
+    # auto uses the first visible GPU; pass 0,1 explicitly to enable two-rank DDP.
+    device: str = "auto"
     workers: int = min(8, os.cpu_count() or 8)
     seed: int = 42
 
@@ -80,11 +92,11 @@ class TrainConfig:
     warmup_epochs: float = 3.0
 
     # 数据增强
-    mosaic: float = 0.0
-    close_mosaic: int = 0
-    mixup: float = 0.0
+    mosaic: float = 0.8
+    close_mosaic: int = 10
+    mixup: float = 0.03
     cutmix: float = 0.0
-    copy_paste: float = 0.0
+    copy_paste: float = 0.02
     fliplr: float = 0.5
     flipud: float = 0.0
     degrees: float = 0.0
@@ -101,13 +113,22 @@ class TrainConfig:
     balance_long_tail: bool = True
     balance_repeat_power: float = 0.5
     balance_max_repeat: int = 4
-    balance_frequency_threshold: float = 0.05
-    balance_max_growth: float = 1.5
+    balance_frequency_threshold: float = 0.1
+    balance_max_growth: float = 1.15
 
     # 困难样本二阶段微调。
     base_weights: str = ""
     hard_sample_list: str = ""
-    hard_sample_repeat: int = 2
+    hard_sample_repeat: int = 1
+    hard_max_growth: float = 1.15
+
+    # 1280 teacher -> 640 student 响应蒸馏；仅在 distill 阶段启用。
+    teacher_model: str = ""
+    distill_temperature: float = 2.0
+    distill_cls_weight: float = 0.5
+    distill_box_weight: float = 0.25
+    distill_confidence_threshold: float = 0.05
+    distill_background_weight: float = 0.05
 
     # 损失权重
     box: float = 7.5
@@ -115,7 +136,7 @@ class TrainConfig:
     dfl: float = 1.5
 
     # 训练控制
-    patience: int = 50
+    patience: int = 20
     amp: bool = True
     deterministic: bool = True
     cache: bool = False
@@ -128,7 +149,7 @@ class TrainConfig:
 
     # 输出
     project: str = "runs/detect"
-    name: str = "bdd100k_yolo26s_det_640x384_stage1"
+    name: str = "bdd100k_yolo26s_det_640x384_optimized_stage1"
 
     # 训练前检查
     check_labels: bool = True
@@ -189,13 +210,46 @@ def normalize_cfg_paths(cfg: TrainConfig) -> TrainConfig:
         cfg.base_weights = resolve_path(cfg.base_weights, root)
     if cfg.hard_sample_list:
         cfg.hard_sample_list = resolve_path(cfg.hard_sample_list, root)
+    if cfg.teacher_model:
+        cfg.teacher_model = resolve_path(cfg.teacher_model, root)
 
     return cfg
 
 
+def build_distillation_settings(cfg: TrainConfig) -> DistillationSettings:
+    return DistillationSettings(
+        teacher_model=cfg.teacher_model,
+        temperature=cfg.distill_temperature,
+        cls_weight=cfg.distill_cls_weight,
+        box_weight=cfg.distill_box_weight,
+        confidence_threshold=cfg.distill_confidence_threshold,
+        background_weight=cfg.distill_background_weight,
+        class_names=tuple(cfg.names),
+    )
+
+
 def validate_training_config(cfg: TrainConfig) -> None:
-    if cfg.stage not in {"base", "hard"}:
-        raise ValueError("stage 必须是 base 或 hard")
+    if cfg.stage not in {"base", "hard", "distill"}:
+        raise ValueError("stage 必须是 base、hard 或 distill")
+    if cfg.epochs < 1:
+        raise ValueError("epochs 不能小于 1")
+    if cfg.batch < 1:
+        raise ValueError("batch 不能小于 1")
+    if cfg.patience < 0:
+        raise ValueError("patience 不能小于 0")
+    for name, probability in {
+        "mosaic": cfg.mosaic,
+        "mixup": cfg.mixup,
+        "cutmix": cfg.cutmix,
+        "copy_paste": cfg.copy_paste,
+        "fliplr": cfg.fliplr,
+        "flipud": cfg.flipud,
+        "erasing": cfg.erasing,
+    }.items():
+        if not 0.0 <= probability <= 1.0:
+            raise ValueError(f"{name} 必须在 [0, 1] 范围内")
+    if not 0 <= cfg.close_mosaic <= cfg.epochs:
+        raise ValueError("close_mosaic 必须在 [0, epochs] 范围内")
     if cfg.imgsz <= 0:
         raise ValueError("imgsz 必须为正整数")
     if cfg.input_width <= 0 or cfg.input_height <= 0:
@@ -224,6 +278,8 @@ def validate_training_config(cfg: TrainConfig) -> None:
         raise ValueError("balance_max_repeat 不能小于 1")
     if cfg.balance_max_growth < 1.0:
         raise ValueError("balance_max_growth 不能小于 1")
+    if cfg.stage == "hard" and cfg.hard_max_growth <= 1.0:
+        raise ValueError("hard_max_growth 必须大于 1")
     if cfg.hard_sample_repeat < 1:
         raise ValueError("hard_sample_repeat 不能小于 1")
 
@@ -240,6 +296,22 @@ def validate_training_config(cfg: TrainConfig) -> None:
             raise ValueError("hard 阶段必须提供 --hard-sample-list")
         if not Path(cfg.hard_sample_list).is_file():
             raise FileNotFoundError(f"困难样本清单不存在: {cfg.hard_sample_list}")
+
+    if cfg.stage == "distill":
+        build_distillation_settings(cfg).validate()
+        if not cfg.resume and not Path(cfg.model_path).is_file():
+            raise FileNotFoundError(
+                f"student 权重必须是本地文件，禁止训练时隐式下载: {cfg.model_path}"
+            )
+        output_paths = (
+            Path(cfg.project) / cfg.name,
+            Path(cfg.project) / "_data_configs" / cfg.name,
+        )
+        existing_path = next((path for path in output_paths if path.exists()), None)
+        if existing_path is not None and not cfg.resume:
+            raise FileExistsError(
+                f"蒸馏输出目录已存在，请使用新的 --name，避免覆盖已有 run: {existing_path}"
+            )
 
 
 def available_splits(cfg: TrainConfig) -> Tuple[str, ...]:
@@ -293,9 +365,27 @@ def set_seed(seed: int, deterministic: bool) -> None:
 def resolve_runtime(cfg: TrainConfig) -> Tuple[str, int, bool]:
     requested_device = str(cfg.device).strip()
     if requested_device.lower() in ("", "auto"):
-        device = "0" if torch.cuda.is_available() else "cpu"
+        # Empty preserves CUDA_VISIBLE_DEVICES and lets Ultralytics pick its first GPU.
+        # Pass logical "0,1" explicitly when two-rank DDP is desired.
+        device = "" if torch.cuda.is_available() else "cpu"
     else:
         device = requested_device
+        # Numeric CLI devices are logical indices into CUDA_VISIBLE_DEVICES. Convert them
+        # before Ultralytics rewrites the environment variable in select_device().
+        visible_devices = [
+            part.strip()
+            for part in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")
+            if part.strip()
+        ]
+        requested_parts = [part.strip() for part in device.split(",")]
+        if (
+            visible_devices
+            and all(part.isdigit() for part in requested_parts)
+            and all(int(part) < len(visible_devices) for part in requested_parts)
+        ):
+            device = ",".join(visible_devices[int(part)] for part in requested_parts)
+        if all(part.isdigit() for part in device.split(",")):
+            os.environ["CUDA_VISIBLE_DEVICES"] = device
 
     cuda_device_requested = any(
         part.strip().lstrip("-").isdigit()
@@ -356,6 +446,14 @@ def print_config_summary(cfg: TrainConfig) -> None:
         print("base_weights:", cfg.base_weights)
         print("hard_sample_list:", cfg.hard_sample_list)
         print("hard_sample_repeat:", cfg.hard_sample_repeat)
+        print("hard_max_growth:", cfg.hard_max_growth)
+    if cfg.stage == "distill":
+        print("teacher_model:", cfg.teacher_model)
+        print("distill_temperature:", cfg.distill_temperature)
+        print("distill_cls_weight:", cfg.distill_cls_weight)
+        print("distill_box_weight:", cfg.distill_box_weight)
+        print("distill_confidence_threshold:", cfg.distill_confidence_threshold)
+        print("distill_background_weight:", cfg.distill_background_weight)
     print("resume:", cfg.resume)
     print("name:", cfg.name)
 
@@ -551,6 +649,7 @@ def build_long_tail_train_list(cfg: TrainConfig, run_dir: Path) -> Tuple[Path, d
     return train_list_path, summary
 
 
+
 def read_image_path_list(list_path: Path) -> List[Path]:
     paths = []
     with open(list_path, "r", encoding="utf-8") as f:
@@ -566,22 +665,22 @@ def validate_hard_sample_list(cfg: TrainConfig) -> List[Path]:
     train_dir = (dataset_dir / "images" / "train").resolve()
     label_dir = (dataset_dir / "labels" / "train").resolve()
     manifest_path = Path(cfg.hard_sample_list).resolve()
+    train_images = {image_path.absolute() for image_path in image_files(train_dir)}
     accepted = []
     seen = set()
     errors = []
 
     for listed_path in read_image_path_list(manifest_path):
         candidate = listed_path if listed_path.is_absolute() else manifest_path.parent / listed_path
-        candidate = candidate.resolve()
+        # Keep train symlinks paired with train labels while normalizing relative components.
+        candidate = Path(os.path.abspath(candidate))
 
         if candidate in seen:
             errors.append(f"重复项: {candidate}")
             continue
         seen.add(candidate)
 
-        try:
-            relative_path = candidate.relative_to(train_dir)
-        except ValueError:
+        if candidate not in train_images:
             errors.append(f"不属于 images/train: {candidate}")
             continue
 
@@ -589,7 +688,7 @@ def validate_hard_sample_list(cfg: TrainConfig) -> List[Path]:
             errors.append(f"图片不存在或扩展名不支持: {candidate}")
             continue
 
-        label_path = label_dir / relative_path.with_suffix(".txt")
+        label_path = label_dir / candidate.relative_to(train_dir).with_suffix(".txt")
         if not label_path.is_file():
             errors.append(f"缺少对应 train 标签: {label_path}")
             continue
@@ -614,12 +713,26 @@ def build_hard_stage_train_list(
     run_dir: Path,
 ) -> Tuple[Path, dict]:
     balanced_paths = read_image_path_list(balanced_list_path)
-    hard_samples = validate_hard_sample_list(cfg)
+    if not balanced_paths:
+        raise ValueError(f"长尾平衡训练清单为空: {balanced_list_path}")
+
+    requested_hard_samples = validate_hard_sample_list(cfg)
+    max_total_entries = max(
+        len(balanced_paths),
+        int(math.floor(len(balanced_paths) * cfg.hard_max_growth)),
+    )
+    max_extra_entries = max_total_entries - len(balanced_paths)
+    max_hard_samples = max_extra_entries // cfg.hard_sample_repeat
+    if max_hard_samples < 1:
+        raise ValueError("hard_max_growth 过小，无法加入任何困难样本")
+
+    hard_samples = requested_hard_samples[:max_hard_samples]
     weighted_paths = list(balanced_paths)
     for image_path in hard_samples:
         weighted_paths.extend([image_path] * cfg.hard_sample_repeat)
     random.Random(cfg.seed + 2).shuffle(weighted_paths)
 
+    run_dir.mkdir(parents=True, exist_ok=True)
     train_list_path = run_dir / "train_hard_weighted.txt"
     with open(train_list_path, "w", encoding="utf-8") as f:
         for image_path in weighted_paths:
@@ -631,9 +744,13 @@ def build_hard_stage_train_list(
         "hard_sample_list": cfg.hard_sample_list,
         "train_list": str(train_list_path),
         "balanced_base_entries": len(balanced_paths),
-        "unique_hard_samples": len(hard_samples),
+        "requested_unique_hard_samples": len(requested_hard_samples),
+        "used_unique_hard_samples": len(hard_samples),
+        "dropped_hard_samples": len(requested_hard_samples) - len(hard_samples),
         "extra_repeats_per_hard_sample": cfg.hard_sample_repeat,
         "hard_sample_extra_entries": len(hard_samples) * cfg.hard_sample_repeat,
+        "hard_max_growth": cfg.hard_max_growth,
+        "growth_cap_applied": len(hard_samples) < len(requested_hard_samples),
         "total_entries": len(weighted_paths),
         "growth_over_balanced_base": round(len(weighted_paths) / len(balanced_paths), 6),
     }
@@ -645,6 +762,11 @@ def build_hard_stage_train_list(
     print(f"train list: {train_list_path}")
     print(f"summary: {summary_path}")
     print(f"entries: {len(balanced_paths)} -> {len(weighted_paths)}")
+    if summary["growth_cap_applied"]:
+        print(
+            "困难样本增长上限已生效: "
+            f"{len(requested_hard_samples)} -> {len(hard_samples)}"
+        )
 
     return train_list_path, summary
 
@@ -1074,8 +1196,8 @@ def choose_resume_checkpoint(cfg: TrainConfig) -> str:
 def train(cfg: TrainConfig):
     cfg = normalize_cfg_paths(cfg)
     validate_training_config(cfg)
-    set_seed(cfg.seed, cfg.deterministic)
     device, workers, amp = resolve_runtime(cfg)
+    set_seed(cfg.seed, cfg.deterministic)
 
     print_env(device, workers, amp)
     print_config_summary(cfg)
@@ -1154,7 +1276,15 @@ def train(cfg: TrainConfig):
         "resume": cfg.resume,
     }
 
-    results = model.train(**train_kwargs)
+    if cfg.stage == "distill":
+        settings = build_distillation_settings(cfg)
+        with distillation_environment(settings):
+            results = model.train(
+                trainer=DistillationDetectionTrainer,
+                **train_kwargs,
+            )
+    else:
+        results = model.train(**train_kwargs)
 
     print("\n========== Training Finished ==========")
     print("结果目录:", Path(cfg.project) / cfg.name)
@@ -1243,9 +1373,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "--stage",
-        choices=("base", "hard"),
+        choices=("base", "hard", "distill"),
         default="base",
-        help="base 主训练或 hard 困难样本微调",
+        help="base 主训练、hard 困难样本微调或 distill teacher 响应蒸馏",
     )
     parser.add_argument("--dataset-dir", type=str, help="数据集目录，默认 bdd100k_yolo_det")
     parser.add_argument("--data-yaml", type=str, help="data.yaml 路径")
@@ -1257,8 +1387,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--imgsz", type=int, help="训练最长边尺寸；矩形 batch 由 rect=True 控制")
     parser.add_argument("--input-width", type=int, help="部署目标输入宽度，默认 640")
     parser.add_argument("--input-height", type=int, help="部署目标输入高度，默认 384")
+    rect_group = parser.add_mutually_exclusive_group()
+    rect_group.add_argument("--rect", dest="rect", action="store_true", default=None, help="开启矩形 batch；需同时关闭 mosaic/mixup")
+    rect_group.add_argument("--no-rect", dest="rect", action="store_false", help="关闭矩形 batch")
     parser.add_argument("--batch", type=int, help="batch size")
-    parser.add_argument("--device", type=str, help="auto、cpu、0 或 0,1；默认 0,1 对应物理 GPU 3,4")
+    parser.add_argument("--device", type=str, help="auto、cpu、0 或 0,1；数字按 CUDA_VISIBLE_DEVICES 中的逻辑序号解释")
     parser.add_argument("--workers", type=int, help="DataLoader workers")
     parser.add_argument("--seed", type=int, help="随机种子")
 
@@ -1286,12 +1419,20 @@ def build_parser() -> argparse.ArgumentParser:
     balance_group.add_argument("--no-balance-long-tail", dest="balance_long_tail", action="store_false", help="关闭长尾类重复采样")
     parser.add_argument("--balance-repeat-power", type=float, help="长尾重复强度，0.5 表示平方根比例")
     parser.add_argument("--balance-max-repeat", type=int, help="单张图片最大重复次数")
-    parser.add_argument("--balance-frequency-threshold", type=float, help="类别图片频率平衡阈值，默认 0.05")
+    parser.add_argument("--balance-frequency-threshold", type=float, help="类别图片频率平衡阈值，默认 0.1")
     parser.add_argument("--balance-max-growth", type=float, help="平衡清单相对原始图片数的最大增长倍数")
 
     parser.add_argument("--base-weights", type=str, help="hard 阶段必需：第一阶段 best.pt")
     parser.add_argument("--hard-sample-list", type=str, help="hard 阶段必需：困难样本图片清单")
     parser.add_argument("--hard-sample-repeat", type=int, help="每个困难样本在基础清单上额外加入的次数")
+    parser.add_argument("--hard-max-growth", type=float, help="hard 清单相对平衡基础清单的最大增长倍数，默认 1.15")
+
+    parser.add_argument("--teacher-model", type=str, help="distill 阶段必需：本地 teacher .pt 权重")
+    parser.add_argument("--distill-temperature", type=float, help="分类 logits 蒸馏温度")
+    parser.add_argument("--distill-cls-weight", type=float, help="分类响应蒸馏权重")
+    parser.add_argument("--distill-box-weight", type=float, help="高置信 anchor box 响应蒸馏权重")
+    parser.add_argument("--distill-confidence-threshold", type=float, help="参与 box 蒸馏的 teacher 置信度门槛")
+    parser.add_argument("--distill-background-weight", type=float, help="低置信背景 anchor 的分类蒸馏权重")
 
     parser.add_argument("--max-check-images", type=int, help="每个 split 最多抽样检查多少张图，0 表示全部")
     parser.add_argument("--skip-checks", action="store_true", help="跳过图片、标签和可视化检查")
@@ -1319,15 +1460,24 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
     cfg.stage = args.stage
 
     if cfg.stage == "hard":
-        cfg.name = "bdd100k_yolo26s_det_640x384_stage2"
-        cfg.epochs = 30
+        cfg.name = "bdd100k_yolo26s_det_640x384_optimized_stage2"
+        cfg.epochs = 15
         cfg.optimizer = "AdamW"
         cfg.lr0 = 1e-4
         cfg.lrf = 0.1
         cfg.warmup_epochs = 1.0
-        cfg.patience = 10
-        cfg.scale = 0.15
+        cfg.patience = 5
+        cfg.mosaic = 0.0
+        cfg.close_mosaic = 0
+        cfg.mixup = 0.0
+        cfg.copy_paste = 0.0
+        cfg.scale = 0.1
         cfg.erasing = 0.05
+    elif cfg.stage == "distill":
+        cfg.model_path = "../yolo26n.pt"
+        cfg.teacher_model = "runs/detect/bdd100k_yolo26s_det_1280x736/weights/best.pt"
+        cfg.name = "bdd100k_yolo26n_det_640x384_distill_v1"
+        cfg.batch = 32
 
     if args.dataset_dir is not None and args.data_yaml is None:
         cfg.data_yaml = str(Path(args.dataset_dir) / "data.yaml")
@@ -1342,6 +1492,7 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
         "imgsz": args.imgsz,
         "input_width": args.input_width,
         "input_height": args.input_height,
+        "rect": args.rect,
         "batch": args.batch,
         "device": args.device,
         "workers": args.workers,
@@ -1363,6 +1514,13 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
         "base_weights": args.base_weights,
         "hard_sample_list": args.hard_sample_list,
         "hard_sample_repeat": args.hard_sample_repeat,
+        "hard_max_growth": args.hard_max_growth,
+        "teacher_model": args.teacher_model,
+        "distill_temperature": args.distill_temperature,
+        "distill_cls_weight": args.distill_cls_weight,
+        "distill_box_weight": args.distill_box_weight,
+        "distill_confidence_threshold": args.distill_confidence_threshold,
+        "distill_background_weight": args.distill_background_weight,
         "max_check_images": args.max_check_images,
         "predict_conf": args.predict_conf,
     }
@@ -1401,6 +1559,7 @@ def build_config(argv: Optional[Sequence[str]] = None) -> TrainConfig:
     cfg.resume = args.resume
 
     return normalize_cfg_paths(cfg)
+
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:

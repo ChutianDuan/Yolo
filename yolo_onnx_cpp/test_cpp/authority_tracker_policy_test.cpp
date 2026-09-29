@@ -11,6 +11,7 @@ namespace {
 
 using yolo::AuthorityTracker;
 using yolo::Detection;
+using yolo::HighResRegion;
 using yolo::ProjectedTrack;
 using yolo::ReplayFrame;
 using yolo::TrackMotion;
@@ -390,9 +391,82 @@ void testReplayBaseAdvancesWhenWindowEvictsFrame() {
                "evicted frame was not folded into replay base tracker");
 }
 
+void testRegionalHighResOnlyRejectsTracksInsideRegion() {
+    AuthorityTracker tracker;
+    const Detection inside = makeDetection(10.0F, 20.0F, 80.0F, 120.0F);
+    const Detection outside = makeDetection(300.0F, 20.0F, 370.0F, 120.0F, 4);
+    auto output = tracker.updateHighRes({inside, outside}, 0);
+    expect(output.size() == 2, "regional rejection setup did not create tracks");
+    const int outside_id = output.back().track_id;
+    const HighResRegion region{0.0F, 0.0F, 150.0F, 200.0F};
+
+    tracker.updateHighResRegion({}, {}, region, 1);
+    tracker.updateHighResRegion({}, {}, region, 2);
+    output = tracker.updateHighResRegion({}, {}, region, 3);
+
+    expect(output.size() == 1, "regional misses did not expire only the covered track");
+    expect(output.front().track_id == outside_id,
+           "regional authority incorrectly rejected an outside track");
+}
+
+void testRegionalHighResPreservesOutsideProvisional() {
+    AuthorityTracker tracker;
+    const Detection inside = makeDetection(10.0F, 20.0F, 80.0F, 120.0F);
+    const Detection outside = makeDetection(300.0F, 20.0F, 370.0F, 120.0F, 4);
+    tracker.updateLowRes({inside, outside}, {}, 0);
+    auto output = tracker.updateLowRes({inside, outside}, {}, 1);
+    expect(output.size() == 2, "regional provisional setup did not expose candidates");
+    const int outside_id = output.back().track_id;
+
+    output = tracker.updateHighResRegion(
+        {}, {}, HighResRegion{0.0F, 0.0F, 150.0F, 200.0F}, 2
+    );
+    expect(output.size() == 1 && output.front().track_id == outside_id,
+           "regional authority removed a provisional outside the crop");
+}
+
+void testRegionalHighResMatchesProjectedGeometry() {
+    AuthorityTracker tracker;
+    auto output = tracker.updateHighRes({makeDetection()}, 0);
+    const int track_id = output.front().track_id;
+    const Detection projected = makeDetection(110.0F, 20.0F, 180.0F, 120.0F);
+    output = tracker.updateHighResRegion(
+        {projected},
+        {directProjection(track_id, projected)},
+        HighResRegion{100.0F, 0.0F, 220.0F, 200.0F},
+        1
+    );
+    expect(output.size() == 1 && output.front().track_id == track_id,
+           "regional authority failed to match flow-projected geometry");
+    expectNear(output.front().detection.x1, 110.0F,
+               "regional authority did not keep full-frame detection coordinates");
+}
+
 }  // namespace
 
 int main() {
+    // Independent stream instances and replay value copies must not share track state.
+    {
+        AuthorityTracker first;
+        AuthorityTracker second;
+        const auto first_tracks = first.updateHighRes({makeDetection()}, 0);
+        const auto second_tracks = second.updateHighRes(
+            {makeDetection(200.0F, 20.0F, 270.0F, 120.0F, 4, 0.95F)}, 0
+        );
+        expect(first_tracks.front().track_id == 1 && second_tracks.front().track_id == 1,
+               "stream instances shared a global track ID allocator");
+        AuthorityTracker replay = first;
+        replay.updateHighRes({}, 1);
+        replay.updateHighRes({}, 2);
+        expect(replay.updateHighRes({}, 3).empty(), "replay copy did not expire independently");
+        expect(first.tracks().size() == 1 && first.tracks().front().detection.class_id == 2,
+               "mutating replay state changed the original stream");
+        expect(second.tracks().size() == 1 && second.tracks().front().detection.class_id == 4,
+               "mutating one stream changed a different stream");
+        replay = second;
+        expect(replay.tracks().size() == 1 && replay.tracks().front().detection.class_id == 4,
+               "replay assignment lost copied authority state");
+    }
     testProvisionalKeepsIdWhenHighResConfirmsAndCorrectsClass();
     testRejectedProvisionalIsRemoved();
     testFlowOnlyDoesNotCreateTrack();
@@ -411,6 +485,9 @@ int main() {
     testReplayAppliesMotionToCorrectedGeometry();
     testReplayRejectsMotionFromReusedId();
     testReplayBaseAdvancesWhenWindowEvictsFrame();
+    testRegionalHighResOnlyRejectsTracksInsideRegion();
+    testRegionalHighResPreservesOutsideProvisional();
+    testRegionalHighResMatchesProjectedGeometry();
     std::cout << "authority_tracker_policy_test passed\n";
     return 0;
 }

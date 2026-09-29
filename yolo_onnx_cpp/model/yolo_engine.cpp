@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <cmath>
+#include <condition_variable>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -16,6 +19,7 @@
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #if YOLO_ENABLE_OPENVINO
 #include <openvino/openvino.hpp>
+#include <openvino/core/version.hpp>
 #include <openvino/runtime/properties.hpp>
 #endif
 
@@ -31,6 +35,48 @@ enum class ModelBackend {
     OnnxRuntime,
     OpenVino,
 };
+
+#if YOLO_ENABLE_OPENVINO
+void logOpenVinoRuntime(
+    const ov::CompiledModel& model, const AppConfig& config, size_t pool_size
+) noexcept {
+    try {
+        const auto version = ov::get_openvino_version();
+        Json::Value json(Json::objectValue);
+        json["schema_version"] = 1;
+        json["component"] = "model_runtime";
+        json["backend"] = "openvino";
+        json["runtime_build"] = version.buildNumber ? version.buildNumber : "unavailable";
+        json["runtime_description"] = version.description ? version.description : "unavailable";
+        json["input_width"] = config.input_width;
+        json["input_height"] = config.input_height;
+        json["request_pool_size"] = Json::UInt64(pool_size);
+        json["configured_cpu_pinning"] = config.openvino_cpu_pinning.has_value()
+            ? Json::Value(*config.openvino_cpu_pinning) : Json::Value(Json::nullValue);
+        Json::Value properties(Json::objectValue);
+        for (const char* key : {
+                 "NUM_STREAMS", "INFERENCE_NUM_THREADS", "PERFORMANCE_HINT_NUM_REQUESTS",
+                 "ENABLE_CPU_PINNING", "ENABLE_HYPER_THREADING", "ENABLE_CPU_RESERVATION",
+                 "SCHEDULING_CORE_TYPE", "INFERENCE_PRECISION_HINT", "EXECUTION_DEVICES",
+                 "OPTIMAL_NUMBER_OF_INFER_REQUESTS"}) {
+            try {
+                std::ostringstream value;
+                model.get_property(key).print(value);
+                properties[key] = value.str().size() <= 256 ? value.str() : "unavailable";
+            } catch (...) {
+                // Optional diagnostic queries must not fail model initialization.
+                properties[key] = "unavailable";
+            }
+        }
+        json["properties"] = std::move(properties);
+        Json::StreamWriterBuilder writer;
+        writer["indentation"] = "";
+        std::cout << Json::writeString(writer, json) << '\n';
+    } catch (...) {
+        // Diagnostics must not change model readiness or inference behavior.
+    }
+}
+#endif
 
 double elapsedMs(std::chrono::steady_clock::time_point start) {
     const auto elapsed = std::chrono::steady_clock::now() - start;
@@ -162,6 +208,33 @@ const char* backendName(ModelBackend backend) {
     return backend == ModelBackend::OpenVino ? "openvino" : "onnxruntime";
 }
 
+class RequestIndexGuard {
+public:
+    RequestIndexGuard(
+        std::mutex& mutex,
+        std::condition_variable& condition,
+        std::vector<size_t>& available,
+        size_t index
+    ) : mutex_(mutex),
+        condition_(condition),
+        available_(available),
+        index_(index) {}
+
+    ~RequestIndexGuard() {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            available_.push_back(index_);
+        }
+        condition_.notify_one();
+    }
+
+private:
+    std::mutex& mutex_;
+    std::condition_variable& condition_;
+    std::vector<size_t>& available_;
+    size_t index_;
+};
+
 #if YOLO_ENABLE_OPENVINO
 std::vector<int64_t> shapeToInt64(const ov::Shape& shape) {
     std::vector<int64_t> result;
@@ -183,12 +256,27 @@ public:
           memory_info_(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault)),
           backend_(resolveBackend(config)),
           conf_threshold_(config.conf_threshold),
+          class_conf_thresholds_(config.class_conf_thresholds),
           iou_threshold_(config.iou_threshold),
           class_count_(config.num_classes > 0
                            ? config.num_classes
-                           : static_cast<int>(config.class_names.size())) {
+                           : static_cast<int>(config.class_names.size())),
+          max_concurrency_(std::max(config.infer_request_count, 1)) {
         if (class_count_ <= 0) {
             class_count_ = loadClassCount(config.model_path);
+        }
+
+        if (!class_conf_thresholds_.empty()) {
+            if (class_count_ <= 0
+                || class_conf_thresholds_.size() != static_cast<size_t>(class_count_)) {
+                throw std::invalid_argument("class threshold list size must match model class count");
+            }
+            for (float threshold : class_conf_thresholds_) {
+                if (!std::isfinite(threshold)
+                    || (threshold != -1.0F && (threshold < 0.0F || threshold > 1.0F))) {
+                    throw std::invalid_argument("class thresholds must be -1 or in [0, 1]");
+                }
+            }
         }
 
         if (backend_ == ModelBackend::OpenVino) {
@@ -202,6 +290,10 @@ public:
         return backend_ == ModelBackend::OpenVino
             ? inferOpenVino(input)
             : inferOnnxRuntime(input);
+    }
+
+    size_t maxConcurrency() const {
+        return max_concurrency_;
     }
 
 private:
@@ -296,7 +388,8 @@ private:
                 shape,
                 input,
                 class_count_,
-                conf_threshold_
+                conf_threshold_,
+                class_conf_thresholds_
             );
             result.decode_ms = elapsedMs(decode_start);
             result.timing_samples.decode_ms.push_back(result.decode_ms);
@@ -313,12 +406,42 @@ private:
     void initOpenVino(const AppConfig& config) {
 #if YOLO_ENABLE_OPENVINO
         auto model = ov_core_.read_model(config.model_path);
+        ov::AnyMap properties{
+            {ov::inference_num_threads.name(), config.thread_num},
+            {
+                ov::hint::performance_mode.name(),
+                config.openvino_performance_mode == "throughput"
+                    ? ov::hint::PerformanceMode::THROUGHPUT
+                    : ov::hint::PerformanceMode::LATENCY
+            },
+        };
+        if (config.infer_request_count > 0) {
+            properties.emplace(
+                ov::hint::num_requests.name(),
+                config.infer_request_count
+            );
+        }
+        if (config.openvino_cpu_pinning.has_value()) {
+            properties.emplace(ov::hint::enable_cpu_pinning.name(), *config.openvino_cpu_pinning);
+        }
         ov_compiled_model_ = ov_core_.compile_model(
             model,
             config.openvino_device,
-            ov::inference_num_threads(config.thread_num)
+            properties
         );
-        ov_infer_request_ = ov_compiled_model_.create_infer_request();
+
+        const size_t request_count = config.infer_request_count > 0
+            ? static_cast<size_t>(config.infer_request_count)
+            : static_cast<size_t>(
+                ov_compiled_model_.get_property(ov::optimal_number_of_infer_requests)
+            );
+        ov_infer_requests_.reserve(std::max<size_t>(request_count, 1));
+        max_concurrency_ = std::max<size_t>(request_count, 1);
+        ov_available_requests_.reserve(std::max<size_t>(request_count, 1));
+        for (size_t i = 0; i < std::max<size_t>(request_count, 1); ++i) {
+            ov_infer_requests_.push_back(ov_compiled_model_.create_infer_request());
+            ov_available_requests_.push_back(i);
+        }
 
         const auto inputs = ov_compiled_model_.inputs();
         const auto outputs = ov_compiled_model_.outputs();
@@ -334,6 +457,11 @@ private:
         std::cout << "OpenVINO device: " << config.openvino_device << '\n';
         std::cout << "OpenVINO inference threads: "
                   << ov_compiled_model_.get_property(ov::inference_num_threads) << '\n';
+        std::cout << "OpenVINO performance mode: "
+                  << config.openvino_performance_mode << '\n';
+        std::cout << "OpenVINO infer request pool: "
+                  << ov_infer_requests_.size() << '\n';
+        logOpenVinoRuntime(ov_compiled_model_, config, ov_infer_requests_.size());
         std::cout << "Input name: " << ov_input_name_ << '\n';
         std::cout << "Output count: " << outputs.size() << '\n';
         std::cout << "Class count: " << class_count_ << '\n';
@@ -350,7 +478,19 @@ private:
 
     InferResult inferOpenVino(const TensorInput& input) {
 #if YOLO_ENABLE_OPENVINO
-        std::lock_guard<std::mutex> lock(ov_infer_mutex_);
+        size_t request_index = 0;
+        {
+            std::unique_lock<std::mutex> lock(ov_pool_mutex_);
+            ov_pool_condition_.wait(lock, [this]() {
+                return !ov_available_requests_.empty();
+            });
+            request_index = ov_available_requests_.back();
+            ov_available_requests_.pop_back();
+        }
+        RequestIndexGuard request_guard(
+            ov_pool_mutex_, ov_pool_condition_, ov_available_requests_, request_index
+        );
+        ov::InferRequest& infer_request = ov_infer_requests_[request_index];
         ov::Shape input_shape;
         input_shape.reserve(input.shape.size());
         for (int64_t dim : input.shape) {
@@ -362,10 +502,10 @@ private:
 
         ov::Tensor input_tensor(ov::element::f32, input_shape);
         std::copy(input.values.begin(), input.values.end(), input_tensor.data<float>());
-        ov_infer_request_.set_tensor(ov_input_name_, input_tensor);
+        infer_request.set_tensor(ov_input_name_, input_tensor);
 
         auto infer_start = std::chrono::steady_clock::now();
-        ov_infer_request_.infer();
+        infer_request.infer();
 
         InferResult result;
         result.model_inference_ms = elapsedMs(infer_start);
@@ -378,13 +518,13 @@ private:
         result.output_shapes.reserve(outputs.size());
         for (size_t i = 0; i < outputs.size(); ++i) {
             result.output_shapes.push_back(
-                shapeToInt64(ov_infer_request_.get_output_tensor(i).get_shape())
+                shapeToInt64(infer_request.get_output_tensor(i).get_shape())
             );
         }
         result.postprocess_ms += elapsedMs(shape_start);
 
         if (!outputs.empty()) {
-            const ov::Tensor output_tensor = ov_infer_request_.get_output_tensor(0);
+            const ov::Tensor output_tensor = infer_request.get_output_tensor(0);
             const float* output_data = output_tensor.data<const float>();
             const std::vector<int64_t> shape = shapeToInt64(output_tensor.get_shape());
 
@@ -394,7 +534,8 @@ private:
                 shape,
                 input,
                 class_count_,
-                conf_threshold_
+                conf_threshold_,
+                class_conf_thresholds_
             );
             result.decode_ms = elapsedMs(decode_start);
             result.timing_samples.decode_ms.push_back(result.decode_ms);
@@ -419,8 +560,10 @@ private:
 #if YOLO_ENABLE_OPENVINO
     ov::Core ov_core_;
     ov::CompiledModel ov_compiled_model_;
-    ov::InferRequest ov_infer_request_;
-    std::mutex ov_infer_mutex_;
+    std::vector<ov::InferRequest> ov_infer_requests_;
+    std::vector<size_t> ov_available_requests_;
+    std::mutex ov_pool_mutex_;
+    std::condition_variable ov_pool_condition_;
     std::string ov_input_name_;
 #endif
 
@@ -430,8 +573,10 @@ private:
     std::vector<const char*> output_name_ptrs_;
     ModelBackend backend_ = ModelBackend::OnnxRuntime;
     float conf_threshold_ = 0.25F;
+    std::vector<float> class_conf_thresholds_;
     float iou_threshold_ = 0.45F;
     int class_count_ = 0;
+    size_t max_concurrency_ = 1;
 };
 
 YoloEngine::YoloEngine(const AppConfig& config)
@@ -440,7 +585,17 @@ YoloEngine::YoloEngine(const AppConfig& config)
 YoloEngine::~YoloEngine() = default;
 
 InferResult YoloEngine::infer(const TensorInput& input) {
-    return impl_->infer(input);
+    return infer(input, InferenceContext{});
+}
+
+InferResult YoloEngine::infer(const TensorInput& input, InferenceContext context) {
+    InferResult result = impl_->infer(input);
+    result.context = std::move(context);
+    return result;
+}
+
+size_t YoloEngine::maxConcurrency() const {
+    return impl_->maxConcurrency();
 }
 
 }  // namespace yolo

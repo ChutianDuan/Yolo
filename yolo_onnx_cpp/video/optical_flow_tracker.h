@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <cstddef>
+#include <optional>
 #include <vector>
 
 #include <opencv2/core.hpp>
@@ -51,6 +53,10 @@ struct WeakTrackResult {
     std::vector<TrackedDetection> tracks;
     std::vector<TrackFlowQuality> track_qualities;
     WeakTrackQuality quality;
+    // Internal wall time only; absent means this phase was skipped.
+    std::array<std::optional<double>, 6> stage_ms{};
+    uint64_t roi_count = 0;
+    uint64_t roi_pixels = 0;
 };
 
 struct FrameMotion {
@@ -70,6 +76,13 @@ WeakTrackResult weakTrackWithOpticalFlow(
     const std::vector<TrackedDetection>& previous_tracks,
     int image_width,
     int image_height
+);
+
+// Internal streaming overload: previous_pyramid belongs to previous_gray; outputs must not alias.
+WeakTrackResult weakTrackWithOpticalFlow(
+    const cv::Mat& previous_gray, const cv::Mat& current_gray,
+    const std::vector<TrackedDetection>& previous_tracks, int image_width, int image_height,
+    const std::vector<cv::Mat>& previous_pyramid, std::vector<cv::Mat>& current_pyramid
 );
 
 FrameMotion frameMotionForCurrentFrame(

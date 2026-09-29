@@ -6,7 +6,6 @@
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
-#include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
@@ -62,19 +61,6 @@ bool usesPreferredVideoBackends(const std::filesystem::path& path) {
         || extension == ".qt";
 }
 
-const char* videoBackendName(int backend) {
-    switch (backend) {
-    case cv::CAP_FFMPEG:
-        return "FFmpeg";
-    case cv::CAP_GSTREAMER:
-        return "GStreamer";
-    case cv::CAP_ANY:
-        return "CAP_ANY";
-    default:
-        return "unknown";
-    }
-}
-
 bool tryOpenVideoCapture(
     cv::VideoCapture& capture,
     const std::filesystem::path& video_path,
@@ -82,26 +68,14 @@ bool tryOpenVideoCapture(
 ) {
     capture.release();
     try {
-        const bool opened = capture.open(video_path.string(), backend) && capture.isOpened();
+        const bool opened = capture.open(video_path.string(), backend)
+            && capture.isOpened();
         if (opened) {
-            std::cerr << "[video] open ok path=\"" << video_path.string()
-                      << "\" backend=" << videoBackendName(backend)
-                      << " width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH)
-                      << " height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT)
-                      << " fps=" << capture.get(cv::CAP_PROP_FPS)
-                      << " frames=" << capture.get(cv::CAP_PROP_FRAME_COUNT)
-                      << '\n';
             return true;
         }
-
-        std::cerr << "[video] open failed path=\"" << video_path.string()
-                  << "\" backend=" << videoBackendName(backend) << '\n';
         capture.release();
         return false;
-    } catch (const cv::Exception& e) {
-        std::cerr << "[video] open exception path=\"" << video_path.string()
-                  << "\" backend=" << videoBackendName(backend)
-                  << " message=\"" << e.what() << "\"\n";
+    } catch (const cv::Exception&) {
         capture.release();
         return false;
     }
@@ -264,6 +238,25 @@ std::vector<Detection> decode(
     int class_count,
     float score_threshold
 ) {
+    return decode(output_data, output_shape, input, class_count, score_threshold, {});
+}
+
+std::vector<Detection> decode(
+    const float* output_data,
+    const std::vector<int64_t>& output_shape,
+    const TensorInput& input,
+    int class_count,
+    float score_threshold,
+    const std::vector<float>& class_score_thresholds
+) {
+    const auto thresholdFor = [&](int class_id) {
+        return class_id >= 0
+                && static_cast<size_t>(class_id) < class_score_thresholds.size()
+                && class_score_thresholds[class_id] >= 0.0F
+            ? class_score_thresholds[class_id]
+            : score_threshold;
+    };
+
     if (output_data == nullptr || output_shape.size() != 3 || output_shape[0] != 1) {
         return {};
     }
@@ -279,13 +272,15 @@ std::vector<Detection> decode(
 
         for (int64_t i = 0; i < candidate_count; ++i) {
             const float* row = output_data + i * kNmsOutputFeatureCount;
-            const float score = row[kNmsScoreIndex];
-            if (score < score_threshold) {
+            const double rounded_class = std::round(static_cast<double>(row[kNmsClassIndex]));
+            if (!std::isfinite(rounded_class) || rounded_class < 0.0
+                || rounded_class > std::numeric_limits<int>::max()
+                || (class_count > 0 && rounded_class >= class_count)) {
                 continue;
             }
-
-            const int class_id = static_cast<int>(std::round(row[kNmsClassIndex]));
-            if (class_id < 0 || (class_count > 0 && class_id >= class_count)) {
+            const int class_id = static_cast<int>(rounded_class);
+            const float score = row[kNmsScoreIndex];
+            if (!std::isfinite(score) || score < thresholdFor(class_id)) {
                 continue;
             }
 
@@ -348,7 +343,7 @@ std::vector<Detection> decode(
         }
 
         const float score = objectness * best_class_score;
-        if (score < score_threshold) {
+        if (!std::isfinite(score) || score < thresholdFor(best_class_id)) {
             continue;
         }
 
@@ -391,17 +386,10 @@ bool openVideoCapture(
                 return true;
             }
         }
-        std::cerr << "[video] open all_failed path=\"" << video_path.string()
-                  << "\" extension=\"" << lowerExtension(video_path) << "\"\n";
         return false;
     }
 
-    const bool opened = tryOpenVideoCapture(capture, video_path, cv::CAP_ANY);
-    if (!opened) {
-        std::cerr << "[video] open all_failed path=\"" << video_path.string()
-                  << "\" extension=\"" << lowerExtension(video_path) << "\"\n";
-    }
-    return opened;
+    return tryOpenVideoCapture(capture, video_path, cv::CAP_ANY);
 }
 
 std::string videoOpenFailureMessage(const std::filesystem::path& video_path) {

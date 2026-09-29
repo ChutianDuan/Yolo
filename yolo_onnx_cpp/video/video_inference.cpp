@@ -13,7 +13,7 @@
 #include <opencv2/videoio.hpp>
 
 #include "image/image_processing.h"
-#include "tracking/byte_tracker.h"
+#include "stream/stream_processor.h"
 #include "video/optical_flow_tracker.h"
 #include "video/video_inference_detail.h"
 
@@ -51,7 +51,9 @@ using video_inference_detail::videoFrameStride;
 VideoInferResult inferVideoFile(
     const std::shared_ptr<YoloEngine>& engine,
     const AppConfig& config,
-    const std::filesystem::path& video_path
+    const std::filesystem::path& video_path,
+    std::shared_ptr<InferenceScheduler> scheduler,
+    std::string stream_id
 ) {
     const auto total_start = std::chrono::steady_clock::now();
     const ProcessUsageSnapshot usage_start = captureProcessUsage();
@@ -79,14 +81,15 @@ VideoInferResult inferVideoFile(
         result.frames.reserve(reserve_frame_count);
         frame_motions.reserve(reserve_frame_count);
     }
-    ByteTracker tracker;
+    StreamProcessor processor(false);
     std::unique_ptr<AsyncInferWorker> async_worker;
     if (async_enabled) {
-        async_worker = std::make_unique<AsyncInferWorker>(engine, config);
+        async_worker = std::make_unique<AsyncInferWorker>(
+            engine, config, scheduler, stream_id
+        );
     }
     cv::Mat frame;
-    cv::Mat previous_gray;
-    std::vector<TrackedDetection> previous_frame_tracks;
+    const auto& previous_frame_tracks = processor.tracks();
     std::unordered_map<int, cv::Point2f> track_velocities;
     int64_t frame_index = 0;
     int64_t source_frame_count = 0;
@@ -112,7 +115,7 @@ VideoInferResult inferVideoFile(
     bool async_error_bad_request = false;
 
     auto applyAsyncInferResult = [
-        &tracker,
+        &processor,
         &result,
         &frame_motions,
         &previous_frame_tracks,
@@ -148,7 +151,9 @@ VideoInferResult inferVideoFile(
         );
 
         const auto tracks_before_detection = previous_frame_tracks;
-        auto corrected_tracks = tracker.update(corrected_detections);
+        const auto& corrected_tracks = processor.applyDetections(
+            corrected_detections, current_frame_index, true
+        );
 
         const TrackChangeQuality track_change = trackChangeQuality(
             tracks_before_detection,
@@ -165,9 +170,8 @@ VideoInferResult inferVideoFile(
         );
         rememberStride();
 
-        previous_frame_tracks = corrected_tracks;
         if (target_frame != nullptr) {
-            target_frame->tracks = std::move(corrected_tracks);
+            target_frame->tracks = corrected_tracks;
             target_frame->tracks_source = "async_corrected";
             target_frame->corrected_from_frame_index = async_result.frame_index;
             target_frame->correction_latency_frames =
@@ -265,7 +269,9 @@ VideoInferResult inferVideoFile(
     auto runSyncDetection = [
         &engine,
         &config,
-        &tracker,
+        &scheduler,
+        &stream_id,
+        &processor,
         &result,
         &previous_frame_tracks,
         &track_velocities,
@@ -279,21 +285,32 @@ VideoInferResult inferVideoFile(
       bool forced,
       VideoFrameTracks& frame_result) {
         const auto preprocess_start = std::chrono::steady_clock::now();
-        const auto input = preprocessImageMat(source_frame, config);
+        auto input = preprocessImageMat(source_frame, config);
         const double preprocess_ms = elapsedMs(preprocess_start);
         if (!input.has_value()) {
             throw VideoInferError(invalidVideoFrameMessage(config), true);
         }
 
-        InferResult infer_result = engine->infer(input.value());
+        InferenceContext context;
+        context.stream_id = stream_id;
+        context.frame_index = source_frame_index;
+        InferResult infer_result = scheduler != nullptr
+            ? scheduler->infer(
+                std::move(input.value()), std::move(context), forced
+            )
+            : engine->infer(input.value(), std::move(context));
         infer_result.preprocess_ms = preprocess_ms;
         infer_result.timing_samples.preprocess_ms.push_back(preprocess_ms);
-        infer_result.timing_samples.queue_wait_ms.push_back(0.0);
+        if (scheduler == nullptr) {
+            infer_result.timing_samples.queue_wait_ms.push_back(0.0);
+        }
         addInferMetrics(result, infer_result);
 
         auto tracker_start = std::chrono::steady_clock::now();
         const auto tracks_before_detection = previous_frame_tracks;
-        auto detected_tracks = tracker.update(infer_result.detections);
+        const auto& detected_tracks = processor.applyDetections(
+            infer_result.detections, source_frame_index, true
+        );
         updateTrackVelocities(
             tracks_before_detection,
             detected_tracks,
@@ -303,7 +320,6 @@ VideoInferResult inferVideoFile(
         frame_result.is_detection_frame = true;
         frame_result.tracks = detected_tracks;
         frame_result.tracks_source = frame_result.tracks.empty() ? "empty" : "detected";
-        previous_frame_tracks = std::move(detected_tracks);
         stride_state.last_detection_frame_index = source_frame_index;
         ++processed_frame_count;
         if (forced) {
@@ -336,26 +352,11 @@ VideoInferResult inferVideoFile(
         ++readable_frame_count;
         image_width = frame.cols;
         image_height = frame.rows;
-        cv::Mat current_gray;
-        cv::cvtColor(frame, current_gray, cv::COLOR_BGR2GRAY);
-
         const auto tracks_before_flow = previous_frame_tracks;
-        auto flow_start = std::chrono::steady_clock::now();
-        const auto weak_result = weakTrackWithOpticalFlow(
-            previous_gray,
-            current_gray,
-            previous_frame_tracks,
-            image_width,
-            image_height
-        );
-        frame_motions.push_back(frameMotionForCurrentFrame(
-            previous_gray,
-            current_gray,
-            frame_index,
-            weak_result.quality,
-            previous_frame_tracks
-        ));
-        result.optical_flow_ms += elapsedMs(flow_start);
+        auto prepared = processor.prepareFrame(frame, frame_index, true);
+        const auto& weak_result = prepared.weak;
+        frame_motions.push_back(prepared.motion);
+        result.optical_flow_ms += prepared.optical_flow_ms;
 
         bool async_result_applied = false;
         if (!processReadyInferences(
@@ -370,14 +371,11 @@ VideoInferResult inferVideoFile(
 
         if (!async_result_applied) {
             auto tracker_start = std::chrono::steady_clock::now();
-            if (!weak_result.tracks.empty()) {
-                frame_result.tracks = tracker.updateTracked(weak_result.tracks);
-                if (!frame_result.tracks.empty()) {
-                    frame_result.tracks_source = "weak_tracked";
-                }
+            frame_result.tracks = processor.applyFlow(prepared, false);
+            if (!frame_result.tracks.empty()) {
+                frame_result.tracks_source = "weak_tracked";
             }
 
-            previous_frame_tracks = frame_result.tracks;
             const TrackChangeQuality flow_track_change = trackChangeQuality(
                 tracks_before_flow,
                 previous_frame_tracks,
@@ -425,7 +423,7 @@ VideoInferResult inferVideoFile(
             }
         }
 
-        previous_gray = current_gray;
+        processor.finishFrame(std::move(prepared));
         result.frames.push_back(std::move(frame_result));
         addEndToEndSample(result, elapsedMs(frame_start));
         ++frame_index;

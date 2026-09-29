@@ -32,6 +32,15 @@ std::vector<Detection> decode(
     float score_threshold
 );
 
+std::vector<Detection> decode(
+    const float* output_data,
+    const std::vector<int64_t>& output_shape,
+    const TensorInput& input,
+    int class_count,
+    float score_threshold,
+    const std::vector<float>& class_score_thresholds
+);
+
 std::optional<TensorInput> preprocessImageMat(
     const cv::Mat& image,
     const AppConfig& config

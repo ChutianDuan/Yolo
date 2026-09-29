@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <utility>
+
+#include "stream/realtime_stream_manager.h"
 
 namespace yolo {
 namespace {
@@ -314,6 +317,37 @@ Json::Value tracksToJson(
     return tracks_json;
 }
 
+Json::Value realtimeFrameEventToJson(
+    const RealtimeFrameEvent& event,
+    const std::vector<std::string>& class_names
+) {
+    Json::Value json;
+    json["sequence"] = Json::UInt64(event.sequence);
+    json["frame_index"] = Json::Int64(event.frame_index);
+    json["timestamp_ms"] = event.timestamp_ms;
+    json["result_age_ms"] = event.result_age_ms;
+    json["detection_frame"] = event.detection_frame;
+    json["high_res_roi"] = event.high_res_roi;
+    json["model_tier"] = event.model_tier;
+    json["terminal"] = event.terminal;
+    json["status"] = event.status;
+    json["tracks"] = tracksToJson(event.tracks, class_names);
+    if (!event.inference_updates.empty()) {
+        Json::Value updates(Json::arrayValue);
+        for (const auto& update : event.inference_updates) {
+            Json::Value item;
+            item["stream_id"] = update.context.stream_id;
+            item["frame_index"] = Json::Int64(update.context.frame_index);
+            item["timestamp_ms"] = update.context.timestamp_ms;
+            item["model_tier"] = update.model_tier;
+            item["high_res_roi"] = update.high_res_roi;
+            updates.append(std::move(item));
+        }
+        json["inference_updates"] = std::move(updates);
+    }
+    return json;
+}
+
 Json::Value inferResultToJson(
     const InferResult& result,
     const std::vector<std::string>& class_names
@@ -370,6 +404,8 @@ Json::Value videoInferResultToJson(
     ret["processed_frame_count"] = Json::Int64(result.processed_frame_count);
     ret["display_frame_count"] = Json::Int64(result.display_frame_count);
     ret["detected_frame_count"] = Json::Int64(result.detected_frame_count);
+    ret["roi_high_res_detection_count"] =
+        Json::Int64(result.roi_high_res_detection_count);
     ret["async_infer_request_count"] = Json::Int64(result.async_infer_request_count);
     ret["async_correction_count"] = Json::Int64(result.async_correction_count);
     ret["async_corrected_frame_count"] =
