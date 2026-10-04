@@ -496,33 +496,33 @@ private:
         snapshot.width = context->width;
         snapshot.height = context->height;
         snapshot.source_fps = context->source_fps;
-        snapshot.decoded_frame_count = context->decoded_frame_count;
-        snapshot.processed_frame_count = context->processed_frame_count;
-        snapshot.detection_frame_count = context->detection_frame_count;
-        snapshot.high_res_detection_count = context->high_res_detection_count;
-        snapshot.roi_high_res_detection_count =
+        snapshot.counters.frames.decoded_frame_count = context->decoded_frame_count;
+        snapshot.counters.frames.processed_frame_count = context->processed_frame_count;
+        snapshot.detections.detection_frame_count = context->detection_frame_count;
+        snapshot.detections.high_res_detection_count = context->high_res_detection_count;
+        snapshot.detections.roi_high_res_detection_count =
             context->roi_high_res_detection_count;
-        snapshot.low_res_detection_count = context->low_res_detection_count;
-        snapshot.dropped_frame_count = context->dropped_frame_count;
-        snapshot.decoder_queue_drop_count = context->decoder_queue_drop_count;
-        snapshot.processor_coalesced_frame_count =
+        snapshot.detections.low_res_detection_count = context->low_res_detection_count;
+        snapshot.counters.frames.dropped_frame_count = context->dropped_frame_count;
+        snapshot.counters.frames.decoder_queue_drop_count = context->decoder_queue_drop_count;
+        snapshot.counters.frames.processor_coalesced_frame_count =
             context->processor_coalesced_frame_count;
-        snapshot.stale_frame_drop_count = context->stale_frame_drop_count;
-        snapshot.skipped_inference_count = context->skipped_inference_count;
-        snapshot.inference_error_count = context->inference_error_count;
+        snapshot.counters.frames.stale_frame_drop_count = context->stale_frame_drop_count;
+        snapshot.counters.inference.skipped_inference_count = context->skipped_inference_count;
+        snapshot.counters.inference.inference_error_count = context->inference_error_count;
         snapshot.consecutive_inference_error_count =
             context->consecutive_inference_error_count;
         snapshot.reconnect_count = context->reconnect_count;
-        snapshot.queue_length = context->frames.size();
-        snapshot.max_queue_length = context->max_queue_length;
-        snapshot.latest_sequence = context->next_sequence - 1;
-        snapshot.async_inference_diagnostics = context->async_inference_diagnostics;
-        snapshot.processing_diagnostics = context->processing_diagnostics;
-        snapshot.weak_flow_roi_count = context->weak_flow_roi_count;
-        snapshot.weak_flow_roi_pixels = context->weak_flow_roi_pixels;
-        snapshot.weak_flow_sampled_points = context->weak_flow_sampled_points;
+        snapshot.queue.queue_length = context->frames.size();
+        snapshot.queue.max_queue_length = context->max_queue_length;
+        snapshot.latest.latest_sequence = context->next_sequence - 1;
+        snapshot.counters.async_inference_diagnostics = context->async_inference_diagnostics;
+        snapshot.counters.processing_diagnostics = context->processing_diagnostics;
+        snapshot.counters.weak_flow.weak_flow_roi_count = context->weak_flow_roi_count;
+        snapshot.counters.weak_flow.weak_flow_roi_pixels = context->weak_flow_roi_pixels;
+        snapshot.counters.weak_flow.weak_flow_sampled_points = context->weak_flow_sampled_points;
         if (context->processed_frame_count > 0) {
-            snapshot.latest_result_age_ms = std::chrono::duration<double, std::milli>(
+            snapshot.latest.latest_result_age_ms = std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - context->latest_result_captured_at
             ).count();
         }
@@ -708,6 +708,7 @@ private:
                     std::unique_lock<std::mutex> lock(context->mutex);
                     const size_t depth =
                         static_cast<size_t>(config_.per_stream_queue_depth);
+                    // 文件流等待空位以逐帧处理；实时流淘汰旧帧，限制积压延迟。
                     if (!context->live_source) {
                         context->frame_ready.wait(lock, [&context, depth]() {
                             return context->stop_requested
@@ -791,6 +792,7 @@ private:
         }
 
         CapturedFrame frame;
+        // 实时处理直接取最新帧，其余积压帧计入丢帧；文件流保持 FIFO。
         if (context->live_source) {
             frame = std::move(context->frames.back());
             const size_t coalesced = context->frames.size() - 1;
@@ -926,6 +928,7 @@ private:
     }
 
     void processAsyncHighLow(const std::shared_ptr<StreamContext>& context) {
+        // 推理等待期间继续光流输出；迟到结果在源帧处注入历史，再回放到当前状态。
         StreamProcessor processor(true);
         StreamInferenceReplay replay(context->stream_id, config_.max_result_age_ms);
         DetectionCadence cadence(config_.video_detect_fps, config_.video_high_detect_fps, true);
@@ -1465,6 +1468,7 @@ private:
             }
         }
 
+        // 在流锁之外调用订阅回调，避免回调重入管理器时锁住整个流状态。
         for (const auto& subscriber : delivery_owners) {
             if (!drainSubscriber(subscriber)) {
                 failed_subscribers.push_back(subscriber.id);

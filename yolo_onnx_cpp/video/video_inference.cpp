@@ -141,6 +141,7 @@ VideoInferResult inferVideoFile(
         addInferMetrics(result, async_result.result);
 
         auto tracker_start = std::chrono::steady_clock::now();
+        // 异步结果属于较早的源帧，先用累计运动补偿到当前帧，再交给跟踪器。
         const auto corrected_detections = motionCompensatedDetections(
             async_result.result.detections,
             async_result.frame_index,
@@ -356,7 +357,7 @@ VideoInferResult inferVideoFile(
         auto prepared = processor.prepareFrame(frame, frame_index, true);
         const auto& weak_result = prepared.weak;
         frame_motions.push_back(prepared.motion);
-        result.optical_flow_ms += prepared.optical_flow_ms;
+        result.timing.optical_flow_ms += prepared.optical_flow_ms;
 
         bool async_result_applied = false;
         if (!processReadyInferences(
@@ -473,14 +474,14 @@ VideoInferResult inferVideoFile(
         static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH)),
         static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT))
     );
-    result.total_elapsed_ms = elapsedMs(total_start);
-    result.queue_length = async_worker != nullptr ? async_worker->pendingCount() : 0;
-    result.max_queue_length = max_queue_length;
-    result.dropped_frame_count = dropped_frame_count;
+    result.timing.total_elapsed_ms = elapsedMs(total_start);
+    result.queue.queue_length = async_worker != nullptr ? async_worker->pendingCount() : 0;
+    result.queue.max_queue_length = max_queue_length;
+    result.queue.dropped_frame_count = dropped_frame_count;
     const ProcessUsageSnapshot usage_end = captureProcessUsage();
     finalizeVideoPerformanceMetrics(
         result,
-        result.frame_count,
+        result.frame_counts.frame_count,
         usage_start,
         usage_end
     );

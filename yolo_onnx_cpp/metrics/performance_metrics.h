@@ -12,12 +12,15 @@
 
 namespace yolo {
 
+// 耗时样本的分位数；单位由使用处约定，本项目的性能统计使用毫秒。
 struct LatencyPercentiles {
     double p50 = 0.0;
     double p95 = 0.0;
     double p99 = 0.0;
 };
 
+// 单次调用或视频任务的原始阶段样本，单位毫秒，用于累计及分位数计算。
+// 实时流使用常量空间的阶段汇总，避免长期保留逐帧样本。
 struct StageTimingSamples {
     std::vector<double> decode_ms;
     std::vector<double> preprocess_ms;
@@ -33,7 +36,8 @@ struct ProcessUsageSnapshot {
     double cpu_seconds = 0.0;
 };
 
-struct PerformanceMetrics {
+// 阶段累计耗时，单位毫秒；end_to_end_ms 是整次调用的墙钟耗时。
+struct PerformanceTiming {
     double decode_ms = 0.0;
     double preprocess_ms = 0.0;
     double infer_ms = 0.0;
@@ -41,7 +45,10 @@ struct PerformanceMetrics {
     double tracker_ms = 0.0;
     double queue_wait_ms = 0.0;
     double end_to_end_ms = 0.0;
+};
 
+// 各阶段样本的 P50/P95/P99，单位毫秒；空样本返回零。
+struct PerformanceLatencyPercentiles {
     LatencyPercentiles decode_percentiles_ms;
     LatencyPercentiles preprocess_percentiles_ms;
     LatencyPercentiles infer_percentiles_ms;
@@ -49,13 +56,29 @@ struct PerformanceMetrics {
     LatencyPercentiles tracker_percentiles_ms;
     LatencyPercentiles queue_wait_percentiles_ms;
     LatencyPercentiles end_to_end_percentiles_ms;
+};
 
-    double average_fps = 0.0;
+// 进程资源：CPU 按进程 CPU 时间 / 墙钟时间计算，多核时可超过 100%；RSS 按 1024 换算。
+struct PerformanceResources {
     double cpu_utilization_percent = 0.0;
     double rss_memory_mb = 0.0;
+};
+
+// 采样时的队列长度、运行期间峰值和累计丢帧数。
+struct PerformanceQueueStats {
     size_t queue_length = 0;
     size_t max_queue_length = 0;
     int64_t dropped_frame_count = 0;
+};
+
+// 单次调用或视频任务的性能汇总，不跨任务累计。
+struct PerformanceMetrics {
+    PerformanceTiming timing;
+    PerformanceLatencyPercentiles latency_percentiles;
+    // 输出数量 / 墙钟耗时，区别于视频源 FPS。
+    double average_fps = 0.0;
+    PerformanceResources resources;
+    PerformanceQueueStats queue;
 };
 
 inline double sumSamples(const std::vector<double>& samples) {
@@ -142,30 +165,30 @@ inline PerformanceMetrics buildPerformanceMetrics(
     int64_t dropped_frame_count
 ) {
     PerformanceMetrics metrics;
-    metrics.decode_ms = sumSamples(samples.decode_ms);
-    metrics.preprocess_ms = sumSamples(samples.preprocess_ms);
-    metrics.infer_ms = sumSamples(samples.infer_ms);
-    metrics.postprocess_ms = sumSamples(samples.postprocess_ms);
-    metrics.tracker_ms = sumSamples(samples.tracker_ms);
-    metrics.queue_wait_ms = sumSamples(samples.queue_wait_ms);
-    metrics.end_to_end_ms = end_to_end_ms;
+    metrics.timing.decode_ms = sumSamples(samples.decode_ms);
+    metrics.timing.preprocess_ms = sumSamples(samples.preprocess_ms);
+    metrics.timing.infer_ms = sumSamples(samples.infer_ms);
+    metrics.timing.postprocess_ms = sumSamples(samples.postprocess_ms);
+    metrics.timing.tracker_ms = sumSamples(samples.tracker_ms);
+    metrics.timing.queue_wait_ms = sumSamples(samples.queue_wait_ms);
+    metrics.timing.end_to_end_ms = end_to_end_ms;
 
-    metrics.decode_percentiles_ms = percentileSummary(samples.decode_ms);
-    metrics.preprocess_percentiles_ms = percentileSummary(samples.preprocess_ms);
-    metrics.infer_percentiles_ms = percentileSummary(samples.infer_ms);
-    metrics.postprocess_percentiles_ms = percentileSummary(samples.postprocess_ms);
-    metrics.tracker_percentiles_ms = percentileSummary(samples.tracker_ms);
-    metrics.queue_wait_percentiles_ms = percentileSummary(samples.queue_wait_ms);
-    metrics.end_to_end_percentiles_ms = percentileSummary(samples.end_to_end_ms);
+    metrics.latency_percentiles.decode_percentiles_ms = percentileSummary(samples.decode_ms);
+    metrics.latency_percentiles.preprocess_percentiles_ms = percentileSummary(samples.preprocess_ms);
+    metrics.latency_percentiles.infer_percentiles_ms = percentileSummary(samples.infer_ms);
+    metrics.latency_percentiles.postprocess_percentiles_ms = percentileSummary(samples.postprocess_ms);
+    metrics.latency_percentiles.tracker_percentiles_ms = percentileSummary(samples.tracker_ms);
+    metrics.latency_percentiles.queue_wait_percentiles_ms = percentileSummary(samples.queue_wait_ms);
+    metrics.latency_percentiles.end_to_end_percentiles_ms = percentileSummary(samples.end_to_end_ms);
 
     metrics.average_fps = end_to_end_ms > 0.0
         ? static_cast<double>(output_count) * 1000.0 / end_to_end_ms
         : 0.0;
-    metrics.cpu_utilization_percent = cpuUtilizationPercent(usage_start, usage_end);
-    metrics.rss_memory_mb = currentRssMemoryMb();
-    metrics.queue_length = queue_length;
-    metrics.max_queue_length = max_queue_length;
-    metrics.dropped_frame_count = dropped_frame_count;
+    metrics.resources.cpu_utilization_percent = cpuUtilizationPercent(usage_start, usage_end);
+    metrics.resources.rss_memory_mb = currentRssMemoryMb();
+    metrics.queue.queue_length = queue_length;
+    metrics.queue.max_queue_length = max_queue_length;
+    metrics.queue.dropped_frame_count = dropped_frame_count;
     return metrics;
 }
 

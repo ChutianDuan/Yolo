@@ -18,6 +18,7 @@ bool constantTimeEquals(std::string_view lhs, std::string_view rhs) {
     if (lhs.size() != rhs.size()) {
         return false;
     }
+    // 等长令牌遍历全部字节，避免比较在第一个不同字符处提前返回。
     unsigned char difference = 0;
     for (size_t index = 0; index < lhs.size(); ++index) {
         difference |= static_cast<unsigned char>(lhs[index])
@@ -79,6 +80,7 @@ public:
             ).first;
         }
 
+        // 每个客户端独立使用令牌桶：按时间补充令牌，最多累积 burst 个。
         Bucket& bucket = found->second;
         const double elapsed_seconds =
             std::chrono::duration<double>(now - bucket.updated_at).count();
@@ -91,6 +93,7 @@ public:
         }
         bucket.last_seen = now;
 
+        // 未通过鉴权的请求也消耗额度，限制无效令牌的反复尝试。
         if (bucket.tokens >= 1.0) {
             bucket.tokens -= 1.0;
             if (!authorized) {

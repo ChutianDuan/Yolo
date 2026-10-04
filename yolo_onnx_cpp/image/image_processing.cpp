@@ -120,6 +120,7 @@ TensorInput preprocessImage(
 
     const size_t image_area = static_cast<size_t>(config.input_height)
         * static_cast<size_t>(config.input_width);
+    // 一次遍历完成 BGR→RGB、HWC→CHW 和 [0,255]→[0,1]，减少中间图像分配。
     float* red = input.values.data();
     float* green = red + image_area;
     float* blue = green + image_area;
@@ -160,6 +161,7 @@ Detection makeDetection(
     Detection detection;
     detection.class_id = class_id;
     detection.score = score;
+    // 先移除模型输入的填充，再逆缩放到原图，最后裁剪到图像边界。
     detection.x1 = (x1 - input.letterbox.pad_w) / scale_x;
     detection.y1 = (y1 - input.letterbox.pad_h) / scale_y;
     detection.x2 = (x2 - input.letterbox.pad_w) / scale_x;
@@ -223,6 +225,7 @@ cv::Mat letterbox(
         color
     );
 
+    // 使用取整后的实际尺寸计算缩放，避免逆变换时产生像素偏差。
     info.scale_x = static_cast<float>(resized_w) / static_cast<float>(image.cols);
     info.scale_y = static_cast<float>(resized_h) / static_cast<float>(image.rows);
     info.pad_w = static_cast<float>(left);
@@ -249,6 +252,7 @@ std::vector<Detection> decode(
     float score_threshold,
     const std::vector<float>& class_score_thresholds
 ) {
+    // 按类别覆盖阈值；未配置或值为 -1 时回退到模型的统一阈值。
     const auto thresholdFor = [&](int class_id) {
         return class_id >= 0
                 && static_cast<size_t>(class_id) < class_score_thresholds.size()
@@ -264,6 +268,7 @@ std::vector<Detection> decode(
         return {};
     }
 
+    // 内置 NMS 的导出格式为 [1,300,6]，每行是 x1,y1,x2,y2,score,class。
     if (output_shape[1] == kNmsOutputCandidateCount
         && output_shape[2] == kNmsOutputFeatureCount) {
         const int64_t candidate_count = output_shape[1];
@@ -307,10 +312,12 @@ std::vector<Detection> decode(
         return {};
     }
 
+    // 原始输出兼容 [1,特征数,候选数] 和 [1,候选数,特征数]；按较小维推定特征轴。
     const bool channel_first = output_shape[1] < output_shape[2];
     const int64_t feature_count = channel_first ? output_shape[1] : output_shape[2];
     const int64_t candidate_count = channel_first ? output_shape[2] : output_shape[1];
 
+    // 特征可能额外包含 objectness，此时最终置信度为 objectness × 类别分数。
     const bool has_objectness = feature_count == static_cast<int64_t>(class_count) + 5;
     const int64_t class_start = has_objectness ? 5 : 4;
     if (feature_count < class_start + static_cast<int64_t>(class_count)) {

@@ -8,11 +8,13 @@
 
 namespace yolo {
 
+// 单模型跟踪器：Kalman 预测结合两阶段检测关联，维持跨帧目标 ID。
 class ByteTracker {
 public:
     ByteTracker();
 
     std::vector<TrackedDetection> update(const std::vector<Detection>& detections);
+    // 光流已提供目标 ID 时按 ID 更新既有轨迹，不创建新目标。
     std::vector<TrackedDetection> updateTracked(
         const std::vector<TrackedDetection>& tracked_detections
     );
@@ -27,6 +29,7 @@ private:
     struct Track {
         int id = -1;
         Detection detection;
+        // 状态依次为中心 x/y、宽高比、高度，以及这四个量的速度。
         std::array<float, 8> mean{};
         std::array<std::array<float, 8>, 8> covariance{};
         TrackState state = TrackState::Tracked;

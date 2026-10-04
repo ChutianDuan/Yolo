@@ -25,44 +25,44 @@ yolo::RealtimeStreamSnapshot sample(
     yolo::RealtimeStreamSnapshot stream;
     stream.stream_id = id;
     stream.status = status;
-    stream.decoded_frame_count = 100 * scale;
-    stream.processed_frame_count = 80 * scale;
-    stream.dropped_frame_count = 20 * scale;
-    stream.decoder_queue_drop_count = 10 * scale;
-    stream.processor_coalesced_frame_count = 5 * scale;
-    stream.stale_frame_drop_count = 5 * scale;
-    stream.skipped_inference_count = 3 * scale;
-    stream.inference_error_count = 2 * scale;
-    stream.weak_flow_roi_count = 4 * scale;
-    stream.weak_flow_roi_pixels = 256 * scale;
-    stream.weak_flow_sampled_points = 32 * scale;
-    for (size_t tier = 0; tier < stream.async_inference_diagnostics.size(); ++tier) {
-        auto& timing = stream.async_inference_diagnostics[tier];
-        timing.completed_count = 3 * scale;
-        timing.applied_count = scale;
-        timing.expired_count = scale;
-        timing.evicted_count = scale;
+    stream.counters.frames.decoded_frame_count = 100 * scale;
+    stream.counters.frames.processed_frame_count = 80 * scale;
+    stream.counters.frames.dropped_frame_count = 20 * scale;
+    stream.counters.frames.decoder_queue_drop_count = 10 * scale;
+    stream.counters.frames.processor_coalesced_frame_count = 5 * scale;
+    stream.counters.frames.stale_frame_drop_count = 5 * scale;
+    stream.counters.inference.skipped_inference_count = 3 * scale;
+    stream.counters.inference.inference_error_count = 2 * scale;
+    stream.counters.weak_flow.weak_flow_roi_count = 4 * scale;
+    stream.counters.weak_flow.weak_flow_roi_pixels = 256 * scale;
+    stream.counters.weak_flow.weak_flow_sampled_points = 32 * scale;
+    for (size_t tier = 0; tier < stream.counters.async_inference_diagnostics.size(); ++tier) {
+        auto& timing = stream.counters.async_inference_diagnostics[tier];
+        timing.outcomes.completed_count = 3 * scale;
+        timing.outcomes.applied_count = scale;
+        timing.outcomes.expired_count = scale;
+        timing.outcomes.evicted_count = scale;
         timing.stages[static_cast<size_t>(yolo::StreamInferenceStage::Infer)] =
             {scale, 100.0 * scale, 100.0};
     }
-    for (auto& timing : stream.processing_diagnostics) {
+    for (auto& timing : stream.counters.processing_diagnostics) {
         timing = {scale, 50.0 * scale, 50.0};
     }
     return stream;
 }
 
 void expectTotals(const yolo::RealtimeStreamCounters& totals, uint64_t scale) {
-    expect(totals.decoded_frame_count == 100 * scale, "decoded total mismatch");
-    expect(totals.processed_frame_count == 80 * scale, "processed total mismatch");
-    expect(totals.dropped_frame_count == 20 * scale, "dropped total mismatch");
-    expect(totals.decoder_queue_drop_count == 10 * scale, "decoder drop total mismatch");
-    expect(totals.processor_coalesced_frame_count == 5 * scale, "coalesced total mismatch");
-    expect(totals.stale_frame_drop_count == 5 * scale, "stale drop total mismatch");
-    expect(totals.skipped_inference_count == 3 * scale, "skipped inference total mismatch");
-    expect(totals.inference_error_count == 2 * scale, "inference error total mismatch");
-    expect(totals.weak_flow_roi_count == 4 * scale
-               && totals.weak_flow_roi_pixels == 256 * scale
-               && totals.weak_flow_sampled_points == 32 * scale,
+    expect(totals.frames.decoded_frame_count == 100 * scale, "decoded total mismatch");
+    expect(totals.frames.processed_frame_count == 80 * scale, "processed total mismatch");
+    expect(totals.frames.dropped_frame_count == 20 * scale, "dropped total mismatch");
+    expect(totals.frames.decoder_queue_drop_count == 10 * scale, "decoder drop total mismatch");
+    expect(totals.frames.processor_coalesced_frame_count == 5 * scale, "coalesced total mismatch");
+    expect(totals.frames.stale_frame_drop_count == 5 * scale, "stale drop total mismatch");
+    expect(totals.inference.skipped_inference_count == 3 * scale, "skipped inference total mismatch");
+    expect(totals.inference.inference_error_count == 2 * scale, "inference error total mismatch");
+    expect(totals.weak_flow.weak_flow_roi_count == 4 * scale
+               && totals.weak_flow.weak_flow_roi_pixels == 256 * scale
+               && totals.weak_flow.weak_flow_sampled_points == 32 * scale,
            "retired/live weak-flow load mismatch");
     for (const auto& timing : totals.processing_diagnostics) {
         expect(timing.count == scale && timing.sum_ms == 50.0 * scale
@@ -70,8 +70,8 @@ void expectTotals(const yolo::RealtimeStreamCounters& totals, uint64_t scale) {
                "retired/live processing timings mismatch");
     }
     for (const auto& timing : totals.async_inference_diagnostics) {
-        expect(timing.completed_count == 3 * scale && timing.applied_count == scale
-                   && timing.expired_count == scale && timing.evicted_count == scale,
+        expect(timing.outcomes.completed_count == 3 * scale && timing.outcomes.applied_count == scale
+                   && timing.outcomes.expired_count == scale && timing.outcomes.evicted_count == scale,
                "retired/live async outcome totals mismatch");
         const auto& stage = timing.stages[static_cast<size_t>(yolo::StreamInferenceStage::Infer)];
         expect(stage.count == scale && stage.sum_ms == 100.0 * scale
@@ -151,7 +151,7 @@ int main() {
            "non-finite/negative timing contaminated metrics");
     std::ostringstream text;
     appendStreamInferenceMetrics(text, recreated.totals.async_inference_diagnostics);
-    appendStreamInferenceMetrics(text, recreated.streams.front().async_inference_diagnostics, "same-id");
+    appendStreamInferenceMetrics(text, recreated.streams.front().counters.async_inference_diagnostics, "same-id");
     expect(text.str().find("yolo_stream_async_results_total{tier=\"high\",outcome=\"completed\"} 21")
                != std::string::npos,
            "global outcome metric missing");
@@ -159,17 +159,17 @@ int main() {
                != std::string::npos,
            "tier/stream labels or milliseconds-to-seconds conversion changed");
     appendStreamProcessingMetrics(text, recreated.totals.processing_diagnostics);
-    appendStreamProcessingMetrics(text, recreated.streams.front().processing_diagnostics, "same-id");
+    appendStreamProcessingMetrics(text, recreated.streams.front().counters.processing_diagnostics, "same-id");
     expect(text.str().find("yolo_stream_processing_stage_seconds_count{stage=\"frame_work\"} 7")
                != std::string::npos, "global processing count missing");
     expect(text.str().find("yolo_stream_processing_stage_by_stream_seconds_sum{stage=\"prepare\",stream_id=\"same-id\"} 0.2")
                != std::string::npos, "processing seconds or labels changed");
-    yolo::appendWeakFlowLoadMetrics(text, recreated.totals.weak_flow_roi_count,
-                              recreated.totals.weak_flow_roi_pixels,
-                              recreated.totals.weak_flow_sampled_points);
-    yolo::appendWeakFlowLoadMetrics(text, recreated.streams.front().weak_flow_roi_count,
-                              recreated.streams.front().weak_flow_roi_pixels,
-                              recreated.streams.front().weak_flow_sampled_points, "same-id");
+    yolo::appendWeakFlowLoadMetrics(text, recreated.totals.weak_flow.weak_flow_roi_count,
+                              recreated.totals.weak_flow.weak_flow_roi_pixels,
+                              recreated.totals.weak_flow.weak_flow_sampled_points);
+    yolo::appendWeakFlowLoadMetrics(text, recreated.streams.front().counters.weak_flow.weak_flow_roi_count,
+                              recreated.streams.front().counters.weak_flow.weak_flow_roi_pixels,
+                              recreated.streams.front().counters.weak_flow.weak_flow_sampled_points, "same-id");
     expect(text.str().find("yolo_stream_weak_flow_rois_total 28") != std::string::npos
                && text.str().find("yolo_stream_weak_flow_roi_pixels_total 1792")
                    != std::string::npos

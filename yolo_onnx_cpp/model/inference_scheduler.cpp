@@ -91,6 +91,7 @@ public:
 
             const std::string stream_id = normalizedStreamId(task->context.stream_id);
             auto& queue = queues_[stream_id];
+            // 替换尚未执行的最旧任务；已进入引擎的任务继续完成。
             if (queue.size() >= per_stream_queue_depth_) {
                 replaced = std::move(queue.front());
                 queue.pop_front();
@@ -225,6 +226,7 @@ private:
     }
 
     void scheduleReadyLocked(const std::string& stream_id) {
+        // 同一流最多有一个任务执行；完成后才重新加入可调度队列。
         if (stopping_
             || in_flight_streams_.find(stream_id) != in_flight_streams_.end()
             || ready_streams_.find(stream_id) != ready_streams_.end()) {
@@ -253,6 +255,7 @@ private:
             return nullptr;
         }
 
+        // 紧急请求优先，但连续执行次数有限，避免普通流长期得不到服务。
         if (!urgent_ready_.empty()
             && (normal_ready_.empty() || urgent_burst_ < kMaxUrgentBurst)) {
             stream_id = std::move(urgent_ready_.front());
@@ -322,6 +325,7 @@ private:
             const auto age = std::chrono::duration_cast<std::chrono::milliseconds>(
                 now - task->submitted_at
             );
+            // 在进入引擎前淘汰等待过久的请求，节省用于过期帧的推理资源。
             if (max_request_age_.count() > 0 && age > max_request_age_) {
                 output = statusResult(
                     ScheduledInferenceStatus::Stale,
@@ -362,6 +366,7 @@ private:
     }
 
     void stop() {
+        // 待执行任务以 Stopped 结束；正在推理的任务由 join 等待其正常收尾。
         std::vector<std::shared_ptr<ScheduledTask>> cancelled;
         {
             std::lock_guard<std::mutex> lock(mutex_);

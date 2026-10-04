@@ -684,6 +684,7 @@ std::vector<TrackedDetection> ByteTracker::update(
 
     std::vector<bool> high_matched(high_detections.size(), false);
 
+    // 第一阶段：高置信度检测匹配活跃和暂时丢失的轨迹，允许找回旧 ID。
     const auto first_matches = assignDetections(
         track_pool,
         high_detections,
@@ -702,6 +703,7 @@ std::vector<TrackedDetection> ByteTracker::update(
         }
     }
 
+    // 第二阶段：低置信度检测仅补救未匹配的活跃轨迹，不据此创建新目标。
     const auto second_matches = assignDetections(
         unmatched_tracked_tracks,
         low_detections,
@@ -727,6 +729,7 @@ std::vector<TrackedDetection> ByteTracker::update(
         }
     }
 
+    // 尚未确认的新轨迹需再次匹配高置信度检测，失败则移除。
     std::vector<bool> unconfirmed_matched(unconfirmed_tracks.size(), false);
     const auto unconfirmed_matches = assignDetections(
         unconfirmed_tracks,

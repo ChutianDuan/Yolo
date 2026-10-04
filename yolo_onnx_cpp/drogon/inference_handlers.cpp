@@ -95,13 +95,13 @@ void runVideoJob(
         log.status_code = 200;
         log.content_size = content_size;
         log.has_content_size = true;
-        log.frame_count = result.frame_count;
-        log.processed_frame_count = result.processed_frame_count;
-        log.detected_frame_count = result.detected_frame_count;
+        log.frame_count = result.frame_counts.frame_count;
+        log.processed_frame_count = result.frame_counts.processed_frame_count;
+        log.detected_frame_count = result.detection_counts.detected_frame_count;
         log.track_observation_count = track_observations;
         log.average_fps = result.metrics.average_fps;
-        log.cpu_utilization_percent = result.metrics.cpu_utilization_percent;
-        log.rss_memory_mb = result.metrics.rss_memory_mb;
+        log.cpu_utilization_percent = result.metrics.resources.cpu_utilization_percent;
+        log.rss_memory_mb = result.metrics.resources.rss_memory_mb;
         logApiEvent(ApiLogEvent::Completed, log);
         respondSuccess(callback, std::move(response), request_id);
     } catch (const VideoInferError& error) {
@@ -230,8 +230,8 @@ void ImageInferenceHandler::handle(
         log.has_content_size = true;
         log.detection_count = result.detections.size();
         log.average_fps = result.metrics.average_fps;
-        log.cpu_utilization_percent = result.metrics.cpu_utilization_percent;
-        log.rss_memory_mb = result.metrics.rss_memory_mb;
+        log.cpu_utilization_percent = result.metrics.resources.cpu_utilization_percent;
+        log.rss_memory_mb = result.metrics.resources.rss_memory_mb;
         logApiEvent(ApiLogEvent::Completed, log);
         respondSuccess(callback, std::move(response), request_id);
     } catch (const std::exception& error) {
@@ -327,7 +327,9 @@ void VideoInferenceHandler::handle(
     const std::string_view content = file->fileContent();
     const std::string extension = videoExtension(file->getFileName());
     try {
+        // 先将上传内容落盘，再由任务持有临时文件；不依赖 multipart 解析器的生命周期。
         auto temp_video = std::make_shared<TempVideoFile>(content, extension);
+        // 后台任务负责完成响应；保留原回调供队列拒绝时立即返回错误。
         ResponseCallback job_callback = callback;
         auto job = [
             route = route_,

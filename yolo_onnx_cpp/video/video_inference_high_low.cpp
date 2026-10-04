@@ -355,6 +355,7 @@ VideoInferResult inferVideoFileHighLow(
         }
 
         const int64_t anchor_frame_index = replay_buffer[start_index].frame_index;
+        // 从历史基准重建跟踪器；迟到结果所在帧及之后的输出会被重新计算。
         AuthorityTracker replay_tracker = replay_base_tracker;
         for (size_t i = 0; i < replay_buffer.size(); ++i) {
             ReplayFrame& frame = replay_buffer[i];
@@ -423,6 +424,7 @@ VideoInferResult inferVideoFileHighLow(
             addInferTiming(result, async_result.result);
 
             const size_t replay_index = findReplayFrame(async_result.frame_index);
+            // 源帧已不在历史窗口内时无法可靠回放，该结果仅计入丢弃统计。
             if (replay_index == replay_buffer.size()) {
                 ++dropped_frame_count;
                 continue;
@@ -478,7 +480,7 @@ VideoInferResult inferVideoFileHighLow(
         const bool severe_weak_drop = isSevereWeakQualityDrop(weak_result.quality);
         const auto projection_start = std::chrono::steady_clock::now();
         const auto projected_detections = projectedDetections(projected_tracks);
-        result.optical_flow_ms += prepared.optical_flow_ms + elapsedMs(projection_start);
+        result.timing.optical_flow_ms += prepared.optical_flow_ms + elapsedMs(projection_start);
 
         const TrackChangeQuality flow_track_change = trackChangeQuality(
             previous_frame_tracks,
@@ -492,26 +494,26 @@ VideoInferResult inferVideoFileHighLow(
                 return !quality.accepted;
             }
         ));
-        runtime_diagnostics.flow_track_count += static_cast<int64_t>(
+        runtime_diagnostics.flow.flow_track_count += static_cast<int64_t>(
             weak_result.track_qualities.size()
         );
-        runtime_diagnostics.flow_rejected_track_count += rejected_flow_tracks;
-        runtime_diagnostics.flow_low_point_rejection_count += static_cast<int64_t>(
+        runtime_diagnostics.flow.flow_rejected_track_count += rejected_flow_tracks;
+        runtime_diagnostics.flow.flow_low_point_rejection_count += static_cast<int64_t>(
             weak_result.quality.low_point_track_count
         );
-        runtime_diagnostics.flow_invalid_ratio_rejection_count +=
+        runtime_diagnostics.flow.flow_invalid_ratio_rejection_count +=
             static_cast<int64_t>(weak_result.quality.invalid_ratio_track_count);
-        runtime_diagnostics.flow_forward_backward_rejection_count +=
+        runtime_diagnostics.flow.flow_forward_backward_rejection_count +=
             static_cast<int64_t>(
                 weak_result.quality.forward_backward_rejection_count
             );
-        runtime_diagnostics.flow_motion_dispersion_rejection_count +=
+        runtime_diagnostics.flow.flow_motion_dispersion_rejection_count +=
             static_cast<int64_t>(
                 weak_result.quality.motion_dispersion_rejection_count
             );
-        runtime_diagnostics.flow_motion_jump_rejection_count +=
+        runtime_diagnostics.flow.flow_motion_jump_rejection_count +=
             static_cast<int64_t>(weak_result.quality.motion_jump_rejection_count);
-        runtime_diagnostics.flow_boundary_rejection_count += static_cast<int64_t>(
+        runtime_diagnostics.flow.flow_boundary_rejection_count += static_cast<int64_t>(
             weak_result.quality.boundary_rejection_count
         );
         const bool flow_quality_bad =
@@ -540,22 +542,22 @@ VideoInferResult inferVideoFileHighLow(
             || flow_track_change.velocity_jump_count > 0;
         const HighLowDiagnostics tracker_diagnostics = tracker.diagnostics();
         const int64_t duplicate_count =
-            tracker_diagnostics.stable_stable_duplicate_count
-            + tracker_diagnostics.stable_provisional_duplicate_count
-            + tracker_diagnostics.provisional_provisional_duplicate_count;
+            tracker_diagnostics.duplicates.stable_stable_duplicate_count
+            + tracker_diagnostics.duplicates.stable_provisional_duplicate_count
+            + tracker_diagnostics.duplicates.provisional_provisional_duplicate_count;
         const int64_t previous_duplicate_count =
-            previous_tracker_diagnostics.stable_stable_duplicate_count
-            + previous_tracker_diagnostics.stable_provisional_duplicate_count
-            + previous_tracker_diagnostics.provisional_provisional_duplicate_count;
+            previous_tracker_diagnostics.duplicates.stable_stable_duplicate_count
+            + previous_tracker_diagnostics.duplicates.stable_provisional_duplicate_count
+            + previous_tracker_diagnostics.duplicates.provisional_provisional_duplicate_count;
         const bool duplicate_urgent = tracker.consumeLowResRefreshRequest()
             || duplicate_count - previous_duplicate_count >= 2;
         const bool flow_age_urgent = tracker.consumeFlowAgeRefreshRequest();
         const bool geometry_urgent =
-            tracker_diagnostics.low_res_geometry_rejection_count
-                > previous_tracker_diagnostics.low_res_geometry_rejection_count;
+            tracker_diagnostics.low_res.low_res_geometry_rejection_count
+                > previous_tracker_diagnostics.low_res.low_res_geometry_rejection_count;
         const bool class_conflict_urgent =
-            tracker_diagnostics.low_res_class_conflict_count
-                > previous_tracker_diagnostics.low_res_class_conflict_count;
+            tracker_diagnostics.low_res.low_res_class_conflict_count
+                > previous_tracker_diagnostics.low_res.low_res_class_conflict_count;
         previous_tracker_diagnostics = tracker_diagnostics;
 
         pending_low_res_refresh = pending_low_res_refresh
@@ -574,11 +576,11 @@ VideoInferResult inferVideoFileHighLow(
         if (urgent_low_res) {
             pending_low_res_refresh = false;
             last_urgent_low_res_frame_index = frame_index;
-            ++runtime_diagnostics.urgent_low_res_detection_count;
-            runtime_diagnostics.urgent_flow_quality_count += flow_quality_urgent ? 1 : 0;
-            runtime_diagnostics.urgent_track_change_count += track_change_urgent ? 1 : 0;
-            runtime_diagnostics.urgent_duplicate_count += duplicate_urgent ? 1 : 0;
-            runtime_diagnostics.urgent_flow_age_count += flow_age_urgent ? 1 : 0;
+            ++runtime_diagnostics.urgent.urgent_low_res_detection_count;
+            runtime_diagnostics.urgent.urgent_flow_quality_count += flow_quality_urgent ? 1 : 0;
+            runtime_diagnostics.urgent.urgent_track_change_count += track_change_urgent ? 1 : 0;
+            runtime_diagnostics.urgent.urgent_duplicate_count += duplicate_urgent ? 1 : 0;
+            runtime_diagnostics.urgent.urgent_flow_age_count += flow_age_urgent ? 1 : 0;
             if (flow_quality_urgent) {
                 last_flow_quality_refresh_frame_index = frame_index;
             }
@@ -603,9 +605,9 @@ VideoInferResult inferVideoFileHighLow(
         if (force_high_res && high_res_detection_count > 0) {
             pending_high_res_refresh = false;
             last_urgent_high_res_frame_index = frame_index;
-            ++runtime_diagnostics.urgent_high_res_detection_count;
-            runtime_diagnostics.urgent_geometry_count += geometry_urgent ? 1 : 0;
-            runtime_diagnostics.urgent_class_conflict_count +=
+            ++runtime_diagnostics.urgent.urgent_high_res_detection_count;
+            runtime_diagnostics.urgent.urgent_geometry_count += geometry_urgent ? 1 : 0;
+            runtime_diagnostics.urgent.urgent_class_conflict_count +=
                 class_conflict_urgent ? 1 : 0;
         }
         if (force_high_res && high_res_detection_count == 0) {
@@ -747,48 +749,48 @@ VideoInferResult inferVideoFileHighLow(
         static_cast<int>(capture.get(cv::CAP_PROP_FRAME_WIDTH)),
         static_cast<int>(capture.get(cv::CAP_PROP_FRAME_HEIGHT))
     );
-    result.total_elapsed_ms = elapsedMs(total_start);
-    result.queue_length = high_res_worker != nullptr ? high_res_worker->pendingCount() : 0;
-    result.max_queue_length = max_queue_length;
-    result.dropped_frame_count = dropped_frame_count;
-    result.roi_high_res_detection_count = roi_high_res_detection_count;
+    result.timing.total_elapsed_ms = elapsedMs(total_start);
+    result.queue.queue_length = high_res_worker != nullptr ? high_res_worker->pendingCount() : 0;
+    result.queue.max_queue_length = max_queue_length;
+    result.queue.dropped_frame_count = dropped_frame_count;
+    result.detection_counts.roi_high_res_detection_count = roi_high_res_detection_count;
     result.high_low_diagnostics = tracker.diagnostics();
-    result.high_low_diagnostics.flow_track_count =
-        runtime_diagnostics.flow_track_count;
-    result.high_low_diagnostics.flow_rejected_track_count =
-        runtime_diagnostics.flow_rejected_track_count;
-    result.high_low_diagnostics.flow_low_point_rejection_count =
-        runtime_diagnostics.flow_low_point_rejection_count;
-    result.high_low_diagnostics.flow_invalid_ratio_rejection_count =
-        runtime_diagnostics.flow_invalid_ratio_rejection_count;
-    result.high_low_diagnostics.flow_forward_backward_rejection_count =
-        runtime_diagnostics.flow_forward_backward_rejection_count;
-    result.high_low_diagnostics.flow_motion_dispersion_rejection_count =
-        runtime_diagnostics.flow_motion_dispersion_rejection_count;
-    result.high_low_diagnostics.flow_motion_jump_rejection_count =
-        runtime_diagnostics.flow_motion_jump_rejection_count;
-    result.high_low_diagnostics.flow_boundary_rejection_count =
-        runtime_diagnostics.flow_boundary_rejection_count;
-    result.high_low_diagnostics.urgent_low_res_detection_count =
-        runtime_diagnostics.urgent_low_res_detection_count;
-    result.high_low_diagnostics.urgent_high_res_detection_count =
-        runtime_diagnostics.urgent_high_res_detection_count;
-    result.high_low_diagnostics.urgent_flow_quality_count =
-        runtime_diagnostics.urgent_flow_quality_count;
-    result.high_low_diagnostics.urgent_track_change_count =
-        runtime_diagnostics.urgent_track_change_count;
-    result.high_low_diagnostics.urgent_duplicate_count =
-        runtime_diagnostics.urgent_duplicate_count;
-    result.high_low_diagnostics.urgent_flow_age_count =
-        runtime_diagnostics.urgent_flow_age_count;
-    result.high_low_diagnostics.urgent_geometry_count =
-        runtime_diagnostics.urgent_geometry_count;
-    result.high_low_diagnostics.urgent_class_conflict_count =
-        runtime_diagnostics.urgent_class_conflict_count;
+    result.high_low_diagnostics.flow.flow_track_count =
+        runtime_diagnostics.flow.flow_track_count;
+    result.high_low_diagnostics.flow.flow_rejected_track_count =
+        runtime_diagnostics.flow.flow_rejected_track_count;
+    result.high_low_diagnostics.flow.flow_low_point_rejection_count =
+        runtime_diagnostics.flow.flow_low_point_rejection_count;
+    result.high_low_diagnostics.flow.flow_invalid_ratio_rejection_count =
+        runtime_diagnostics.flow.flow_invalid_ratio_rejection_count;
+    result.high_low_diagnostics.flow.flow_forward_backward_rejection_count =
+        runtime_diagnostics.flow.flow_forward_backward_rejection_count;
+    result.high_low_diagnostics.flow.flow_motion_dispersion_rejection_count =
+        runtime_diagnostics.flow.flow_motion_dispersion_rejection_count;
+    result.high_low_diagnostics.flow.flow_motion_jump_rejection_count =
+        runtime_diagnostics.flow.flow_motion_jump_rejection_count;
+    result.high_low_diagnostics.flow.flow_boundary_rejection_count =
+        runtime_diagnostics.flow.flow_boundary_rejection_count;
+    result.high_low_diagnostics.urgent.urgent_low_res_detection_count =
+        runtime_diagnostics.urgent.urgent_low_res_detection_count;
+    result.high_low_diagnostics.urgent.urgent_high_res_detection_count =
+        runtime_diagnostics.urgent.urgent_high_res_detection_count;
+    result.high_low_diagnostics.urgent.urgent_flow_quality_count =
+        runtime_diagnostics.urgent.urgent_flow_quality_count;
+    result.high_low_diagnostics.urgent.urgent_track_change_count =
+        runtime_diagnostics.urgent.urgent_track_change_count;
+    result.high_low_diagnostics.urgent.urgent_duplicate_count =
+        runtime_diagnostics.urgent.urgent_duplicate_count;
+    result.high_low_diagnostics.urgent.urgent_flow_age_count =
+        runtime_diagnostics.urgent.urgent_flow_age_count;
+    result.high_low_diagnostics.urgent.urgent_geometry_count =
+        runtime_diagnostics.urgent.urgent_geometry_count;
+    result.high_low_diagnostics.urgent.urgent_class_conflict_count =
+        runtime_diagnostics.urgent.urgent_class_conflict_count;
     const ProcessUsageSnapshot usage_end = captureProcessUsage();
     finalizeVideoPerformanceMetrics(
         result,
-        result.frame_count,
+        result.frame_counts.frame_count,
         usage_start,
         usage_end
     );

@@ -12,6 +12,7 @@
 
 namespace yolo {
 
+// 保存一帧的运动和检测事实；异步检测补齐后可按源帧顺序重建跟踪状态。
 struct AuthorityReplayFrame {
     int64_t frame_index = 0;
     int image_width = 0;
@@ -47,6 +48,7 @@ inline std::vector<TrackedDetection> applyReplayFrame(
     const AuthorityReplayFrame& frame,
     AuthorityTracker& tracker
 ) {
+    // 同帧高分辨率结果优先；没有检测结果的帧才完全依赖光流。
     if (frame.has_high_res) {
         if (!frame.high_res_is_roi) {
             return tracker.updateHighRes(
@@ -75,6 +77,7 @@ inline void trimReplayBuffer(
     AuthorityTracker& base_tracker,
     size_t max_frames
 ) {
+    // 丢弃历史前先推进基准跟踪器，使基准始终对应缓冲区首帧之前的状态。
     while (replay_buffer.size() > max_frames) {
         applyReplayFrame(replay_buffer.front(), base_tracker);
         replay_buffer.pop_front();

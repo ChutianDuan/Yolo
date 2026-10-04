@@ -145,7 +145,7 @@ public:
             }
             ++output.completed_count;
             auto& diagnostics = output.diagnostics[index];
-            ++diagnostics.completed_count;
+            ++diagnostics.outcomes.completed_count;
             const auto elapsed = std::chrono::steady_clock::now() - polling_started;
             const auto received_at = now + elapsed;
             diagnostics.observe(StreamInferenceStage::Preprocess, pending.preprocess_ms);
@@ -162,7 +162,7 @@ public:
                         received_at - scheduled.completed_at).count());
             }
             if (isFrameExpired(true, max_result_age_ms_, pending.captured_at, received_at)) {
-                ++diagnostics.expired_count;
+                ++diagnostics.outcomes.expired_count;
                 ++output.skipped_count;
                 continue;
             }
@@ -171,7 +171,7 @@ public:
                     return frame.frame_index == pending.context.frame_index;
                 });
             if (anchor == history_.end()) {
-                ++diagnostics.evicted_count;
+                ++diagnostics.outcomes.evicted_count;
                 ++output.skipped_count;
                 continue;
             }
@@ -205,12 +205,12 @@ public:
                 std::chrono::duration<double, std::milli>(committed_at - pending.captured_at).count());
             // Do not commit a correction that exceeded its deadline during replay.
             if (isFrameExpired(true, max_result_age_ms_, pending.captured_at, committed_at)) {
-                ++diagnostics.expired_count;
+                ++diagnostics.outcomes.expired_count;
                 *anchor = std::move(previous);
                 ++output.skipped_count;
                 continue;
             }
-            ++diagnostics.applied_count;
+            ++diagnostics.outcomes.applied_count;
             output.tracker = std::move(replayed);
             output.applied.push_back({pending.context, index == 0, pending.roi.has_value()});
         }

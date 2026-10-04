@@ -495,6 +495,7 @@ AppConfig loadAppConfig(const std::string& config_path) {
 
     validateConfig(config);
 
+    // 模型与证书的相对路径以配置文件所在目录为基准，避免依赖启动目录。
     std::filesystem::path model_path(config.model_path);
     if (model_path.is_relative()) {
         model_path = path.parent_path() / model_path;
@@ -544,6 +545,7 @@ AppConfig makeHighResAppConfig(const AppConfig& config) {
 }
 
 AppConfig makeLowResAppConfig(const AppConfig& config) {
+    // 转成引擎使用的主模型字段，同时保留未显式覆盖的共享配置。
     AppConfig low_res = config;
     low_res.model_path = config.low_res_model_path;
     low_res.input_width = config.low_res_input_width;
@@ -563,6 +565,7 @@ AppConfig makeLowResAppConfig(const AppConfig& config) {
     if (config.low_res_infer_request_count > 0) {
         low_res.infer_request_count = config.low_res_infer_request_count;
     }
+    // 派生配置只描述一个模型，清除低分辨率入口以免再次被识别为双模型配置。
     low_res.low_res_model_path.clear();
     low_res.low_res_input_width = 0;
     low_res.low_res_input_height = 0;

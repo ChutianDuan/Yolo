@@ -153,6 +153,7 @@ std::vector<Detection> nonMaxSuppression(
         }
     );
 
+    // 限制进入两两比较的候选数，控制密集场景下 NMS 的计算开销。
     if (detections.size() > kMaxNmsCandidates) {
         detections.resize(kMaxNmsCandidates);
     }
@@ -172,6 +173,7 @@ std::vector<Detection> nonMaxSuppression(
         }
 
         for (size_t j = i + 1; j < detections.size(); ++j) {
+            // 仅抑制同类别重叠框，保留不同类别的独立候选。
             if (removed[j] || detections[i].class_id != detections[j].class_id) {
                 continue;
             }
@@ -208,6 +210,7 @@ const char* backendName(ModelBackend backend) {
     return backend == ModelBackend::OpenVino ? "openvino" : "onnxruntime";
 }
 
+// 用作用域管理 OpenVINO 请求槽位，推理或后处理抛异常时也会归还。
 class RequestIndexGuard {
 public:
     RequestIndexGuard(
@@ -326,6 +329,7 @@ private:
             auto name = session_.GetOutputNameAllocated(i, allocator);
             output_names_str_.emplace_back(name.get());
         }
+        // 先构造完字符串容器再取 c_str()，保证 Run 使用的名称指针稳定。
         input_name_ptrs_.reserve(input_names_str_.size());
         for (const auto& name : input_names_str_) {
             input_name_ptrs_.push_back(name.c_str());
@@ -345,6 +349,7 @@ private:
     }
 
     InferResult inferOnnxRuntime(const TensorInput& input) {
+        // Tensor 借用输入向量的内存；同步 Run 返回前，调用方必须保持输入有效。
         Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
             memory_info_,
             const_cast<float*>(input.values.data()),
@@ -478,6 +483,7 @@ private:
 
     InferResult inferOpenVino(const TensorInput& input) {
 #if YOLO_ENABLE_OPENVINO
+        // 每次调用独占一个 InferRequest；池锁仅用于领取和归还槽位。
         size_t request_index = 0;
         {
             std::unique_lock<std::mutex> lock(ov_pool_mutex_);
@@ -504,6 +510,7 @@ private:
         std::copy(input.values.begin(), input.values.end(), input_tensor.data<float>());
         infer_request.set_tensor(ov_input_name_, input_tensor);
 
+        // 模型耗时只覆盖执行阶段，领取请求和复制输入计入调度器的总执行耗时。
         auto infer_start = std::chrono::steady_clock::now();
         infer_request.infer();
 

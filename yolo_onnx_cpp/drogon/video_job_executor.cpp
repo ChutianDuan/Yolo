@@ -23,6 +23,7 @@ public:
     }
 
     ~Impl() {
+        // 停止接收新任务，唤醒线程；run 会处理完已接收的任务后退出。
         {
             std::lock_guard<std::mutex> lock(mutex_);
             stopping_ = true;
@@ -79,6 +80,7 @@ private:
                 ++stats_.in_flight_count;
             }
 
+            // 视频解码和推理在队列锁之外运行，让提交与其他工作线程继续推进。
             try {
                 job();
             } catch (...) {

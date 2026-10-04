@@ -10,6 +10,7 @@ namespace yolo {
 
 enum class StreamInferenceStage : size_t {
     Preprocess, QueueWait, Execution, Infer, Postprocess,
+    // 完成到收取的延迟、解码到收取的年龄、回放耗时、解码到提交的年龄。
     CompletionPickup, ResultAge, Replay, CommitAge, Count
 };
 
@@ -19,6 +20,8 @@ inline constexpr std::array<const char*, static_cast<size_t>(StreamInferenceStag
         "completion_pickup", "result_age", "replay", "commit_age"
     };
 
+// 阶段有效样本数、累计毫秒数与最大毫秒数；合并时最大值取 max，不相加。
+// Execution 包含 Infer / Postprocess 等内部耗时，各阶段不是互斥区间。
 struct StreamInferenceStageTotal {
     uint64_t count = 0;
     double sum_ms = 0.0;
@@ -40,13 +43,17 @@ struct StreamInferenceStageTotal {
     }
 };
 
-// Constant space: no retained per-request images, contexts or latency sample vectors.
-// Completed counts only context-validated results collected by the live replay worker.
+// 经上下文校验并收取的异步结果，按当前流生命周期累计。
+struct StreamInferenceOutcomes {
+    uint64_t completed_count = 0; // 收取的完成结果，包含后续被拒绝的结果。
+    uint64_t applied_count = 0;   // 回放后成功提交的校正结果。
+    uint64_t expired_count = 0;   // 收取或提交时超过结果年龄限制。
+    uint64_t evicted_count = 0;   // 源帧已从回放历史中移除，无法应用。
+};
+
+// 常量空间诊断：不保留图像、上下文或逐请求耗时样本。
 struct StreamInferenceDiagnostics {
-    uint64_t completed_count = 0;
-    uint64_t applied_count = 0;
-    uint64_t expired_count = 0;
-    uint64_t evicted_count = 0;
+    StreamInferenceOutcomes outcomes;
     std::array<StreamInferenceStageTotal, kStreamInferenceStageNames.size()> stages{};
 
     void observe(StreamInferenceStage stage, double milliseconds) {
@@ -54,17 +61,17 @@ struct StreamInferenceDiagnostics {
     }
 
     void merge(const StreamInferenceDiagnostics& other) {
-        completed_count += other.completed_count;
-        applied_count += other.applied_count;
-        expired_count += other.expired_count;
-        evicted_count += other.evicted_count;
+        outcomes.completed_count += other.outcomes.completed_count;
+        outcomes.applied_count += other.outcomes.applied_count;
+        outcomes.expired_count += other.outcomes.expired_count;
+        outcomes.evicted_count += other.outcomes.evicted_count;
         for (size_t i = 0; i < stages.size(); ++i) {
             stages[i].merge(other.stages[i]);
         }
     }
 };
 
-// Constant-space wall time for admitted frame attempts; frame_work contains sub-stages.
+// 已接纳帧处理尝试的墙钟耗时；FrameWork 包含内部子阶段，不能与子阶段相加。
 enum class StreamProcessingStage : size_t {
     FrameWork, Prepare, Poll, Publish, Gray, WeakFlow, Motion, Projection,
     FrameDiff, RoiFeatures, PyramidBuild, LkForward, LkBackward, FlowQuality, Count
@@ -78,7 +85,7 @@ inline constexpr std::array<const char*, static_cast<size_t>(StreamProcessingSta
 using StreamProcessingDiagnostics =
     std::array<StreamInferenceStageTotal, kStreamProcessingStageNames.size()>;
 
-// High at index 0, low at index 1, matching live replay's independent future slots.
+// 下标 0 为 high、1 为 low，对应实时回放的两个独立异步槽位。
 using StreamInferenceDiagnosticsByTier = std::array<StreamInferenceDiagnostics, 2>;
 
 }  // namespace yolo

@@ -21,9 +21,9 @@ void expect(bool condition, const std::string& message) {
 
 yolo::VideoInferResult makeVideoResult() {
     yolo::VideoInferResult result;
-    result.frame_count = 3;
-    result.display_frame_count = 3;
-    result.roi_high_res_detection_count = 2;
+    result.frame_counts.frame_count = 3;
+    result.frame_counts.display_frame_count = 3;
+    result.detection_counts.roi_high_res_detection_count = 2;
     result.output_shapes = {{1, 300, 6}};
 
     for (int i = 0; i < 3; ++i) {
@@ -109,9 +109,9 @@ void testOutOfRangeOffset() {
 
 void testHighLowDiagnosticsAreAdditive() {
     yolo::VideoInferResult result = makeVideoResult();
-    result.high_low_diagnostics.provisional_created_count = 4;
-    result.high_low_diagnostics.flow_rejected_track_count = 7;
-    result.high_low_diagnostics.urgent_low_res_detection_count = 2;
+    result.high_low_diagnostics.provisional.provisional_created_count = 4;
+    result.high_low_diagnostics.flow.flow_rejected_track_count = 7;
+    result.high_low_diagnostics.urgent.urgent_low_res_detection_count = 2;
 
     const Json::Value json = yolo::videoInferResultToJson(result, {});
     expect(json.isMember("high_low_diagnostics"),

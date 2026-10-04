@@ -213,7 +213,7 @@ void testLowConfidenceProvisionalNeedsThreeHitsAndStopsAfterTwoMisses() {
     output = tracker.updateLowRes({}, {}, 4);
     expect(output.empty(), "two low-res misses did not stop provisional output");
     tracker.updateFlow({}, 17);
-    expect(tracker.diagnostics().provisional_expired_count > 0,
+    expect(tracker.diagnostics().provisional.provisional_expired_count > 0,
            "stale provisional was not expired after twelve frames");
 }
 
@@ -233,7 +233,7 @@ void testStableTracksConsolidateAfterOneHighResConfirmation() {
         1
     );
     expect(output.size() == 1, "overlapping stable states were not consolidated");
-    expect(tracker.diagnostics().stable_stable_duplicate_count > 0,
+    expect(tracker.diagnostics().duplicates.stable_stable_duplicate_count > 0,
            "stable consolidation was not diagnosed");
 }
 
@@ -254,7 +254,7 @@ void testLowResAreaJumpIsRejected() {
     expect(output.size() == 1, "area jump removed the stable track");
     expectNear(output.front().detection.x1, original_x1,
                "area jump changed stable geometry");
-    expect(tracker.diagnostics().low_res_geometry_rejection_count == 1,
+    expect(tracker.diagnostics().low_res.low_res_geometry_rejection_count == 1,
            "area jump rejection was not diagnosed");
 }
 
@@ -273,7 +273,7 @@ void testFlowOnlyOutputAndRetentionTtl() {
     output = tracker.updateFlow({directProjection(track_id, makeDetection())}, 17);
     expect(output.empty(), "flow-only track remained visible after sixteen frames");
     tracker.updateFlow({directProjection(track_id, makeDetection())}, 25);
-    expect(tracker.diagnostics().flow_age_expired_count > 0,
+    expect(tracker.diagnostics().flow.flow_age_expired_count > 0,
            "flow-only track was retained after twenty-four frames");
 }
 
@@ -301,7 +301,7 @@ void testCenterOutsideDeletesTrackImmediately() {
 
     output = tracker.updateFlow({outside}, 1);
     expect(output.empty(), "center-outside track was not deleted immediately");
-    expect(tracker.diagnostics().flow_age_expired_count == 1,
+    expect(tracker.diagnostics().flow.flow_age_expired_count == 1,
            "center-outside deletion was not diagnosed");
 }
 

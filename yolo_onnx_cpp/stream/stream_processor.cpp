@@ -95,6 +95,7 @@ const std::vector<TrackedDetection>& StreamProcessor::applyFlow(
 }
 
 void StreamProcessor::finishFrame(PreparedStreamFrame&& frame) {
+    // 仅提交已接受帧的光流参考图；被丢弃的预处理结果不能推进参考帧。
     previous_gray_ = std::move(frame.gray);
     previous_pyramid_ = std::move(frame.gray_pyramid);
 }

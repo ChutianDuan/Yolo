@@ -237,16 +237,16 @@ double elapsedMs(std::chrono::steady_clock::time_point start) {
 }
 
 void addInferMetrics(VideoInferResult& result, const InferResult& infer_result) {
-    result.preprocess_ms += infer_result.preprocess_ms;
-    result.decode_ms += infer_result.decode_ms;
-    result.infer_ms += infer_result.infer_ms;
-    result.postprocess_ms += infer_result.postprocess_ms;
-    result.queue_wait_ms += infer_result.queue_wait_ms;
+    result.timing.preprocess_ms += infer_result.preprocess_ms;
+    result.timing.decode_ms += infer_result.decode_ms;
+    result.timing.infer_ms += infer_result.infer_ms;
+    result.timing.postprocess_ms += infer_result.postprocess_ms;
+    result.timing.queue_wait_ms += infer_result.queue_wait_ms;
 
-    result.model_inference_ms += infer_result.model_inference_ms;
-    result.model_postprocess_ms += infer_result.decode_ms + infer_result.postprocess_ms;
-    result.onnx_inference_ms = result.model_inference_ms;
-    result.onnx_postprocess_ms = result.model_postprocess_ms;
+    result.timing.model_inference_ms += infer_result.model_inference_ms;
+    result.timing.model_postprocess_ms += infer_result.decode_ms + infer_result.postprocess_ms;
+    result.timing.onnx_inference_ms = result.timing.model_inference_ms;
+    result.timing.onnx_postprocess_ms = result.timing.model_postprocess_ms;
     appendTimingSamples(result.timing_samples, infer_result.timing_samples);
 
     if (result.output_shapes.empty()) {
@@ -255,8 +255,8 @@ void addInferMetrics(VideoInferResult& result, const InferResult& infer_result) 
 }
 
 void addTrackerMetrics(VideoInferResult& result, double tracker_ms) {
-    result.tracker_ms += tracker_ms;
-    result.tracking_postprocess_ms += tracker_ms;
+    result.timing.tracker_ms += tracker_ms;
+    result.timing.tracking_postprocess_ms += tracker_ms;
     result.timing_samples.tracker_ms.push_back(tracker_ms);
 }
 
@@ -270,16 +270,16 @@ void finalizeVideoPerformanceMetrics(
     const ProcessUsageSnapshot& usage_start,
     const ProcessUsageSnapshot& usage_end
 ) {
-    result.end_to_end_ms = result.total_elapsed_ms;
+    result.timing.end_to_end_ms = result.timing.total_elapsed_ms;
     result.metrics = buildPerformanceMetrics(
         result.timing_samples,
         output_count,
-        result.end_to_end_ms,
+        result.timing.end_to_end_ms,
         usage_start,
         usage_end,
-        result.queue_length,
-        result.max_queue_length,
-        result.dropped_frame_count
+        result.queue.queue_length,
+        result.queue.max_queue_length,
+        result.queue.dropped_frame_count
     );
 }
 
@@ -516,7 +516,7 @@ void AsyncInferWorker::run() {
             scheduler_,
             stream_id_
         );
-        result.result.queue_wait_ms += queue_wait_ms;
+        result.result.timing.queue_wait_ms += queue_wait_ms;
         result.result.timing_samples.queue_wait_ms.push_back(queue_wait_ms);
 
         {
@@ -612,53 +612,53 @@ void fillVideoSummary(
 ) {
     auto interpolation_start = std::chrono::steady_clock::now();
     fillInterpolatedFrameTracks(result.frames);
-    result.tracking_postprocess_ms += elapsedMs(interpolation_start);
+    result.timing.tracking_postprocess_ms += elapsedMs(interpolation_start);
 
     for (const auto& frame_result : result.frames) {
         if (frame_result.is_detection_frame) {
-            ++result.detected_frame_count;
+            ++result.detection_counts.detected_frame_count;
         }
 
         if (frame_result.tracks_source == "async_corrected") {
-            ++result.async_corrected_frame_count;
+            ++result.async_counts.async_corrected_frame_count;
         } else if (frame_result.tracks_source == "weak_tracked") {
-            ++result.weak_tracked_frame_count;
+            ++result.frame_counts.weak_tracked_frame_count;
         } else if (frame_result.tracks_source == "interpolated") {
-            ++result.interpolated_frame_count;
+            ++result.frame_counts.interpolated_frame_count;
         } else if (frame_result.tracks_source == "empty") {
-            ++result.empty_frame_count;
+            ++result.frame_counts.empty_frame_count;
         }
     }
 
-    result.fps = source_fps;
-    result.source_fps = source_fps;
-    result.target_detect_fps = target_detect_fps;
-    result.frame_stride = processed_frame_count > 0
+    result.video_info.fps = source_fps;
+    result.video_info.source_fps = source_fps;
+    result.detection_policy.target_detect_fps = target_detect_fps;
+    result.detection_policy.frame_stride = processed_frame_count > 0
         ? static_cast<double>(readable_frame_count)
             / static_cast<double>(processed_frame_count)
         : 0.0;
-    result.effective_detect_fps = source_fps > 0.0 && readable_frame_count > 0
+    result.detection_policy.effective_detect_fps = source_fps > 0.0 && readable_frame_count > 0
         ? source_fps * static_cast<double>(processed_frame_count)
             / static_cast<double>(readable_frame_count)
         : 0.0;
-    result.stride_mode = stride_mode;
-    result.model_async = model_async;
-    result.onnx_async = model_async;
-    result.base_frame_stride = base_frame_stride;
-    result.min_frame_stride_used = min_stride_used;
-    result.max_frame_stride_used = max_stride_used;
-    result.final_frame_stride = stride_state.current_stride;
-    result.width = width;
-    result.height = height;
-    result.frame_count = static_cast<int64_t>(result.frames.size());
-    result.source_frame_count = source_frame_count;
-    result.processed_frame_count = processed_frame_count;
-    result.display_frame_count = result.frame_count;
-    result.async_infer_request_count = async_infer_request_count;
-    result.async_correction_count = async_correction_count;
-    result.forced_detection_count = forced_detection_count;
-    result.scheduled_detection_count = scheduled_detection_count;
-    result.skipped_detection_count = skipped_detection_count;
+    result.detection_policy.stride_mode = stride_mode;
+    result.detection_policy.model_async = model_async;
+    result.detection_policy.onnx_async = model_async;
+    result.detection_policy.base_frame_stride = base_frame_stride;
+    result.detection_policy.min_frame_stride_used = min_stride_used;
+    result.detection_policy.max_frame_stride_used = max_stride_used;
+    result.detection_policy.final_frame_stride = stride_state.current_stride;
+    result.video_info.width = width;
+    result.video_info.height = height;
+    result.frame_counts.frame_count = static_cast<int64_t>(result.frames.size());
+    result.frame_counts.source_frame_count = source_frame_count;
+    result.frame_counts.processed_frame_count = processed_frame_count;
+    result.frame_counts.display_frame_count = result.frame_counts.frame_count;
+    result.async_counts.async_infer_request_count = async_infer_request_count;
+    result.async_counts.async_correction_count = async_correction_count;
+    result.detection_counts.forced_detection_count = forced_detection_count;
+    result.detection_counts.scheduled_detection_count = scheduled_detection_count;
+    result.detection_counts.skipped_detection_count = skipped_detection_count;
 }
 
 }  // namespace yolo::video_inference_detail

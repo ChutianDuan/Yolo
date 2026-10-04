@@ -22,6 +22,7 @@ public:
     DetectionTier select(
         double timestamp_ms, bool urgent_high, bool high_available, bool low_available
     ) {
+        // 首帧或时间戳回退时重建节奏，并优先安排一次高分辨率检测作为基准。
         const bool restart = !started_ || timestamp_ms + kToleranceMs < last_timestamp_ms_;
         if (restart) {
             next_low_ms_ = timestamp_ms;

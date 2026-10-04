@@ -554,8 +554,8 @@ void testNonblockingSlowInferenceReplay() {
            "ready slow inference was not replayed");
     expect(!replay.busy(true), "ready inference did not release its slot");
     const auto& diagnostics = polled.diagnostics[0];
-    expect(diagnostics.completed_count == 1 && diagnostics.applied_count == 1
-               && diagnostics.expired_count == 0 && diagnostics.evicted_count == 0,
+    expect(diagnostics.outcomes.completed_count == 1 && diagnostics.outcomes.applied_count == 1
+               && diagnostics.outcomes.expired_count == 0 && diagnostics.outcomes.evicted_count == 0,
            "accepted correction diagnostics mismatch");
     const auto stage = [&](yolo::StreamInferenceStage key) -> const auto& {
         return diagnostics.stages[static_cast<size_t>(key)];
@@ -603,9 +603,9 @@ void testReplayExpiryAndHistoryBound() {
                "expired or evicted result was applied or counted as a model failure");
         expect(!replay.busy(true), "discarded result retained its inference slot");
         const auto& timing = polled.diagnostics[0];
-        expect(timing.completed_count == 1 && timing.applied_count == 0
-                   && timing.expired_count == (evicted ? 0U : 1U)
-                   && timing.evicted_count == (evicted ? 1U : 0U)
+        expect(timing.outcomes.completed_count == 1 && timing.outcomes.applied_count == 0
+                   && timing.outcomes.expired_count == (evicted ? 0U : 1U)
+                   && timing.outcomes.evicted_count == (evicted ? 1U : 0U)
                    && timing.stages[static_cast<size_t>(yolo::StreamInferenceStage::Replay)].count == 0,
                "discard reasons or pre-replay timing were lost");
     }
@@ -639,7 +639,7 @@ void testReplayContextAndIndependentTiers() {
     replay.submit(wrong.get_future(), low_context, captured, false);
     wrong.set_value(scheduledResult({"different-camera", 1, 33.0}));
     auto invalid = replay.poll(captured + std::chrono::milliseconds(90));
-    expect(invalid.diagnostics[1].completed_count == 0,
+    expect(invalid.diagnostics[1].outcomes.completed_count == 0,
            "foreign context contaminated completed timing");
     expect(invalid.applied.empty() && !invalid.tracker && invalid.failed.size() == 1,
            "foreign stream context was accepted");
@@ -702,7 +702,7 @@ void testSingleModelNonblockingExactReplay() {
     slow.set_value(scheduledResult(source));
     auto ready = replay.poll(captured + std::chrono::milliseconds(100));
     expect(ready.tracker && ready.applied.size() == 1 && ready.failed.empty()
-               && ready.diagnostics.applied_count == 1 && !replay.busy(),
+               && ready.diagnostics.outcomes.applied_count == 1 && !replay.busy(),
            "single-model delayed correction was not committed");
     expectTracks(ready.tracks, reference.tracks());
     expect(ready.applied.front().context.frame_index == 0
@@ -747,9 +747,9 @@ void testSingleModelReplayRejectionsAndBound() {
         promise.set_value(scheduledResult(source));
         auto rejected = replay.poll(captured + std::chrono::milliseconds(evicted ? 1 : 301));
         expect(!rejected.tracker && rejected.applied.empty() && rejected.failed.empty()
-                   && rejected.skipped_count == 1 && rejected.diagnostics.completed_count == 1
-                   && rejected.diagnostics.expired_count == (evicted ? 0U : 1U)
-                   && rejected.diagnostics.evicted_count == (evicted ? 1U : 0U) && !replay.busy(),
+                   && rejected.skipped_count == 1 && rejected.diagnostics.outcomes.completed_count == 1
+                   && rejected.diagnostics.outcomes.expired_count == (evicted ? 0U : 1U)
+                   && rejected.diagnostics.outcomes.evicted_count == (evicted ? 1U : 0U) && !replay.busy(),
                "single-model expired/evicted result contaminated state");
     }
     for (const auto status : {yolo::ScheduledInferenceStatus::Stale,
@@ -797,7 +797,7 @@ void testSingleModelReplayPostDeadlineRollback() {
     const auto& stages = expired.diagnostics.stages;
     expect(stages[static_cast<size_t>(yolo::StreamInferenceStage::ResultAge)].sum_ms < 300.0
                && stages[static_cast<size_t>(yolo::StreamInferenceStage::CommitAge)].sum_ms > 300.0
-               && expired.diagnostics.expired_count == 1 && !expired.tracker,
+               && expired.diagnostics.outcomes.expired_count == 1 && !expired.tracker,
            "single-model replay overrun was not rejected after computation");
     std::promise<yolo::ScheduledInferenceResult> fresh;
     const yolo::InferenceContext source{"single", 31, 1033.0};

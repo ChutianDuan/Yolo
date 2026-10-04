@@ -174,13 +174,13 @@ void checkWorkerFailureIsolation(
     expect(state->armed.load(), "worker exception was never armed");
     expect(failing.status == "failed", "uncaught processor exception did not fail its stream");
     expect(failing.last_error == "processor worker failed", "worker failure reason leaked or was lost");
-    expect(failing.inference_error_count == 0, "worker failure was miscounted as a model failure");
-    expect(failing.queue_length == 0, "failed stream retained queued frames");
+    expect(failing.counters.inference.inference_error_count == 0, "worker failure was miscounted as a model failure");
+    expect(failing.queue.queue_length == 0, "failed stream retained queued frames");
     expect(state->terminal_count.load() == 1, "worker failure did not publish exactly one terminal event");
     expect(healthy.status == "completed", "one worker failure interrupted another stream");
-    expect(healthy.decoded_frame_count == 120 && healthy.processed_frame_count == 120,
+    expect(healthy.counters.frames.decoded_frame_count == 120 && healthy.counters.frames.processed_frame_count == 120,
            "healthy stream lost file frames during another stream's failure");
-    expect(healthy.inference_error_count == 0 && healthy.dropped_frame_count == 0,
+    expect(healthy.counters.inference.inference_error_count == 0 && healthy.counters.frames.dropped_frame_count == 0,
            "healthy stream reported errors or drops during worker isolation test");
     expect(!manager.subscribe(failing_id, [](const yolo::RealtimeFrameEvent&) { return true; }),
            "failed stream accepted a new subscriber");
@@ -227,8 +227,8 @@ void checkTerminalReplayDuringLogging(yolo::RealtimeStreamManager& manager, bool
     expect(manager.get(stream_id, snapshot), "terminal-window stream disappeared");
     expect(snapshot.status == (fail_worker ? "failed" : "completed"),
            "terminal-window stream did not reach its expected status");
-    expect(snapshot.latest_sequence > 0, "terminal-window fixture published no frames");
-    const auto frame_sequence = snapshot.latest_sequence;
+    expect(snapshot.latest.latest_sequence > 0, "terminal-window fixture published no frames");
+    const auto frame_sequence = snapshot.latest.latest_sequence;
     expect(!manager.subscribe(stream_id, [](const yolo::RealtimeFrameEvent&) { return true; }),
            "terminal-window accepted a plain new subscription");
 
@@ -290,19 +290,19 @@ void checkEventReplay(yolo::RealtimeStreamManager& manager) {
         expect(manager.get(stream_id, snapshot), "replay stream disappeared");
         if (snapshot.status == "failed"
             || (snapshot.status == "completed"
-                && snapshot.latest_sequence == kReplayFrameCount + 1)) {
+                && snapshot.latest.latest_sequence == kReplayFrameCount + 1)) {
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     expect(snapshot.status == "completed", "replay fixture did not complete");
-    expect(snapshot.latest_sequence == kReplayFrameCount + 1,
+    expect(snapshot.latest.latest_sequence == kReplayFrameCount + 1,
            "replay fixture sequence count mismatch");
 
     std::vector<yolo::RealtimeFrameEvent> tail_events;
     const auto tail = manager.subscribeAfter(
         stream_id,
-        snapshot.latest_sequence - 3,
+        snapshot.latest.latest_sequence - 3,
         [&tail_events](const yolo::RealtimeFrameEvent& event) {
             tail_events.push_back(event);
             return true;
@@ -312,7 +312,7 @@ void checkEventReplay(yolo::RealtimeStreamManager& manager) {
            "retained replay tail was rejected");
     expect(tail_events.size() == 3, "replay tail size mismatch");
     for (size_t index = 0; index < tail_events.size(); ++index) {
-        expect(tail_events[index].sequence == snapshot.latest_sequence - 2 + index,
+        expect(tail_events[index].sequence == snapshot.latest.latest_sequence - 2 + index,
                "replayed event sequence was missing or out of order");
     }
     expect(tail_events.back().terminal, "terminal event was not replayed");
@@ -324,7 +324,7 @@ void checkEventReplay(yolo::RealtimeStreamManager& manager) {
            "expired replay cursor was accepted");
     expect(expired.earliest_available_sequence > 1,
            "event buffer did not evict old history");
-    expect(expired.latest_sequence == snapshot.latest_sequence,
+    expect(expired.latest_sequence == snapshot.latest.latest_sequence,
            "history error reported the wrong latest sequence");
 
     uint64_t replay_count = 0;
@@ -345,17 +345,17 @@ void checkEventReplay(yolo::RealtimeStreamManager& manager) {
            "earliest retained replay cursor was rejected");
     expect(replay_count == 256, "retained replay window size changed");
     expect(first_sequence == expired.earliest_available_sequence
-               && last_sequence == snapshot.latest_sequence,
+               && last_sequence == snapshot.latest.latest_sequence,
            "retained replay window boundaries were incorrect");
 
     const auto ahead = manager.subscribeAfter(
-        stream_id, snapshot.latest_sequence + 1,
+        stream_id, snapshot.latest.latest_sequence + 1,
         [](const yolo::RealtimeFrameEvent&) { return true; }
     );
     expect(ahead.status == yolo::RealtimeSubscribeStatus::CursorAhead,
            "future replay cursor was accepted");
     const auto exhausted = manager.subscribeAfter(
-        stream_id, snapshot.latest_sequence,
+        stream_id, snapshot.latest.latest_sequence,
         [](const yolo::RealtimeFrameEvent&) { return true; }
     );
     expect(exhausted.status == yolo::RealtimeSubscribeStatus::StreamUnavailable,
@@ -378,18 +378,18 @@ bool countersAtLeast(
             return false;
         }
     }
-    return current.decoded_frame_count >= previous.decoded_frame_count
-        && current.processed_frame_count >= previous.processed_frame_count
-        && current.dropped_frame_count >= previous.dropped_frame_count
-        && current.decoder_queue_drop_count >= previous.decoder_queue_drop_count
-        && current.processor_coalesced_frame_count
-            >= previous.processor_coalesced_frame_count
-        && current.stale_frame_drop_count >= previous.stale_frame_drop_count
-        && current.skipped_inference_count >= previous.skipped_inference_count
-        && current.inference_error_count >= previous.inference_error_count
-        && current.weak_flow_roi_count >= previous.weak_flow_roi_count
-        && current.weak_flow_roi_pixels >= previous.weak_flow_roi_pixels
-        && current.weak_flow_sampled_points >= previous.weak_flow_sampled_points;
+    return current.frames.decoded_frame_count >= previous.frames.decoded_frame_count
+        && current.frames.processed_frame_count >= previous.frames.processed_frame_count
+        && current.frames.dropped_frame_count >= previous.frames.dropped_frame_count
+        && current.frames.decoder_queue_drop_count >= previous.frames.decoder_queue_drop_count
+        && current.frames.processor_coalesced_frame_count
+            >= previous.frames.processor_coalesced_frame_count
+        && current.frames.stale_frame_drop_count >= previous.frames.stale_frame_drop_count
+        && current.inference.skipped_inference_count >= previous.inference.skipped_inference_count
+        && current.inference.inference_error_count >= previous.inference.inference_error_count
+        && current.weak_flow.weak_flow_roi_count >= previous.weak_flow.weak_flow_roi_count
+        && current.weak_flow.weak_flow_roi_pixels >= previous.weak_flow.weak_flow_roi_pixels
+        && current.weak_flow.weak_flow_sampled_points >= previous.weak_flow.weak_flow_sampled_points;
 }
 
 void checkConcurrentMetricsAndRemoval(
@@ -678,9 +678,9 @@ void checkHttpMetricsAndRecovery(
             }
             if (!decoded_at_disconnect[index].has_value()
                 && fault_snapshots[index].reconnect_count >= 1
-                && fault_snapshots[index].decoded_frame_count > 0) {
+                && fault_snapshots[index].counters.frames.decoded_frame_count > 0) {
                 decoded_at_disconnect[index] =
-                    fault_snapshots[index].decoded_frame_count;
+                    fault_snapshots[index].counters.frames.decoded_frame_count;
             }
             all_disconnected =
                 all_disconnected && decoded_at_disconnect[index].has_value();
@@ -720,7 +720,7 @@ void checkHttpMetricsAndRecovery(
                        std::memory_order_relaxed
                    ) >= 4
                 && fault_snapshots[index].reconnect_count >= 3
-                && fault_snapshots[index].decoded_frame_count
+                && fault_snapshots[index].counters.frames.decoded_frame_count
                     > *decoded_at_disconnect[index];
         }
         if (all_recovered) {
@@ -743,7 +743,7 @@ void checkHttpMetricsAndRecovery(
                            std::memory_order_relaxed
                        )
                     << ", reconnects=" << fault_snapshots[index].reconnect_count
-                    << ", decoded=" << fault_snapshots[index].decoded_frame_count
+                    << ", decoded=" << fault_snapshots[index].counters.frames.decoded_frame_count
                     << ']';
         }
         (void)cleanupFaultStreams();
@@ -762,7 +762,7 @@ void checkHttpMetricsAndRecovery(
         }
     }
     const uint64_t decoded_before_http_churn =
-        manager->metrics().totals.decoded_frame_count;
+        manager->metrics().totals.frames.decoded_frame_count;
 
     constexpr const char* kStreamId = "http-metrics-race";
     const std::string stream_path = std::string("/streams/") + kStreamId;
@@ -1190,7 +1190,7 @@ int main() {
     }
 
     expect(snapshot.status == "completed", "local stream did not complete");
-    const double completed_age_ms = snapshot.latest_result_age_ms;
+    const double completed_age_ms = snapshot.latest.latest_result_age_ms;
     const auto completed_at = std::chrono::steady_clock::now();
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
     const double idle_ms = std::chrono::duration<double, std::milli>(
@@ -1198,13 +1198,13 @@ int main() {
     ).count();
     expect(manager.get("camera-1", snapshot), "completed stream disappeared");
     expect(
-        snapshot.latest_result_age_ms >= completed_age_ms + idle_ms,
+        snapshot.latest.latest_result_age_ms >= completed_age_ms + idle_ms,
         "result freshness froze after the last frame"
     );
-    expect(snapshot.decoded_frame_count == 120, "decoded frame count mismatch");
-    expect(snapshot.processed_frame_count == 120, "offline stream did not apply backpressure");
-    for (size_t i = 0; i < snapshot.processing_diagnostics.size(); ++i) {
-        const auto& timing = snapshot.processing_diagnostics[i];
+    expect(snapshot.counters.frames.decoded_frame_count == 120, "decoded frame count mismatch");
+    expect(snapshot.counters.frames.processed_frame_count == 120, "offline stream did not apply backpressure");
+    for (size_t i = 0; i < snapshot.counters.processing_diagnostics.size(); ++i) {
+        const auto& timing = snapshot.counters.processing_diagnostics[i];
         const bool poll = i == static_cast<size_t>(yolo::StreamProcessingStage::Poll);
         const bool mandatory = i == static_cast<size_t>(yolo::StreamProcessingStage::FrameWork)
             || i == static_cast<size_t>(yolo::StreamProcessingStage::Prepare)
@@ -1215,38 +1215,38 @@ int main() {
                    && timing.sum_ms >= timing.max_ms && timing.max_ms >= 0.0,
                "offline processing timing coverage mismatch");
     }
-    expect(snapshot.weak_flow_sampled_points <= snapshot.weak_flow_roi_count * 20
-               && (snapshot.weak_flow_roi_count == 0
-                   || snapshot.weak_flow_roi_pixels >= snapshot.weak_flow_roi_count * 16),
+    expect(snapshot.counters.weak_flow.weak_flow_sampled_points <= snapshot.counters.weak_flow.weak_flow_roi_count * 20
+               && (snapshot.counters.weak_flow.weak_flow_roi_count == 0
+                   || snapshot.counters.weak_flow.weak_flow_roi_pixels >= snapshot.counters.weak_flow.weak_flow_roi_count * 16),
            "offline weak-flow load violates per-ROI bounds");
-    expect(snapshot.dropped_frame_count == 0, "offline stream unexpectedly dropped frames");
-    expect(snapshot.decoder_queue_drop_count == 0, "offline decoder reported queue drops");
+    expect(snapshot.counters.frames.dropped_frame_count == 0, "offline stream unexpectedly dropped frames");
+    expect(snapshot.counters.frames.decoder_queue_drop_count == 0, "offline decoder reported queue drops");
     expect(
-        snapshot.processor_coalesced_frame_count == 0,
+        snapshot.counters.frames.processor_coalesced_frame_count == 0,
         "offline processor coalesced frames"
     );
-    expect(snapshot.stale_frame_drop_count == 0, "live deadline dropped an offline frame");
-    expect(snapshot.skipped_inference_count == 0, "offline fixture unexpectedly skipped inference");
-    expect(snapshot.inference_error_count == 0, "offline stream inference failed");
-    expect(snapshot.max_queue_length <= 2, "per-stream frame queue exceeded its bound");
-    expect(snapshot.latest_sequence > 0, "no stream events were published");
+    expect(snapshot.counters.frames.stale_frame_drop_count == 0, "live deadline dropped an offline frame");
+    expect(snapshot.counters.inference.skipped_inference_count == 0, "offline fixture unexpectedly skipped inference");
+    expect(snapshot.counters.inference.inference_error_count == 0, "offline stream inference failed");
+    expect(snapshot.queue.max_queue_length <= 2, "per-stream frame queue exceeded its bound");
+    expect(snapshot.latest.latest_sequence > 0, "no stream events were published");
     expect(event_count.load() > 0, "subscriber received no events");
     expect(terminal_count.load() == 1, "subscriber did not receive one terminal event");
     expect(callback_stop_checked.load(), "worker self-stop guard was not exercised");
     const auto before_removal = manager.metrics();
     expect(before_removal.active_count == 0, "completed stream was counted as active");
     expect(before_removal.streams.size() == 1, "completed record released its admission slot early");
-    expect(before_removal.totals.decoded_frame_count == 120, "live-record decoded total mismatch");
-    expect(before_removal.totals.processed_frame_count == 120, "live-record processed total mismatch");
+    expect(before_removal.totals.frames.decoded_frame_count == 120, "live-record decoded total mismatch");
+    expect(before_removal.totals.frames.processed_frame_count == 120, "live-record processed total mismatch");
     expect(manager.stop("camera-1"), "completed stream could not be removed");
     expect(!manager.get("camera-1", snapshot), "removed stream is still visible");
     const auto after_removal = manager.metrics();
     expect(after_removal.active_count == 0 && after_removal.streams.empty(),
            "removed stream still occupied a slot or appeared active");
-    expect(after_removal.totals.decoded_frame_count == 120, "decoded counter decreased on removal");
-    expect(after_removal.totals.processed_frame_count == 120, "processed counter decreased on removal");
+    expect(after_removal.totals.frames.decoded_frame_count == 120, "decoded counter decreased on removal");
+    expect(after_removal.totals.frames.processed_frame_count == 120, "processed counter decreased on removal");
     expect(!manager.stop("camera-1"), "removed stream was stopped a second time");
-    expect(manager.metrics().totals.processed_frame_count == 120, "repeat stop archived counters twice");
+    expect(manager.metrics().totals.frames.processed_frame_count == 120, "repeat stop archived counters twice");
 
     checkWorkerFailureIsolation(manager, video_path, false);
     checkWorkerFailureIsolation(manager, video_path, true);

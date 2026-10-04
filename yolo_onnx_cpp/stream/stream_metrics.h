@@ -20,22 +20,22 @@ inline void addStreamCounters(
     RealtimeStreamCounters& totals,
     const RealtimeStreamSnapshot& stream
 ) {
-    totals.decoded_frame_count += stream.decoded_frame_count;
-    totals.processed_frame_count += stream.processed_frame_count;
-    totals.dropped_frame_count += stream.dropped_frame_count;
-    totals.decoder_queue_drop_count += stream.decoder_queue_drop_count;
-    totals.processor_coalesced_frame_count += stream.processor_coalesced_frame_count;
-    totals.stale_frame_drop_count += stream.stale_frame_drop_count;
-    totals.skipped_inference_count += stream.skipped_inference_count;
-    totals.inference_error_count += stream.inference_error_count;
-    totals.weak_flow_roi_count += stream.weak_flow_roi_count;
-    totals.weak_flow_roi_pixels += stream.weak_flow_roi_pixels;
-    totals.weak_flow_sampled_points += stream.weak_flow_sampled_points;
+    totals.frames.decoded_frame_count += stream.counters.frames.decoded_frame_count;
+    totals.frames.processed_frame_count += stream.counters.frames.processed_frame_count;
+    totals.frames.dropped_frame_count += stream.counters.frames.dropped_frame_count;
+    totals.frames.decoder_queue_drop_count += stream.counters.frames.decoder_queue_drop_count;
+    totals.frames.processor_coalesced_frame_count += stream.counters.frames.processor_coalesced_frame_count;
+    totals.frames.stale_frame_drop_count += stream.counters.frames.stale_frame_drop_count;
+    totals.inference.skipped_inference_count += stream.counters.inference.skipped_inference_count;
+    totals.inference.inference_error_count += stream.counters.inference.inference_error_count;
+    totals.weak_flow.weak_flow_roi_count += stream.counters.weak_flow.weak_flow_roi_count;
+    totals.weak_flow.weak_flow_roi_pixels += stream.counters.weak_flow.weak_flow_roi_pixels;
+    totals.weak_flow.weak_flow_sampled_points += stream.counters.weak_flow.weak_flow_sampled_points;
     for (size_t i = 0; i < totals.processing_diagnostics.size(); ++i) {
-        totals.processing_diagnostics[i].merge(stream.processing_diagnostics[i]);
+        totals.processing_diagnostics[i].merge(stream.counters.processing_diagnostics[i]);
     }
     for (size_t i = 0; i < totals.async_inference_diagnostics.size(); ++i) {
-        totals.async_inference_diagnostics[i].merge(stream.async_inference_diagnostics[i]);
+        totals.async_inference_diagnostics[i].merge(stream.counters.async_inference_diagnostics[i]);
     }
 }
 
@@ -56,10 +56,10 @@ inline void appendStreamInferenceMetrics(
             output << "yolo_stream_async_results" << scope << "_total" << labels
                    << ",outcome=\"" << name << "\"" << stream_label << "} " << count << '\n';
         };
-        outcome("completed", item.completed_count);
-        outcome("applied", item.applied_count);
-        outcome("expired", item.expired_count);
-        outcome("evicted", item.evicted_count);
+        outcome("completed", item.outcomes.completed_count);
+        outcome("applied", item.outcomes.applied_count);
+        outcome("expired", item.outcomes.expired_count);
+        outcome("evicted", item.outcomes.evicted_count);
         for (size_t stage = 0; stage < item.stages.size(); ++stage) {
             const auto& sample = item.stages[stage];
             const std::string stage_labels = labels + ",stage=\""

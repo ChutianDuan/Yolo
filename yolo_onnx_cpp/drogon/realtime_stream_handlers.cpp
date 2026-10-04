@@ -33,30 +33,30 @@ Json::Value streamSnapshotToJson(const RealtimeStreamSnapshot& snapshot) {
     json["width"] = snapshot.width;
     json["height"] = snapshot.height;
     json["source_fps"] = snapshot.source_fps;
-    json["decoded_frame_count"] = Json::UInt64(snapshot.decoded_frame_count);
-    json["processed_frame_count"] = Json::UInt64(snapshot.processed_frame_count);
-    json["detection_frame_count"] = Json::UInt64(snapshot.detection_frame_count);
+    json["decoded_frame_count"] = Json::UInt64(snapshot.counters.frames.decoded_frame_count);
+    json["processed_frame_count"] = Json::UInt64(snapshot.counters.frames.processed_frame_count);
+    json["detection_frame_count"] = Json::UInt64(snapshot.detections.detection_frame_count);
     json["high_res_detection_count"] =
-        Json::UInt64(snapshot.high_res_detection_count);
+        Json::UInt64(snapshot.detections.high_res_detection_count);
     json["roi_high_res_detection_count"] =
-        Json::UInt64(snapshot.roi_high_res_detection_count);
+        Json::UInt64(snapshot.detections.roi_high_res_detection_count);
     json["low_res_detection_count"] =
-        Json::UInt64(snapshot.low_res_detection_count);
-    json["dropped_frame_count"] = Json::UInt64(snapshot.dropped_frame_count);
+        Json::UInt64(snapshot.detections.low_res_detection_count);
+    json["dropped_frame_count"] = Json::UInt64(snapshot.counters.frames.dropped_frame_count);
     json["decoder_queue_drop_count"] =
-        Json::UInt64(snapshot.decoder_queue_drop_count);
+        Json::UInt64(snapshot.counters.frames.decoder_queue_drop_count);
     json["processor_coalesced_frame_count"] =
-        Json::UInt64(snapshot.processor_coalesced_frame_count);
-    json["stale_frame_drop_count"] = Json::UInt64(snapshot.stale_frame_drop_count);
-    json["skipped_inference_count"] = Json::UInt64(snapshot.skipped_inference_count);
-    json["inference_error_count"] = Json::UInt64(snapshot.inference_error_count);
+        Json::UInt64(snapshot.counters.frames.processor_coalesced_frame_count);
+    json["stale_frame_drop_count"] = Json::UInt64(snapshot.counters.frames.stale_frame_drop_count);
+    json["skipped_inference_count"] = Json::UInt64(snapshot.counters.inference.skipped_inference_count);
+    json["inference_error_count"] = Json::UInt64(snapshot.counters.inference.inference_error_count);
     json["consecutive_inference_error_count"] =
         Json::UInt64(snapshot.consecutive_inference_error_count);
     json["reconnect_count"] = Json::UInt64(snapshot.reconnect_count);
-    json["queue_length"] = Json::UInt64(snapshot.queue_length);
-    json["max_queue_length"] = Json::UInt64(snapshot.max_queue_length);
-    json["latest_sequence"] = Json::UInt64(snapshot.latest_sequence);
-    json["latest_result_age_ms"] = snapshot.latest_result_age_ms;
+    json["queue_length"] = Json::UInt64(snapshot.queue.queue_length);
+    json["max_queue_length"] = Json::UInt64(snapshot.queue.max_queue_length);
+    json["latest_sequence"] = Json::UInt64(snapshot.latest.latest_sequence);
+    json["latest_result_age_ms"] = snapshot.latest.latest_result_age_ms;
     return json;
 }
 
@@ -357,60 +357,60 @@ void registerRealtimeStreamRoutes(
             metrics << "# TYPE yolo_streams_registered gauge\n";
             metrics << "yolo_streams_registered " << streams.size() << '\n';
             metrics << "# TYPE yolo_stream_decoded_frames_total counter\n";
-            metrics << "yolo_stream_decoded_frames_total " << totals.decoded_frame_count << '\n';
+            metrics << "yolo_stream_decoded_frames_total " << totals.frames.decoded_frame_count << '\n';
             metrics << "# TYPE yolo_stream_processed_frames_total counter\n";
-            metrics << "yolo_stream_processed_frames_total " << totals.processed_frame_count << '\n';
+            metrics << "yolo_stream_processed_frames_total " << totals.frames.processed_frame_count << '\n';
             metrics << "# TYPE yolo_stream_dropped_frames_total counter\n";
-            metrics << "yolo_stream_dropped_frames_total " << totals.dropped_frame_count << '\n';
+            metrics << "yolo_stream_dropped_frames_total " << totals.frames.dropped_frame_count << '\n';
             metrics << "# TYPE yolo_stream_decoder_queue_drops_total counter\n";
             metrics << "yolo_stream_decoder_queue_drops_total "
-                    << totals.decoder_queue_drop_count << '\n';
+                    << totals.frames.decoder_queue_drop_count << '\n';
             metrics << "# TYPE yolo_stream_processor_coalesced_frames_total counter\n";
             metrics << "yolo_stream_processor_coalesced_frames_total "
-                    << totals.processor_coalesced_frame_count << '\n';
+                    << totals.frames.processor_coalesced_frame_count << '\n';
             metrics << "# TYPE yolo_stream_inference_errors_total counter\n";
             metrics << "yolo_stream_inference_errors_total "
-                    << totals.inference_error_count << '\n';
+                    << totals.inference.inference_error_count << '\n';
             metrics << "# TYPE yolo_stream_stale_frame_drops_total counter\n";
             metrics << "yolo_stream_stale_frame_drops_total "
-                    << totals.stale_frame_drop_count << '\n';
+                    << totals.frames.stale_frame_drop_count << '\n';
             metrics << "# TYPE yolo_stream_skipped_inferences_total counter\n";
             metrics << "yolo_stream_skipped_inferences_total "
-                    << totals.skipped_inference_count << '\n';
+                    << totals.inference.skipped_inference_count << '\n';
             appendStreamInferenceMetrics(metrics, totals.async_inference_diagnostics);
             appendStreamProcessingMetrics(metrics, totals.processing_diagnostics);
-            appendWeakFlowLoadMetrics(metrics, totals.weak_flow_roi_count,
-                                      totals.weak_flow_roi_pixels,
-                                      totals.weak_flow_sampled_points);
+            appendWeakFlowLoadMetrics(metrics, totals.weak_flow.weak_flow_roi_count,
+                                      totals.weak_flow.weak_flow_roi_pixels,
+                                      totals.weak_flow.weak_flow_sampled_points);
             for (const auto& stream : streams) {
-                appendStreamProcessingMetrics(metrics, stream.processing_diagnostics, stream.stream_id);
-                appendWeakFlowLoadMetrics(metrics, stream.weak_flow_roi_count,
-                                          stream.weak_flow_roi_pixels,
-                                          stream.weak_flow_sampled_points, stream.stream_id);
-                appendStreamInferenceMetrics(metrics, stream.async_inference_diagnostics,
+                appendStreamProcessingMetrics(metrics, stream.counters.processing_diagnostics, stream.stream_id);
+                appendWeakFlowLoadMetrics(metrics, stream.counters.weak_flow.weak_flow_roi_count,
+                                          stream.counters.weak_flow.weak_flow_roi_pixels,
+                                          stream.counters.weak_flow.weak_flow_sampled_points, stream.stream_id);
+                appendStreamInferenceMetrics(metrics, stream.counters.async_inference_diagnostics,
                                              stream.stream_id);
                 const std::string labels =
                     "{stream_id=\"" + stream.stream_id + "\"}";
                 metrics << "yolo_stream_processed_frames_by_stream_total"
-                        << labels << ' ' << stream.processed_frame_count << '\n';
+                        << labels << ' ' << stream.counters.frames.processed_frame_count << '\n';
                 metrics << "yolo_stream_low_detections_by_stream_total"
-                        << labels << ' ' << stream.low_res_detection_count << '\n';
+                        << labels << ' ' << stream.detections.low_res_detection_count << '\n';
                 metrics << "yolo_stream_high_detections_by_stream_total"
-                        << labels << ' ' << stream.high_res_detection_count << '\n';
+                        << labels << ' ' << stream.detections.high_res_detection_count << '\n';
                 metrics << "yolo_stream_roi_high_detections_by_stream_total"
-                        << labels << ' ' << stream.roi_high_res_detection_count << '\n';
+                        << labels << ' ' << stream.detections.roi_high_res_detection_count << '\n';
                 metrics << "yolo_stream_dropped_frames_by_stream_total"
-                        << labels << ' ' << stream.dropped_frame_count << '\n';
+                        << labels << ' ' << stream.counters.frames.dropped_frame_count << '\n';
                 metrics << "yolo_stream_stale_frame_drops_by_stream_total"
-                        << labels << ' ' << stream.stale_frame_drop_count << '\n';
+                        << labels << ' ' << stream.counters.frames.stale_frame_drop_count << '\n';
                 metrics << "yolo_stream_skipped_inferences_by_stream_total"
-                        << labels << ' ' << stream.skipped_inference_count << '\n';
+                        << labels << ' ' << stream.counters.inference.skipped_inference_count << '\n';
                 metrics << "yolo_stream_inference_errors_by_stream_total"
-                        << labels << ' ' << stream.inference_error_count << '\n';
+                        << labels << ' ' << stream.counters.inference.inference_error_count << '\n';
                 metrics << "yolo_stream_queue_depth_by_stream"
-                        << labels << ' ' << stream.queue_length << '\n';
+                        << labels << ' ' << stream.queue.queue_length << '\n';
                 metrics << "yolo_stream_result_age_ms_by_stream"
-                        << labels << ' ' << stream.latest_result_age_ms << '\n';
+                        << labels << ' ' << stream.latest.latest_result_age_ms << '\n';
             }
             appendSchedulerMetrics(metrics, "high", high_res_scheduler);
             appendSchedulerMetrics(metrics, "low", low_res_scheduler);

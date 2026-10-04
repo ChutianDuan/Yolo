@@ -385,6 +385,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateHighRes(
         detections.size()
     );
     for (const Match& match : provisional_matches) {
+        // 晋升沿用候选 ID，避免高精度确认使同一目标的标识发生跳变。
         createConfirmedProvisionalTrack(
             provisionals_[match.track_index],
             detections[match.detection_index],
@@ -393,7 +394,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateHighRes(
         matched_detections[match.detection_index] = true;
     }
 
-    diagnostics_.provisional_expired_count += static_cast<int64_t>(
+    diagnostics_.provisional.provisional_expired_count += static_cast<int64_t>(
         provisionals_.size() - provisional_matches.size()
     );
     // High-res is authoritative for existence: unmatched low-res candidates are rejected.
@@ -503,7 +504,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateHighResRegion(
         if (!region_provisionals[i]) {
             retained_provisionals.push_back(std::move(provisionals_[i]));
         } else if (!matched_provisionals[i]) {
-            ++diagnostics_.provisional_expired_count;
+            ++diagnostics_.provisional.provisional_expired_count;
         }
     }
     provisionals_ = std::move(retained_provisionals);
@@ -537,6 +538,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateLowRes(
     );
     for (const Match& match : stable_matches) {
         AuthorityTrack& track = tracks_[match.track_index];
+        // 稳定轨迹保留高分辨率的类别与分数，低分辨率结果仅受限地融合几何位置。
         const Detection candidate = blendedGeometry(
             track.detection,
             detections[match.detection_index],
@@ -550,7 +552,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateLowRes(
             track.geometry_rejection_count = 0;
         } else {
             ++track.geometry_rejection_count;
-            ++diagnostics_.low_res_geometry_rejection_count;
+            ++diagnostics_.low_res.low_res_geometry_rejection_count;
             if (track.geometry_rejection_count >= 2) {
                 high_res_refresh_requested_ = true;
             }
@@ -594,6 +596,7 @@ std::vector<TrackedDetection> AuthorityTracker::updateLowRes(
         provisional.flow_only_age = 0;
         provisional.flow_confidence = 1.0;
         provisional.exiting_frame_count = 0;
+        // 低分辨率候选需连续命中才能输出；高置信度候选允许更早确认输出。
         const int required_hits = provisional.detector_score
                 >= kHighConfidenceProvisionalScore
             ? kHighConfidenceProvisionalOutputHits
@@ -669,8 +672,8 @@ bool AuthorityTracker::consumeHighResRefreshRequest() {
 
 HighLowDiagnostics AuthorityTracker::diagnostics() const {
     HighLowDiagnostics diagnostics = diagnostics_;
-    diagnostics.stable_track_count = static_cast<int64_t>(tracks_.size());
-    diagnostics.provisional_track_count =
+    diagnostics.tracks.stable_track_count = static_cast<int64_t>(tracks_.size());
+    diagnostics.tracks.provisional_track_count =
         static_cast<int64_t>(provisionals_.size());
     return diagnostics;
 }
@@ -869,6 +872,7 @@ void AuthorityTracker::advanceFlowAge(int64_t frame_index) {
         if (frame_index <= track.last_update_frame_index) {
             return;
         }
+        // 按源帧索引差老化，实时流丢帧时也能正确累计未获检测校正的时长。
         const int64_t elapsed_frames = frame_index - track.last_update_frame_index;
         track.flow_only_age += static_cast<int>(elapsed_frames);
         track.flow_confidence *= std::pow(0.97, static_cast<double>(elapsed_frames));
@@ -918,9 +922,9 @@ void AuthorityTracker::applyFlow(
                 ? stable->exiting_frame_count + 1
                 : 0;
             if (projected.direct_flow) {
-                ++diagnostics_.direct_flow_update_count;
+                ++diagnostics_.flow.direct_flow_update_count;
             } else {
-                ++diagnostics_.global_flow_update_count;
+                ++diagnostics_.flow.global_flow_update_count;
             }
             continue;
         }
@@ -951,9 +955,9 @@ void AuthorityTracker::applyFlow(
                 ? provisional->exiting_frame_count + 1
                 : 0;
             if (projected.direct_flow) {
-                ++diagnostics_.direct_flow_update_count;
+                ++diagnostics_.flow.direct_flow_update_count;
             } else {
-                ++diagnostics_.global_flow_update_count;
+                ++diagnostics_.flow.global_flow_update_count;
             }
         }
     }
@@ -980,7 +984,7 @@ void AuthorityTracker::createProvisionalTrack(const Detection& detection, int64_
     track.last_detector_frame_index = frame_index;
     track.last_low_res_frame_index = frame_index;
     provisionals_.push_back(std::move(track));
-    ++diagnostics_.provisional_created_count;
+    ++diagnostics_.provisional.provisional_created_count;
 }
 
 void AuthorityTracker::createConfirmedProvisionalTrack(
@@ -996,7 +1000,7 @@ void AuthorityTracker::createConfirmedProvisionalTrack(
     track.last_detector_frame_index = frame_index;
     track.last_high_res_frame_index = frame_index;
     tracks_.push_back(std::move(track));
-    ++diagnostics_.provisional_promoted_count;
+    ++diagnostics_.provisional.provisional_promoted_count;
 }
 
 bool AuthorityTracker::lowResShouldPullTrack(
@@ -1061,7 +1065,7 @@ void AuthorityTracker::recordLowResClassConflict(
         }
     );
     if (conflict != tracks_.end()) {
-        ++diagnostics_.low_res_class_conflict_count;
+        ++diagnostics_.low_res.low_res_class_conflict_count;
         conflict->low_res_miss_count = 0;
         conflict->last_low_res_frame_index = frame_index;
         conflict->last_detector_frame_index = frame_index;
@@ -1080,7 +1084,7 @@ void AuthorityTracker::eraseExpiredStableTracks(int64_t frame_index) {
             [this, frame_index](const AuthorityTrack& track) {
                 const bool flow_expired = track.flow_only_age > kFlowRetentionMaxAge;
                 if (flow_expired) {
-                    ++diagnostics_.flow_age_expired_count;
+                    ++diagnostics_.flow.flow_age_expired_count;
                 }
                 return track.high_res_miss_count >= kHighResMissTolerance
                     || flow_expired
@@ -1109,7 +1113,7 @@ void AuthorityTracker::pruneStaleTracks(int64_t frame_index) {
         ),
         provisionals_.end()
     );
-    diagnostics_.provisional_expired_count += static_cast<int64_t>(
+    diagnostics_.provisional.provisional_expired_count += static_cast<int64_t>(
         provisional_count - provisionals_.size()
     );
 }
@@ -1211,7 +1215,7 @@ void AuthorityTracker::consolidate(int64_t frame_index) {
                 mergeStableState(winner, tracks_[loser_index]);
                 tracks_[winner_index] = std::move(winner);
                 tracks_.erase(tracks_.begin() + static_cast<std::ptrdiff_t>(loser_index));
-                ++diagnostics_.stable_stable_duplicate_count;
+                ++diagnostics_.duplicates.stable_stable_duplicate_count;
                 ++duplicates_this_update;
                 changed = true;
                 break;
@@ -1238,8 +1242,8 @@ void AuthorityTracker::consolidate(int64_t frame_index) {
         provisionals_.erase(
             provisionals_.begin() + static_cast<std::ptrdiff_t>(provisional_index)
         );
-        ++diagnostics_.stable_provisional_duplicate_count;
-        ++diagnostics_.provisional_deduplicated_count;
+        ++diagnostics_.duplicates.stable_provisional_duplicate_count;
+        ++diagnostics_.provisional.provisional_deduplicated_count;
         ++duplicates_this_update;
     }
 
@@ -1262,8 +1266,8 @@ void AuthorityTracker::consolidate(int64_t frame_index) {
                     provisionals_.begin()
                         + static_cast<std::ptrdiff_t>(loser_index)
                 );
-                ++diagnostics_.provisional_provisional_duplicate_count;
-                ++diagnostics_.provisional_deduplicated_count;
+                ++diagnostics_.duplicates.provisional_provisional_duplicate_count;
+                ++diagnostics_.provisional.provisional_deduplicated_count;
                 ++duplicates_this_update;
                 changed = true;
                 break;
@@ -1271,12 +1275,12 @@ void AuthorityTracker::consolidate(int64_t frame_index) {
         }
     }
 
-    diagnostics_.max_stable_track_count = std::max(
-        diagnostics_.max_stable_track_count,
+    diagnostics_.tracks.max_stable_track_count = std::max(
+        diagnostics_.tracks.max_stable_track_count,
         static_cast<int64_t>(tracks_.size())
     );
-    diagnostics_.max_provisional_track_count = std::max(
-        diagnostics_.max_provisional_track_count,
+    diagnostics_.tracks.max_provisional_track_count = std::max(
+        diagnostics_.tracks.max_provisional_track_count,
         static_cast<int64_t>(provisionals_.size())
     );
     if (duplicates_this_update >= 2) {
@@ -1303,7 +1307,7 @@ std::vector<TrackedDetection> AuthorityTracker::currentTracks(bool record_diagno
         );
         if (duplicate) {
             if (record_diagnostics) {
-                ++diagnostics_.output_suppressed_duplicate_count;
+                ++diagnostics_.duplicates.output_suppressed_duplicate_count;
             }
             return;
         }
@@ -1313,13 +1317,13 @@ std::vector<TrackedDetection> AuthorityTracker::currentTracks(bool record_diagno
     for (const auto& track : tracks_) {
         if (track.flow_only_age > kFlowOutputMaxAge) {
             if (record_diagnostics) {
-                ++diagnostics_.flow_age_output_suppression_count;
+                ++diagnostics_.flow.flow_age_output_suppression_count;
             }
             continue;
         }
         if (track.exiting_frame_count >= 2) {
             if (record_diagnostics) {
-                ++diagnostics_.exiting_track_suppression_count;
+                ++diagnostics_.flow.exiting_track_suppression_count;
             }
             continue;
         }

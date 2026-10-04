@@ -70,22 +70,22 @@ std::string formatStreamLog(
     // Allowlist fields: never serialize source URLs, last_error, tokens or image data.
     json["width"] = snapshot.width;
     json["height"] = snapshot.height;
-    json["decoded_frame_count"] = Json::UInt64(snapshot.decoded_frame_count);
-    json["processed_frame_count"] = Json::UInt64(snapshot.processed_frame_count);
-    json["detection_frame_count"] = Json::UInt64(snapshot.detection_frame_count);
-    json["high_res_detection_count"] = Json::UInt64(snapshot.high_res_detection_count);
+    json["decoded_frame_count"] = Json::UInt64(snapshot.counters.frames.decoded_frame_count);
+    json["processed_frame_count"] = Json::UInt64(snapshot.counters.frames.processed_frame_count);
+    json["detection_frame_count"] = Json::UInt64(snapshot.detections.detection_frame_count);
+    json["high_res_detection_count"] = Json::UInt64(snapshot.detections.high_res_detection_count);
     json["roi_high_res_detection_count"] =
-        Json::UInt64(snapshot.roi_high_res_detection_count);
-    json["low_res_detection_count"] = Json::UInt64(snapshot.low_res_detection_count);
-    json["dropped_frame_count"] = Json::UInt64(snapshot.dropped_frame_count);
-    json["stale_frame_drop_count"] = Json::UInt64(snapshot.stale_frame_drop_count);
-    json["skipped_inference_count"] = Json::UInt64(snapshot.skipped_inference_count);
-    json["inference_error_count"] = Json::UInt64(snapshot.inference_error_count);
+        Json::UInt64(snapshot.detections.roi_high_res_detection_count);
+    json["low_res_detection_count"] = Json::UInt64(snapshot.detections.low_res_detection_count);
+    json["dropped_frame_count"] = Json::UInt64(snapshot.counters.frames.dropped_frame_count);
+    json["stale_frame_drop_count"] = Json::UInt64(snapshot.counters.frames.stale_frame_drop_count);
+    json["skipped_inference_count"] = Json::UInt64(snapshot.counters.inference.skipped_inference_count);
+    json["inference_error_count"] = Json::UInt64(snapshot.counters.inference.inference_error_count);
     json["consecutive_inference_error_count"] =
         Json::UInt64(snapshot.consecutive_inference_error_count);
     json["reconnect_count"] = Json::UInt64(snapshot.reconnect_count);
-    if (snapshot.processed_frame_count > 0 && std::isfinite(snapshot.latest_result_age_ms)) {
-        json["latest_result_age_ms"] = snapshot.latest_result_age_ms;
+    if (snapshot.counters.frames.processed_frame_count > 0 && std::isfinite(snapshot.latest.latest_result_age_ms)) {
+        json["latest_result_age_ms"] = snapshot.latest.latest_result_age_ms;
     }
     if (inference.frame_index >= 0) {
         json["frame_index"] = Json::Int64(inference.frame_index);

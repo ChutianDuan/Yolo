@@ -82,25 +82,25 @@ Json::Value percentilesToJson(const LatencyPercentiles& percentiles) {
 
 Json::Value latencyPercentilesToJson(const PerformanceMetrics& metrics) {
     Json::Value json;
-    json["decode_ms"] = percentilesToJson(metrics.decode_percentiles_ms);
-    json["preprocess_ms"] = percentilesToJson(metrics.preprocess_percentiles_ms);
-    json["infer_ms"] = percentilesToJson(metrics.infer_percentiles_ms);
-    json["postprocess_ms"] = percentilesToJson(metrics.postprocess_percentiles_ms);
-    json["tracker_ms"] = percentilesToJson(metrics.tracker_percentiles_ms);
-    json["queue_wait_ms"] = percentilesToJson(metrics.queue_wait_percentiles_ms);
-    json["end_to_end_ms"] = percentilesToJson(metrics.end_to_end_percentiles_ms);
+    json["decode_ms"] = percentilesToJson(metrics.latency_percentiles.decode_percentiles_ms);
+    json["preprocess_ms"] = percentilesToJson(metrics.latency_percentiles.preprocess_percentiles_ms);
+    json["infer_ms"] = percentilesToJson(metrics.latency_percentiles.infer_percentiles_ms);
+    json["postprocess_ms"] = percentilesToJson(metrics.latency_percentiles.postprocess_percentiles_ms);
+    json["tracker_ms"] = percentilesToJson(metrics.latency_percentiles.tracker_percentiles_ms);
+    json["queue_wait_ms"] = percentilesToJson(metrics.latency_percentiles.queue_wait_percentiles_ms);
+    json["end_to_end_ms"] = percentilesToJson(metrics.latency_percentiles.end_to_end_percentiles_ms);
     return json;
 }
 
 Json::Value performanceTimingToJson(const PerformanceMetrics& metrics) {
     Json::Value timing;
-    timing["decode_ms"] = metrics.decode_ms;
-    timing["preprocess_ms"] = metrics.preprocess_ms;
-    timing["infer_ms"] = metrics.infer_ms;
-    timing["postprocess_ms"] = metrics.postprocess_ms;
-    timing["tracker_ms"] = metrics.tracker_ms;
-    timing["queue_wait_ms"] = metrics.queue_wait_ms;
-    timing["end_to_end_ms"] = metrics.end_to_end_ms;
+    timing["decode_ms"] = metrics.timing.decode_ms;
+    timing["preprocess_ms"] = metrics.timing.preprocess_ms;
+    timing["infer_ms"] = metrics.timing.infer_ms;
+    timing["postprocess_ms"] = metrics.timing.postprocess_ms;
+    timing["tracker_ms"] = metrics.timing.tracker_ms;
+    timing["queue_wait_ms"] = metrics.timing.queue_wait_ms;
+    timing["end_to_end_ms"] = metrics.timing.end_to_end_ms;
     return timing;
 }
 
@@ -108,95 +108,95 @@ Json::Value performanceMetricsToJson(const PerformanceMetrics& metrics) {
     Json::Value json = performanceTimingToJson(metrics);
     json["latency_percentiles_ms"] = latencyPercentilesToJson(metrics);
     json["average_fps"] = metrics.average_fps;
-    json["cpu_utilization_percent"] = metrics.cpu_utilization_percent;
-    json["rss_memory_mb"] = metrics.rss_memory_mb;
-    json["queue_length"] = Json::UInt64(metrics.queue_length);
-    json["max_queue_length"] = Json::UInt64(metrics.max_queue_length);
-    json["dropped_frame_count"] = Json::Int64(metrics.dropped_frame_count);
+    json["cpu_utilization_percent"] = metrics.resources.cpu_utilization_percent;
+    json["rss_memory_mb"] = metrics.resources.rss_memory_mb;
+    json["queue_length"] = Json::UInt64(metrics.queue.queue_length);
+    json["max_queue_length"] = Json::UInt64(metrics.queue.max_queue_length);
+    json["dropped_frame_count"] = Json::Int64(metrics.queue.dropped_frame_count);
     return json;
 }
 
 Json::Value highLowDiagnosticsToJson(const HighLowDiagnostics& diagnostics) {
     Json::Value json;
-    json["stable_track_count"] = Json::Int64(diagnostics.stable_track_count);
-    json["provisional_track_count"] = Json::Int64(diagnostics.provisional_track_count);
-    json["max_stable_track_count"] = Json::Int64(diagnostics.max_stable_track_count);
+    json["stable_track_count"] = Json::Int64(diagnostics.tracks.stable_track_count);
+    json["provisional_track_count"] = Json::Int64(diagnostics.tracks.provisional_track_count);
+    json["max_stable_track_count"] = Json::Int64(diagnostics.tracks.max_stable_track_count);
     json["max_provisional_track_count"] =
-        Json::Int64(diagnostics.max_provisional_track_count);
+        Json::Int64(diagnostics.tracks.max_provisional_track_count);
     json["provisional_created_count"] =
-        Json::Int64(diagnostics.provisional_created_count);
+        Json::Int64(diagnostics.provisional.provisional_created_count);
     json["provisional_promoted_count"] =
-        Json::Int64(diagnostics.provisional_promoted_count);
+        Json::Int64(diagnostics.provisional.provisional_promoted_count);
     json["provisional_expired_count"] =
-        Json::Int64(diagnostics.provisional_expired_count);
+        Json::Int64(diagnostics.provisional.provisional_expired_count);
     json["provisional_deduplicated_count"] =
-        Json::Int64(diagnostics.provisional_deduplicated_count);
+        Json::Int64(diagnostics.provisional.provisional_deduplicated_count);
     json["stable_stable_duplicate_count"] =
-        Json::Int64(diagnostics.stable_stable_duplicate_count);
+        Json::Int64(diagnostics.duplicates.stable_stable_duplicate_count);
     json["stable_provisional_duplicate_count"] =
-        Json::Int64(diagnostics.stable_provisional_duplicate_count);
+        Json::Int64(diagnostics.duplicates.stable_provisional_duplicate_count);
     json["provisional_provisional_duplicate_count"] =
-        Json::Int64(diagnostics.provisional_provisional_duplicate_count);
+        Json::Int64(diagnostics.duplicates.provisional_provisional_duplicate_count);
     json["output_suppressed_duplicate_count"] =
-        Json::Int64(diagnostics.output_suppressed_duplicate_count);
+        Json::Int64(diagnostics.duplicates.output_suppressed_duplicate_count);
     json["low_res_geometry_rejection_count"] =
-        Json::Int64(diagnostics.low_res_geometry_rejection_count);
+        Json::Int64(diagnostics.low_res.low_res_geometry_rejection_count);
     json["low_res_class_conflict_count"] =
-        Json::Int64(diagnostics.low_res_class_conflict_count);
-    json["flow_track_count"] = Json::Int64(diagnostics.flow_track_count);
+        Json::Int64(diagnostics.low_res.low_res_class_conflict_count);
+    json["flow_track_count"] = Json::Int64(diagnostics.flow.flow_track_count);
     json["flow_rejected_track_count"] =
-        Json::Int64(diagnostics.flow_rejected_track_count);
+        Json::Int64(diagnostics.flow.flow_rejected_track_count);
     json["flow_low_point_rejection_count"] =
-        Json::Int64(diagnostics.flow_low_point_rejection_count);
+        Json::Int64(diagnostics.flow.flow_low_point_rejection_count);
     json["flow_invalid_ratio_rejection_count"] =
-        Json::Int64(diagnostics.flow_invalid_ratio_rejection_count);
+        Json::Int64(diagnostics.flow.flow_invalid_ratio_rejection_count);
     json["flow_forward_backward_rejection_count"] =
-        Json::Int64(diagnostics.flow_forward_backward_rejection_count);
+        Json::Int64(diagnostics.flow.flow_forward_backward_rejection_count);
     json["flow_motion_dispersion_rejection_count"] =
-        Json::Int64(diagnostics.flow_motion_dispersion_rejection_count);
+        Json::Int64(diagnostics.flow.flow_motion_dispersion_rejection_count);
     json["flow_motion_jump_rejection_count"] =
-        Json::Int64(diagnostics.flow_motion_jump_rejection_count);
+        Json::Int64(diagnostics.flow.flow_motion_jump_rejection_count);
     json["flow_boundary_rejection_count"] =
-        Json::Int64(diagnostics.flow_boundary_rejection_count);
+        Json::Int64(diagnostics.flow.flow_boundary_rejection_count);
     json["direct_flow_update_count"] =
-        Json::Int64(diagnostics.direct_flow_update_count);
+        Json::Int64(diagnostics.flow.direct_flow_update_count);
     json["global_flow_update_count"] =
-        Json::Int64(diagnostics.global_flow_update_count);
+        Json::Int64(diagnostics.flow.global_flow_update_count);
     json["flow_age_output_suppression_count"] =
-        Json::Int64(diagnostics.flow_age_output_suppression_count);
+        Json::Int64(diagnostics.flow.flow_age_output_suppression_count);
     json["flow_age_expired_count"] =
-        Json::Int64(diagnostics.flow_age_expired_count);
+        Json::Int64(diagnostics.flow.flow_age_expired_count);
     json["exiting_track_suppression_count"] =
-        Json::Int64(diagnostics.exiting_track_suppression_count);
+        Json::Int64(diagnostics.flow.exiting_track_suppression_count);
     json["urgent_low_res_detection_count"] =
-        Json::Int64(diagnostics.urgent_low_res_detection_count);
+        Json::Int64(diagnostics.urgent.urgent_low_res_detection_count);
     json["urgent_high_res_detection_count"] =
-        Json::Int64(diagnostics.urgent_high_res_detection_count);
+        Json::Int64(diagnostics.urgent.urgent_high_res_detection_count);
     json["urgent_flow_quality_count"] =
-        Json::Int64(diagnostics.urgent_flow_quality_count);
+        Json::Int64(diagnostics.urgent.urgent_flow_quality_count);
     json["urgent_track_change_count"] =
-        Json::Int64(diagnostics.urgent_track_change_count);
+        Json::Int64(diagnostics.urgent.urgent_track_change_count);
     json["urgent_duplicate_count"] =
-        Json::Int64(diagnostics.urgent_duplicate_count);
+        Json::Int64(diagnostics.urgent.urgent_duplicate_count);
     json["urgent_flow_age_count"] =
-        Json::Int64(diagnostics.urgent_flow_age_count);
+        Json::Int64(diagnostics.urgent.urgent_flow_age_count);
     json["urgent_geometry_count"] =
-        Json::Int64(diagnostics.urgent_geometry_count);
+        Json::Int64(diagnostics.urgent.urgent_geometry_count);
     json["urgent_class_conflict_count"] =
-        Json::Int64(diagnostics.urgent_class_conflict_count);
+        Json::Int64(diagnostics.urgent.urgent_class_conflict_count);
     return json;
 }
 
 Json::Value stageTimingToJson(const VideoInferResult& result) {
-    const double preprocess_ms = result.preprocess_ms;
-    const double decode_ms = result.decode_ms;
-    const double infer_ms = result.infer_ms;
-    const double model_postprocess_ms = result.postprocess_ms;
-    const double queue_wait_ms = result.queue_wait_ms;
-    const double tracker_ms = result.tracker_ms;
-    const double flow_ms = result.optical_flow_ms;
+    const double preprocess_ms = result.timing.preprocess_ms;
+    const double decode_ms = result.timing.decode_ms;
+    const double infer_ms = result.timing.infer_ms;
+    const double model_postprocess_ms = result.timing.postprocess_ms;
+    const double queue_wait_ms = result.timing.queue_wait_ms;
+    const double tracker_ms = result.timing.tracker_ms;
+    const double flow_ms = result.timing.optical_flow_ms;
     const double legacy_postprocess_ms =
-        result.model_postprocess_ms + result.tracking_postprocess_ms;
+        result.timing.model_postprocess_ms + result.timing.tracking_postprocess_ms;
     const double profiled_ms = preprocess_ms
         + infer_ms
         + decode_ms
@@ -204,37 +204,37 @@ Json::Value stageTimingToJson(const VideoInferResult& result) {
         + tracker_ms
         + queue_wait_ms
         + flow_ms;
-    const double other_ms = result.total_elapsed_ms > profiled_ms
-        ? result.total_elapsed_ms - profiled_ms
+    const double other_ms = result.timing.total_elapsed_ms > profiled_ms
+        ? result.timing.total_elapsed_ms - profiled_ms
         : 0.0;
 
     Json::Value timing;
-    timing["total_elapsed_ms"] = result.total_elapsed_ms;
-    timing["end_to_end_ms"] = result.end_to_end_ms;
+    timing["total_elapsed_ms"] = result.timing.total_elapsed_ms;
+    timing["end_to_end_ms"] = result.timing.end_to_end_ms;
     timing["preprocess_ms"] = preprocess_ms;
     timing["infer_ms"] = infer_ms;
-    timing["onnx_inference_ms"] = result.model_inference_ms;
+    timing["onnx_inference_ms"] = result.timing.model_inference_ms;
     timing["decode_ms"] = decode_ms;
     timing["postprocess_ms"] = model_postprocess_ms;
     timing["tracker_ms"] = tracker_ms;
     timing["queue_wait_ms"] = queue_wait_ms;
     timing["optical_flow_ms"] = flow_ms;
-    timing["onnx_decode_nms_ms"] = result.model_postprocess_ms;
+    timing["onnx_decode_nms_ms"] = result.timing.model_postprocess_ms;
     timing["legacy_postprocess_ms"] = legacy_postprocess_ms;
-    timing["tracking_postprocess_ms"] = result.tracking_postprocess_ms;
+    timing["tracking_postprocess_ms"] = result.timing.tracking_postprocess_ms;
     timing["other_ms"] = other_ms;
     timing["profiled_stage_ms"] = profiled_ms;
     return timing;
 }
 
 Json::Value stageRatioToJson(const VideoInferResult& result) {
-    const double preprocess_ms = result.preprocess_ms;
-    const double infer_ms = result.infer_ms;
-    const double decode_ms = result.decode_ms;
-    const double model_postprocess_ms = result.postprocess_ms;
-    const double queue_wait_ms = result.queue_wait_ms;
-    const double tracker_ms = result.tracker_ms;
-    const double flow_ms = result.optical_flow_ms;
+    const double preprocess_ms = result.timing.preprocess_ms;
+    const double infer_ms = result.timing.infer_ms;
+    const double decode_ms = result.timing.decode_ms;
+    const double model_postprocess_ms = result.timing.postprocess_ms;
+    const double queue_wait_ms = result.timing.queue_wait_ms;
+    const double tracker_ms = result.timing.tracker_ms;
+    const double flow_ms = result.timing.optical_flow_ms;
     const double profiled_ms = preprocess_ms
         + infer_ms
         + decode_ms
@@ -386,42 +386,42 @@ Json::Value videoInferResultToJson(
     ret["code"] = 0;
     ret["message"] = "success";
     ret["tracking_status"] = result.tracking_status;
-    ret["fps"] = result.fps;
-    ret["source_fps"] = result.source_fps;
-    ret["target_detect_fps"] = result.target_detect_fps;
-    ret["effective_detect_fps"] = result.effective_detect_fps;
-    ret["frame_stride"] = result.frame_stride;
-    ret["stride_mode"] = result.stride_mode;
-    ret["onnx_async"] = result.model_async;
-    ret["base_frame_stride"] = result.base_frame_stride;
-    ret["min_frame_stride_used"] = result.min_frame_stride_used;
-    ret["max_frame_stride_used"] = result.max_frame_stride_used;
-    ret["final_frame_stride"] = result.final_frame_stride;
-    ret["width"] = result.width;
-    ret["height"] = result.height;
-    ret["frame_count"] = Json::Int64(result.frame_count);
-    ret["source_frame_count"] = Json::Int64(result.source_frame_count);
-    ret["processed_frame_count"] = Json::Int64(result.processed_frame_count);
-    ret["display_frame_count"] = Json::Int64(result.display_frame_count);
-    ret["detected_frame_count"] = Json::Int64(result.detected_frame_count);
+    ret["fps"] = result.video_info.fps;
+    ret["source_fps"] = result.video_info.source_fps;
+    ret["target_detect_fps"] = result.detection_policy.target_detect_fps;
+    ret["effective_detect_fps"] = result.detection_policy.effective_detect_fps;
+    ret["frame_stride"] = result.detection_policy.frame_stride;
+    ret["stride_mode"] = result.detection_policy.stride_mode;
+    ret["onnx_async"] = result.detection_policy.model_async;
+    ret["base_frame_stride"] = result.detection_policy.base_frame_stride;
+    ret["min_frame_stride_used"] = result.detection_policy.min_frame_stride_used;
+    ret["max_frame_stride_used"] = result.detection_policy.max_frame_stride_used;
+    ret["final_frame_stride"] = result.detection_policy.final_frame_stride;
+    ret["width"] = result.video_info.width;
+    ret["height"] = result.video_info.height;
+    ret["frame_count"] = Json::Int64(result.frame_counts.frame_count);
+    ret["source_frame_count"] = Json::Int64(result.frame_counts.source_frame_count);
+    ret["processed_frame_count"] = Json::Int64(result.frame_counts.processed_frame_count);
+    ret["display_frame_count"] = Json::Int64(result.frame_counts.display_frame_count);
+    ret["detected_frame_count"] = Json::Int64(result.detection_counts.detected_frame_count);
     ret["roi_high_res_detection_count"] =
-        Json::Int64(result.roi_high_res_detection_count);
-    ret["async_infer_request_count"] = Json::Int64(result.async_infer_request_count);
-    ret["async_correction_count"] = Json::Int64(result.async_correction_count);
+        Json::Int64(result.detection_counts.roi_high_res_detection_count);
+    ret["async_infer_request_count"] = Json::Int64(result.async_counts.async_infer_request_count);
+    ret["async_correction_count"] = Json::Int64(result.async_counts.async_correction_count);
     ret["async_corrected_frame_count"] =
-        Json::Int64(result.async_corrected_frame_count);
-    ret["forced_detection_count"] = Json::Int64(result.forced_detection_count);
-    ret["scheduled_detection_count"] = Json::Int64(result.scheduled_detection_count);
-    ret["skipped_detection_count"] = Json::Int64(result.skipped_detection_count);
-    ret["weak_tracked_frame_count"] = Json::Int64(result.weak_tracked_frame_count);
-    ret["interpolated_frame_count"] = Json::Int64(result.interpolated_frame_count);
-    ret["empty_frame_count"] = Json::Int64(result.empty_frame_count);
+        Json::Int64(result.async_counts.async_corrected_frame_count);
+    ret["forced_detection_count"] = Json::Int64(result.detection_counts.forced_detection_count);
+    ret["scheduled_detection_count"] = Json::Int64(result.detection_counts.scheduled_detection_count);
+    ret["skipped_detection_count"] = Json::Int64(result.detection_counts.skipped_detection_count);
+    ret["weak_tracked_frame_count"] = Json::Int64(result.frame_counts.weak_tracked_frame_count);
+    ret["interpolated_frame_count"] = Json::Int64(result.frame_counts.interpolated_frame_count);
+    ret["empty_frame_count"] = Json::Int64(result.frame_counts.empty_frame_count);
     ret["average_fps"] = result.metrics.average_fps;
-    ret["cpu_utilization_percent"] = result.metrics.cpu_utilization_percent;
-    ret["rss_memory_mb"] = result.metrics.rss_memory_mb;
-    ret["queue_length"] = Json::UInt64(result.metrics.queue_length);
-    ret["max_queue_length"] = Json::UInt64(result.metrics.max_queue_length);
-    ret["dropped_frame_count"] = Json::Int64(result.metrics.dropped_frame_count);
+    ret["cpu_utilization_percent"] = result.metrics.resources.cpu_utilization_percent;
+    ret["rss_memory_mb"] = result.metrics.resources.rss_memory_mb;
+    ret["queue_length"] = Json::UInt64(result.metrics.queue.queue_length);
+    ret["max_queue_length"] = Json::UInt64(result.metrics.queue.max_queue_length);
+    ret["dropped_frame_count"] = Json::Int64(result.metrics.queue.dropped_frame_count);
     ret["timing_ms"] = stageTimingToJson(result);
     ret["timing_ratio"] = stageRatioToJson(result);
     ret["latency_percentiles_ms"] = latencyPercentilesToJson(result.metrics);

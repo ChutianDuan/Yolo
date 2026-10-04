@@ -15,6 +15,7 @@
 #endif
 
 int main(int argc, char* argv[]) {
+    // 命令行可覆盖 CMake 选定的默认配置，便于切换模型与运行参数。
     const std::string config_path = argc > 1 ? argv[1] : YOLO_DEFAULT_CONFIG_PATH;
     constexpr uint16_t port = 8080;
 
@@ -31,6 +32,7 @@ int main(int argc, char* argv[]) {
         cv::setNumThreads(config.opencv_threads);
     }
 
+    // 在启动 HTTP 服务前加载模型；配置或模型加载失败时直接退出。
     const yolo::AppConfig high_res_config = yolo::makeHighResAppConfig(config);
     std::shared_ptr<yolo::YoloEngine> engine;
     try {
@@ -41,6 +43,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // 低分辨率模型是可选项；未配置时使用单模型推理流程。
     std::shared_ptr<yolo::YoloEngine> low_res_engine;
     if (yolo::hasLowResModelConfig(config)) {
         const yolo::AppConfig low_res_config = yolo::makeLowResAppConfig(config);

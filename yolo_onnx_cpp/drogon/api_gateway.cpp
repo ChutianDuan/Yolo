@@ -127,6 +127,7 @@ void ApiGateway::run(uint16_t port) const {
 }
 
 void ApiGateway::registerRequestGate() const {
+    // 在路由执行前统一鉴权和限流；健康与就绪探针可直接访问。
     const auto gate = request_gate_;
     drogon::app().registerPreRoutingAdvice(
         [gate](const drogon::HttpRequestPtr& request,
@@ -170,6 +171,7 @@ void ApiGateway::registerRequestGate() const {
 }
 
 void ApiGateway::registerRoutes() const {
+    // 视频上传与实时流共享模型调度器，统一约束引擎的并发与排队。
     registerRealtimeStreamRoutes(
         stream_manager_,
         high_res_scheduler_,

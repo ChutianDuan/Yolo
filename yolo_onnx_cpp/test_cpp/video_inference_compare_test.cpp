@@ -357,7 +357,7 @@ void writeVisualizedVideo(
 
     double fps = capture.get(cv::CAP_PROP_FPS);
     if (!(fps > 0.0)) {
-        fps = result.source_fps > 0.0 ? result.source_fps : 30.0;
+        fps = result.video_info.source_fps > 0.0 ? result.video_info.source_fps : 30.0;
     }
 
     std::error_code ec;
@@ -423,13 +423,13 @@ AppConfig makeCompareConfig(
 
 VideoMetrics collectMetrics(const yolo::VideoInferResult& result) {
     VideoMetrics metrics;
-    metrics.frames = result.frame_count;
-    metrics.processed = result.processed_frame_count;
-    metrics.detected = result.detected_frame_count;
-    metrics.forced = result.forced_detection_count;
-    metrics.skipped = result.skipped_detection_count;
-    metrics.elapsed_ms = result.total_elapsed_ms;
-    metrics.model_ms = result.model_inference_ms;
+    metrics.frames = result.frame_counts.frame_count;
+    metrics.processed = result.frame_counts.processed_frame_count;
+    metrics.detected = result.detection_counts.detected_frame_count;
+    metrics.forced = result.detection_counts.forced_detection_count;
+    metrics.skipped = result.detection_counts.skipped_detection_count;
+    metrics.elapsed_ms = result.timing.total_elapsed_ms;
+    metrics.model_ms = result.timing.model_inference_ms;
 
     std::set<int> unique_track_ids;
     for (const auto& frame : result.frames) {
@@ -494,44 +494,44 @@ void printDetailedMetrics(
     const double avg_tracks = metrics.frames > 0
         ? static_cast<double>(metrics.track_observations) / static_cast<double>(metrics.frames)
         : 0.0;
-    const double profiled_ms = result.decode_ms
-        + result.preprocess_ms
-        + result.infer_ms
-        + result.postprocess_ms
-        + result.tracker_ms
-        + result.queue_wait_ms
-        + result.optical_flow_ms;
-    const double other_ms = result.total_elapsed_ms > profiled_ms
-        ? result.total_elapsed_ms - profiled_ms
+    const double profiled_ms = result.timing.decode_ms
+        + result.timing.preprocess_ms
+        + result.timing.infer_ms
+        + result.timing.postprocess_ms
+        + result.timing.tracker_ms
+        + result.timing.queue_wait_ms
+        + result.timing.optical_flow_ms;
+    const double other_ms = result.timing.total_elapsed_ms > profiled_ms
+        ? result.timing.total_elapsed_ms - profiled_ms
         : 0.0;
 
     std::cout << name << "_detail\n";
-    std::cout << "  frames=" << result.frame_count
-              << " source_frames=" << result.source_frame_count
-              << " display_frames=" << result.display_frame_count
-              << " size=" << result.width << "x" << result.height
-              << " source_fps=" << result.source_fps
-              << " target_detect_fps=" << result.target_detect_fps
-              << " effective_detect_fps=" << result.effective_detect_fps
-              << " frame_stride=" << result.frame_stride
-              << " stride_mode=" << result.stride_mode
-              << " model_async=" << (result.model_async ? "true" : "false") << '\n';
-    std::cout << "  stride base=" << result.base_frame_stride
-              << " min=" << result.min_frame_stride_used
-              << " max=" << result.max_frame_stride_used
-              << " final=" << result.final_frame_stride << '\n';
-    std::cout << "  detection processed=" << result.processed_frame_count
-              << " detected_frames=" << result.detected_frame_count
-              << " forced=" << result.forced_detection_count
-              << " scheduled=" << result.scheduled_detection_count
-              << " skipped=" << result.skipped_detection_count
-              << " async_requests=" << result.async_infer_request_count
-              << " async_corrections=" << result.async_correction_count
-              << " async_corrected_frames=" << result.async_corrected_frame_count
-              << " roi_high_res=" << result.roi_high_res_detection_count
-              << " weak_tracked_frames=" << result.weak_tracked_frame_count
-              << " interpolated_frames=" << result.interpolated_frame_count
-              << " empty_frames=" << result.empty_frame_count << '\n';
+    std::cout << "  frames=" << result.frame_counts.frame_count
+              << " source_frames=" << result.frame_counts.source_frame_count
+              << " display_frames=" << result.frame_counts.display_frame_count
+              << " size=" << result.video_info.width << "x" << result.video_info.height
+              << " source_fps=" << result.video_info.source_fps
+              << " target_detect_fps=" << result.detection_policy.target_detect_fps
+              << " effective_detect_fps=" << result.detection_policy.effective_detect_fps
+              << " frame_stride=" << result.detection_policy.frame_stride
+              << " stride_mode=" << result.detection_policy.stride_mode
+              << " model_async=" << (result.detection_policy.model_async ? "true" : "false") << '\n';
+    std::cout << "  stride base=" << result.detection_policy.base_frame_stride
+              << " min=" << result.detection_policy.min_frame_stride_used
+              << " max=" << result.detection_policy.max_frame_stride_used
+              << " final=" << result.detection_policy.final_frame_stride << '\n';
+    std::cout << "  detection processed=" << result.frame_counts.processed_frame_count
+              << " detected_frames=" << result.detection_counts.detected_frame_count
+              << " forced=" << result.detection_counts.forced_detection_count
+              << " scheduled=" << result.detection_counts.scheduled_detection_count
+              << " skipped=" << result.detection_counts.skipped_detection_count
+              << " async_requests=" << result.async_counts.async_infer_request_count
+              << " async_corrections=" << result.async_counts.async_correction_count
+              << " async_corrected_frames=" << result.async_counts.async_corrected_frame_count
+              << " roi_high_res=" << result.detection_counts.roi_high_res_detection_count
+              << " weak_tracked_frames=" << result.frame_counts.weak_tracked_frame_count
+              << " interpolated_frames=" << result.frame_counts.interpolated_frame_count
+              << " empty_frames=" << result.frame_counts.empty_frame_count << '\n';
     std::cout << "  tracks observations=" << metrics.track_observations
               << " unique=" << metrics.unique_tracks
               << " avg_per_frame=" << avg_tracks << '\n';
@@ -539,57 +539,57 @@ void printDetailedMetrics(
               << " preprocess_samples=" << result.timing_samples.preprocess_ms.size()
               << " end_to_end_samples=" << result.timing_samples.end_to_end_ms.size()
               << " output_shapes=" << outputShapesText(result.output_shapes) << '\n';
-    std::cout << "  timing_total_ms total=" << result.total_elapsed_ms
-              << " decode=" << result.decode_ms
-              << " preprocess=" << result.preprocess_ms
-              << " infer=" << result.infer_ms
-              << " model_inference=" << result.model_inference_ms
-              << " postprocess=" << result.postprocess_ms
-              << " tracker=" << result.tracker_ms
-              << " optical_flow=" << result.optical_flow_ms
-              << " queue_wait=" << result.queue_wait_ms
-              << " tracking_postprocess=" << result.tracking_postprocess_ms
+    std::cout << "  timing_total_ms total=" << result.timing.total_elapsed_ms
+              << " decode=" << result.timing.decode_ms
+              << " preprocess=" << result.timing.preprocess_ms
+              << " infer=" << result.timing.infer_ms
+              << " model_inference=" << result.timing.model_inference_ms
+              << " postprocess=" << result.timing.postprocess_ms
+              << " tracker=" << result.timing.tracker_ms
+              << " optical_flow=" << result.timing.optical_flow_ms
+              << " queue_wait=" << result.timing.queue_wait_ms
+              << " tracking_postprocess=" << result.timing.tracking_postprocess_ms
               << " profiled=" << profiled_ms
               << " other=" << other_ms << '\n';
     std::cout << "  timing_ratio preprocess="
-              << (profiled_ms > 0.0 ? result.preprocess_ms / profiled_ms : 0.0)
-              << " infer=" << (profiled_ms > 0.0 ? result.infer_ms / profiled_ms : 0.0)
-              << " decode=" << (profiled_ms > 0.0 ? result.decode_ms / profiled_ms : 0.0)
+              << (profiled_ms > 0.0 ? result.timing.preprocess_ms / profiled_ms : 0.0)
+              << " infer=" << (profiled_ms > 0.0 ? result.timing.infer_ms / profiled_ms : 0.0)
+              << " decode=" << (profiled_ms > 0.0 ? result.timing.decode_ms / profiled_ms : 0.0)
               << " postprocess="
-              << (profiled_ms > 0.0 ? result.postprocess_ms / profiled_ms : 0.0)
-              << " tracker=" << (profiled_ms > 0.0 ? result.tracker_ms / profiled_ms : 0.0)
+              << (profiled_ms > 0.0 ? result.timing.postprocess_ms / profiled_ms : 0.0)
+              << " tracker=" << (profiled_ms > 0.0 ? result.timing.tracker_ms / profiled_ms : 0.0)
               << " optical_flow="
-              << (profiled_ms > 0.0 ? result.optical_flow_ms / profiled_ms : 0.0)
+              << (profiled_ms > 0.0 ? result.timing.optical_flow_ms / profiled_ms : 0.0)
               << " queue_wait="
-              << (profiled_ms > 0.0 ? result.queue_wait_ms / profiled_ms : 0.0)
+              << (profiled_ms > 0.0 ? result.timing.queue_wait_ms / profiled_ms : 0.0)
               << '\n';
-    std::cout << "  latency_p50_ms decode=" << result.metrics.decode_percentiles_ms.p50
-              << " preprocess=" << result.metrics.preprocess_percentiles_ms.p50
-              << " infer=" << result.metrics.infer_percentiles_ms.p50
-              << " postprocess=" << result.metrics.postprocess_percentiles_ms.p50
-              << " tracker=" << result.metrics.tracker_percentiles_ms.p50
-              << " queue_wait=" << result.metrics.queue_wait_percentiles_ms.p50
-              << " end_to_end=" << result.metrics.end_to_end_percentiles_ms.p50 << '\n';
-    std::cout << "  latency_p95_ms decode=" << result.metrics.decode_percentiles_ms.p95
-              << " preprocess=" << result.metrics.preprocess_percentiles_ms.p95
-              << " infer=" << result.metrics.infer_percentiles_ms.p95
-              << " postprocess=" << result.metrics.postprocess_percentiles_ms.p95
-              << " tracker=" << result.metrics.tracker_percentiles_ms.p95
-              << " queue_wait=" << result.metrics.queue_wait_percentiles_ms.p95
-              << " end_to_end=" << result.metrics.end_to_end_percentiles_ms.p95 << '\n';
-    std::cout << "  latency_p99_ms decode=" << result.metrics.decode_percentiles_ms.p99
-              << " preprocess=" << result.metrics.preprocess_percentiles_ms.p99
-              << " infer=" << result.metrics.infer_percentiles_ms.p99
-              << " postprocess=" << result.metrics.postprocess_percentiles_ms.p99
-              << " tracker=" << result.metrics.tracker_percentiles_ms.p99
-              << " queue_wait=" << result.metrics.queue_wait_percentiles_ms.p99
-              << " end_to_end=" << result.metrics.end_to_end_percentiles_ms.p99 << '\n';
+    std::cout << "  latency_p50_ms decode=" << result.metrics.latency_percentiles.decode_percentiles_ms.p50
+              << " preprocess=" << result.metrics.latency_percentiles.preprocess_percentiles_ms.p50
+              << " infer=" << result.metrics.latency_percentiles.infer_percentiles_ms.p50
+              << " postprocess=" << result.metrics.latency_percentiles.postprocess_percentiles_ms.p50
+              << " tracker=" << result.metrics.latency_percentiles.tracker_percentiles_ms.p50
+              << " queue_wait=" << result.metrics.latency_percentiles.queue_wait_percentiles_ms.p50
+              << " end_to_end=" << result.metrics.latency_percentiles.end_to_end_percentiles_ms.p50 << '\n';
+    std::cout << "  latency_p95_ms decode=" << result.metrics.latency_percentiles.decode_percentiles_ms.p95
+              << " preprocess=" << result.metrics.latency_percentiles.preprocess_percentiles_ms.p95
+              << " infer=" << result.metrics.latency_percentiles.infer_percentiles_ms.p95
+              << " postprocess=" << result.metrics.latency_percentiles.postprocess_percentiles_ms.p95
+              << " tracker=" << result.metrics.latency_percentiles.tracker_percentiles_ms.p95
+              << " queue_wait=" << result.metrics.latency_percentiles.queue_wait_percentiles_ms.p95
+              << " end_to_end=" << result.metrics.latency_percentiles.end_to_end_percentiles_ms.p95 << '\n';
+    std::cout << "  latency_p99_ms decode=" << result.metrics.latency_percentiles.decode_percentiles_ms.p99
+              << " preprocess=" << result.metrics.latency_percentiles.preprocess_percentiles_ms.p99
+              << " infer=" << result.metrics.latency_percentiles.infer_percentiles_ms.p99
+              << " postprocess=" << result.metrics.latency_percentiles.postprocess_percentiles_ms.p99
+              << " tracker=" << result.metrics.latency_percentiles.tracker_percentiles_ms.p99
+              << " queue_wait=" << result.metrics.latency_percentiles.queue_wait_percentiles_ms.p99
+              << " end_to_end=" << result.metrics.latency_percentiles.end_to_end_percentiles_ms.p99 << '\n';
     std::cout << "  runtime average_fps=" << result.metrics.average_fps
-              << " cpu_utilization_percent=" << result.metrics.cpu_utilization_percent
-              << " rss_memory_mb=" << result.metrics.rss_memory_mb
-              << " queue_length=" << result.metrics.queue_length
-              << " max_queue_length=" << result.metrics.max_queue_length
-              << " dropped_frames=" << result.metrics.dropped_frame_count << '\n';
+              << " cpu_utilization_percent=" << result.metrics.resources.cpu_utilization_percent
+              << " rss_memory_mb=" << result.metrics.resources.rss_memory_mb
+              << " queue_length=" << result.metrics.queue.queue_length
+              << " max_queue_length=" << result.metrics.queue.max_queue_length
+              << " dropped_frames=" << result.metrics.queue.dropped_frame_count << '\n';
 
     std::cout << "  track_sources";
     for (const auto& [source, count] : trackSourceCounts(result)) {
@@ -610,27 +610,27 @@ void printComparison(
 
     std::cout << "comparison high_low_vs_single\n";
     std::cout << "  elapsed_delta_ms="
-              << high_low_result.total_elapsed_ms - single_result.total_elapsed_ms
+              << high_low_result.timing.total_elapsed_ms - single_result.timing.total_elapsed_ms
               << " elapsed_delta_percent="
-              << pct(single_result.total_elapsed_ms, high_low_result.total_elapsed_ms)
+              << pct(single_result.timing.total_elapsed_ms, high_low_result.timing.total_elapsed_ms)
               << " fps_delta="
               << high_low_result.metrics.average_fps - single_result.metrics.average_fps
               << '\n';
     std::cout << "  infer_delta_ms="
-              << high_low_result.infer_ms - single_result.infer_ms
+              << high_low_result.timing.infer_ms - single_result.timing.infer_ms
               << " model_inference_delta_ms="
-              << high_low_result.model_inference_ms - single_result.model_inference_ms
+              << high_low_result.timing.model_inference_ms - single_result.timing.model_inference_ms
               << " preprocess_delta_ms="
-              << high_low_result.preprocess_ms - single_result.preprocess_ms
+              << high_low_result.timing.preprocess_ms - single_result.timing.preprocess_ms
               << " tracker_delta_ms="
-              << high_low_result.tracker_ms - single_result.tracker_ms
+              << high_low_result.timing.tracker_ms - single_result.timing.tracker_ms
               << " optical_flow_delta_ms="
-              << high_low_result.optical_flow_ms - single_result.optical_flow_ms
+              << high_low_result.timing.optical_flow_ms - single_result.timing.optical_flow_ms
               << '\n';
     std::cout << "  processed_delta="
-              << high_low_result.processed_frame_count - single_result.processed_frame_count
+              << high_low_result.frame_counts.processed_frame_count - single_result.frame_counts.processed_frame_count
               << " detected_frame_delta="
-              << high_low_result.detected_frame_count - single_result.detected_frame_count
+              << high_low_result.detection_counts.detected_frame_count - single_result.detection_counts.detected_frame_count
               << " track_observation_delta="
               << static_cast<int64_t>(high_low_metrics.track_observations)
                     - static_cast<int64_t>(single_metrics.track_observations)
@@ -700,9 +700,9 @@ int main() {
         );
 
     std::cout << "roi_integration sync_count="
-              << roi_sync_result.roi_high_res_detection_count
+              << roi_sync_result.detection_counts.roi_high_res_detection_count
               << " async_count="
-              << roi_async_result.roi_high_res_detection_count << '\n';
+              << roi_async_result.detection_counts.roi_high_res_detection_count << '\n';
 
     const VideoMetrics single_metrics = collectMetrics(single_result);
     const VideoMetrics high_low_metrics = collectMetrics(high_low_result);
@@ -717,21 +717,21 @@ int main() {
         writeVisualizedVideo(short_video, high_low_result, config, output_video);
     }
 
-    expect(single_result.frame_count == high_low_result.frame_count, "frame_count mismatch");
-    expect(single_result.source_frame_count == high_low_result.source_frame_count,
+    expect(single_result.frame_counts.frame_count == high_low_result.frame_counts.frame_count, "frame_count mismatch");
+    expect(single_result.frame_counts.source_frame_count == high_low_result.frame_counts.source_frame_count,
            "source_frame_count mismatch");
-    expect(single_result.width == high_low_result.width, "width mismatch");
-    expect(single_result.height == high_low_result.height, "height mismatch");
-    expect(single_result.processed_frame_count > 0, "single infer processed no frames");
-    expect(high_low_result.processed_frame_count > 0, "high-low infer processed no frames");
+    expect(single_result.video_info.width == high_low_result.video_info.width, "width mismatch");
+    expect(single_result.video_info.height == high_low_result.video_info.height, "height mismatch");
+    expect(single_result.frame_counts.processed_frame_count > 0, "single infer processed no frames");
+    expect(high_low_result.frame_counts.processed_frame_count > 0, "high-low infer processed no frames");
     expect(single_metrics.track_observations > 0, "single infer produced no tracks");
     expect(high_low_metrics.track_observations > 0, "high-low infer produced no tracks");
-    expect(roi_sync_result.roi_high_res_detection_count > 0,
+    expect(roi_sync_result.detection_counts.roi_high_res_detection_count > 0,
            "synchronous high-low run did not execute an ROI refresh");
-    expect(roi_async_result.roi_high_res_detection_count > 0,
+    expect(roi_async_result.detection_counts.roi_high_res_detection_count > 0,
            "asynchronous high-low replay did not execute an ROI refresh");
-    expect(roi_sync_result.frame_count == high_low_result.frame_count
-               && roi_async_result.frame_count == high_low_result.frame_count,
+    expect(roi_sync_result.frame_counts.frame_count == high_low_result.frame_counts.frame_count
+               && roi_async_result.frame_counts.frame_count == high_low_result.frame_counts.frame_count,
            "ROI integration runs changed the source frame count");
 
     std::error_code ignored;

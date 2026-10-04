@@ -130,7 +130,7 @@ public:
         }
         ++output.completed_count;
         auto& diagnostics = output.diagnostics;
-        ++diagnostics.completed_count;
+        ++diagnostics.outcomes.completed_count;
         const auto received_at = now + (std::chrono::steady_clock::now() - started);
         diagnostics.observe(StreamInferenceStage::Preprocess, pending.preprocess_ms);
         diagnostics.observe(StreamInferenceStage::QueueWait, scheduled.result.queue_wait_ms);
@@ -146,14 +146,14 @@ public:
                     received_at - scheduled.completed_at).count());
         }
         if (isFrameExpired(true, max_result_age_ms_, pending.captured_at, received_at)) {
-            ++diagnostics.expired_count;
+            ++diagnostics.outcomes.expired_count;
             ++output.skipped_count;
             return output;
         }
         auto anchor = std::find_if(history_.begin(), history_.end(),
             [&pending](const Frame& frame) { return frame.frame_index == pending.context.frame_index; });
         if (anchor == history_.end()) {
-            ++diagnostics.evicted_count;
+            ++diagnostics.outcomes.evicted_count;
             ++output.skipped_count;
             return output;
         }
@@ -178,11 +178,11 @@ public:
             std::chrono::duration<double, std::milli>(committed_at - pending.captured_at).count());
         if (isFrameExpired(true, max_result_age_ms_, pending.captured_at, committed_at)) {
             anchor->detections = std::move(previous_detections);
-            ++diagnostics.expired_count;
+            ++diagnostics.outcomes.expired_count;
             ++output.skipped_count;
             return output;
         }
-        ++diagnostics.applied_count;
+        ++diagnostics.outcomes.applied_count;
         output.tracker = std::move(replayed.tracker);
         output.tracks = std::move(replayed.tracks);
         output.applied.push_back({pending.context, true, false});

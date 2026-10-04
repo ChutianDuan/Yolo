@@ -409,6 +409,7 @@ static WeakTrackResult weakTrackWithOpticalFlowImpl(
             backward_points[i].y - previous_points[i].y
         );
         const size_t track_index = point_track_indices[i];
+        // 前向跟踪再反向返回，偏离原始点过大说明匹配不可靠。
         fb_error_by_track[track_index].push_back(forward_backward_error);
         if (forward_backward_error > kCandidateForwardBackwardError) {
             continue;
@@ -461,6 +462,7 @@ static WeakTrackResult weakTrackWithOpticalFlowImpl(
             continue;
         }
 
+        // 用目标内有效点位移的中位数估计平移，减弱少量离群点的影响。
         const float dx = medianValue(dx_by_track[i]);
         const float dy = medianValue(dy_by_track[i]);
         track_quality.median_dx = dx;
@@ -521,6 +523,7 @@ static WeakTrackResult weakTrackWithOpticalFlowImpl(
             continue;
         }
 
+        // 光流只能延续检测，逐帧衰减分数以体现长时间未获检测校正的不确定性。
         detection.score *= 0.98F;
         clipDetection(detection, image_width, image_height);
         if (!hasValidBox(detection)) {
@@ -597,6 +600,7 @@ FrameMotion frameMotionForCurrentFrame(
     const WeakTrackQuality& quality,
     const std::vector<TrackedDetection>& previous_tracks
 ) {
+    // 目标光流已足够可靠时跳过背景运动估计，减少整帧计算开销。
     if (previous_tracks.empty() || quality.tracked_track_ratio >= 0.80) {
         return emptyFrameMotion(frame_index);
     }

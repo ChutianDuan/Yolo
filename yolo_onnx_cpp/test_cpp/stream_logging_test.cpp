@@ -55,14 +55,14 @@ int main() {
     snapshot.status = "running";
     snapshot.width = 1280;
     snapshot.height = 720;
-    snapshot.decoded_frame_count = (uint64_t{1} << 40) + 7;
-    snapshot.processed_frame_count = 18;
-    snapshot.detection_frame_count = 4;
-    snapshot.high_res_detection_count = 1;
-    snapshot.roi_high_res_detection_count = 1;
-    snapshot.low_res_detection_count = 3;
-    snapshot.latest_result_age_ms = 42.5;
-    snapshot.inference_error_count = 2;
+    snapshot.counters.frames.decoded_frame_count = (uint64_t{1} << 40) + 7;
+    snapshot.counters.frames.processed_frame_count = 18;
+    snapshot.detections.detection_frame_count = 4;
+    snapshot.detections.high_res_detection_count = 1;
+    snapshot.detections.roi_high_res_detection_count = 1;
+    snapshot.detections.low_res_detection_count = 3;
+    snapshot.latest.latest_result_age_ms = 42.5;
+    snapshot.counters.inference.inference_error_count = 2;
     snapshot.consecutive_inference_error_count = 1;
     const yolo::InferenceContext context{"not-the-authoritative-id", 123, 456.5};
     const int64_t before = nowMs();
@@ -77,7 +77,7 @@ int main() {
     expect(json["frame_index"].asInt64() == 123 && json["timestamp_ms"].asDouble() == 456.5,
            "inference context was lost");
     expect(json["model_tier"].asString() == "high", "model tier mismatch");
-    expect(json["decoded_frame_count"].asUInt64() == snapshot.decoded_frame_count,
+    expect(json["decoded_frame_count"].asUInt64() == snapshot.counters.frames.decoded_frame_count,
            "64-bit log counter was truncated");
     expect(json["high_res_detection_count"].asUInt64() == 1
                && json["roi_high_res_detection_count"].asUInt64() == 1
@@ -92,13 +92,13 @@ int main() {
     }
     expect(!json.isMember("source") && !json.isMember("last_error"), "log field allowlist was bypassed");
 
-    snapshot.processed_frame_count = 0;
+    snapshot.counters.frames.processed_frame_count = 0;
     const auto initial = parseRecord(yolo::formatStreamLog(StreamLogEvent::Created, snapshot));
     expect(!initial.isMember("latest_result_age_ms") && !initial.isMember("frame_index")
                && !initial.isMember("timestamp_ms") && !initial.isMember("model_tier"),
            "initial log invented frame context or result freshness");
-    snapshot.processed_frame_count = 1;
-    snapshot.latest_result_age_ms = std::numeric_limits<double>::infinity();
+    snapshot.counters.frames.processed_frame_count = 1;
+    snapshot.latest.latest_result_age_ms = std::numeric_limits<double>::infinity();
     auto invalid_context = context;
     invalid_context.timestamp_ms = std::numeric_limits<double>::quiet_NaN();
     const auto invalid = parseRecord(yolo::formatStreamLog(
