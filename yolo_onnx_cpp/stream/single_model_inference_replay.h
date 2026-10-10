@@ -206,7 +206,7 @@ private:
 
     static void applyFrame(const Frame& frame, State& state) {
         if (frame.detections) {
-            state.tracks = state.tracker.update(*frame.detections);
+            state.tracks = state.tracker.update(*frame.detections, frame.frame_index);
         } else {
             WeakTrackResult weak;
             if (!state.gray.empty() && !state.tracks.empty()) {
@@ -214,7 +214,7 @@ private:
                     state.gray, frame.gray, state.tracks, frame.gray.cols, frame.gray.rows
                 );
             }
-            state.tracks = state.tracker.updateTracked(weak.tracks);
+            state.tracks = state.tracker.updateTracked(weak.tracks, frame.frame_index);
         }
         state.gray = frame.gray;
     }

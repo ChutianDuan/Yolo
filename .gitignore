@@ -108,6 +108,17 @@ model/data/**/*.csv
 *.tgz
 *.7z
 
+# Keep raw profiling/experiment samples local; commit reports and summaries.
+/docs/profiling/high_low_20261008/*.json
+/docs/profiling/high_low_20261008/*.folded
+/docs/profiling/high_low_20261008/*.log
+/docs/test-results/high_fp32_int8_lk_20261008/**/*.log
+/docs/test-results/high_fp32_int8_lk_20261008/measured/*
+!/docs/test-results/high_fp32_int8_lk_20261008/measured/summary.json
+/docs/test-results/high_stage_cpu_20261010/**/*.log
+/docs/test-results/high_stage_cpu_20261010/results/measured/*
+/docs/test-results/high_stage_cpu_20261010/smoke_*.json
+
 # Local editor and OS files
 .DS_Store
 .vscode/

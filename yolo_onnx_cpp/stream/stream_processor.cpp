@@ -75,21 +75,18 @@ const std::vector<TrackedDetection>& StreamProcessor::applyDetections(
         if (!high_res) {
             throw std::invalid_argument("single-model processor cannot apply low-model detections");
         }
-        tracks_ = byte_tracker_.update(detections);
+        tracks_ = byte_tracker_.update(detections, frame_index);
     }
     return tracks_;
 }
 
 const std::vector<TrackedDetection>& StreamProcessor::applyFlow(
-    const PreparedStreamFrame& frame, bool advance_empty_single_model
+    const PreparedStreamFrame& frame, bool /*advance_empty_single_model*/
 ) {
     if (high_low_) {
         tracks_ = authority_tracker_.updateFlow(frame.projected_tracks, frame.frame_index);
-    } else if (advance_empty_single_model || !frame.weak.tracks.empty()) {
-        tracks_ = byte_tracker_.updateTracked(frame.weak.tracks);
     } else {
-        // Preserve the existing offline single-model rule: no ByteTracker tick on empty flow.
-        tracks_.clear();
+        tracks_ = byte_tracker_.updateTracked(frame.weak.tracks, frame.frame_index);
     }
     return tracks_;
 }

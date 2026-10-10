@@ -53,6 +53,7 @@ public:
 
     const std::vector<TrackedDetection>& applyFlow(
         const PreparedStreamFrame& frame,
+        // Retained for callers; empty flow now advances the single-model clock too.
         bool advance_empty_single_model = true
     );
 

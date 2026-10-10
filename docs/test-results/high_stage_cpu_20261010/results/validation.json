@@ -1,0 +1,10 @@
+{
+  "formal_runs": 18,
+  "prediction_parity": "all 18 outputs equal baseline",
+  "source_hashes": "pass",
+  "sample_counts": "pass",
+  "finite_timings": "pass",
+  "per_video_wall_budget": "pass",
+  "stage_percent_closure": "pass",
+  "cpu_formulas": "pass"
+}

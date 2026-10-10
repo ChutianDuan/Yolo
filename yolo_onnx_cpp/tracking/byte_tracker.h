@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "model/inference_types.h"
@@ -14,9 +16,16 @@ public:
     ByteTracker();
 
     std::vector<TrackedDetection> update(const std::vector<Detection>& detections);
+    // Observations on the same accepted source frame share one prediction/tick.
+    std::vector<TrackedDetection> update(
+        const std::vector<Detection>& detections, int64_t frame_index
+    );
     // 光流已提供目标 ID 时按 ID 更新既有轨迹，不创建新目标。
     std::vector<TrackedDetection> updateTracked(
         const std::vector<TrackedDetection>& tracked_detections
+    );
+    std::vector<TrackedDetection> updateTracked(
+        const std::vector<TrackedDetection>& tracked_detections, int64_t frame_index
     );
 
 private:
@@ -55,6 +64,7 @@ private:
     static std::array<float, 4> detectionToMeasurement(const Detection& detection);
 
     Track createTrack(const Detection& detection);
+    void beginFrame(int64_t frame_index);
     void predictTrack(Track& track) const;
     void updateTrack(Track& track, const Detection& detection);
     void markLost(Track& track);
@@ -71,6 +81,7 @@ private:
     void pruneTracks();
 
     int frame_id_ = 0;
+    std::optional<int64_t> last_frame_index_;
     int next_track_id_ = 1;
     int track_buffer_ = 30;
     std::vector<Track> tracks_;

@@ -516,7 +516,7 @@ void AsyncInferWorker::run() {
             scheduler_,
             stream_id_
         );
-        result.result.timing.queue_wait_ms += queue_wait_ms;
+        result.result.queue_wait_ms += queue_wait_ms;
         result.result.timing_samples.queue_wait_ms.push_back(queue_wait_ms);
 
         {

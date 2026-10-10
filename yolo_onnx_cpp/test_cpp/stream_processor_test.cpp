@@ -383,14 +383,70 @@ void testSingleModelEmptyFlowRule(bool advance_empty) {
     yolo::PreparedStreamFrame empty;
     for (int index = 1; index <= 35; ++index) {
         empty.frame_index = index;
-        const auto expected = advance_empty
-            ? reference.updateTracked({}) : std::vector<yolo::TrackedDetection>{};
+        const auto expected = reference.updateTracked({});
         expectTracks(processor.applyFlow(empty, advance_empty), expected);
     }
     for (int index = 36; index < 39; ++index) {
         expectTracks(processor.applyDetections({detection()}, index, true),
                      reference.update({detection()}));
     }
+}
+
+void testSingleModelSameFrameCorrection() {
+    yolo::StreamProcessor processor(false);
+    const auto initial = processor.applyDetections({detection()}, 0, true);
+    expect(initial.size() == 1, "initial single-model track missing");
+    const int id = initial.front().track_id;
+    yolo::PreparedStreamFrame frame;
+    for (int index = 1; index <= 8; ++index) {
+        frame.frame_index = index;
+        frame.weak.tracks = {{id, detection(index * 3)}};
+        const auto flowed = processor.applyFlow(frame);
+        expect(flowed.size() == 1 && flowed.front().track_id == id,
+               "moving flow track lost its identity");
+        // Zero-innovation detection must not move a moving track into another time step.
+        const auto corrected = processor.applyDetections({flowed.front().detection}, index, true);
+        expectTracks(corrected, flowed);
+    }
+    auto snapshot = processor.singleModelState();
+    yolo::StreamProcessor restored(false);
+    restored.restoreSingleModel(std::move(snapshot.tracker), std::move(snapshot.tracks));
+    const auto same_frame_detection = processor.tracks().front().detection;
+    expectTracks(restored.applyDetections({same_frame_detection}, 8, true),
+                 processor.applyDetections({same_frame_detection}, 8, true));
+    frame.frame_index = 9;
+    frame.weak.tracks = {{id, detection(27)}};
+    expectTracks(restored.applyFlow(frame), processor.applyFlow(frame));
+    bool rejected = false;
+    try {
+        restored.applyDetections({detection()}, 8, true);
+    } catch (const std::invalid_argument&) {
+        rejected = true;
+    }
+    expect(rejected, "older observation silently moved the tracker clock backwards");
+}
+
+void testSingleModelSameFrameLostAge() {
+    yolo::StreamProcessor processor(false);
+    const auto initial = processor.applyDetections({detection()}, 0, true);
+    const int id = initial.front().track_id;
+    yolo::PreparedStreamFrame frame;
+    for (int index = 1; index <= 20; ++index) {
+        frame.frame_index = index;
+        processor.applyFlow(frame, false);
+        processor.applyDetections({}, index, true);
+    }
+    const auto recovered = processor.applyDetections({detection()}, 20, true);
+    expect(recovered.size() == 1 && recovered.front().track_id == id,
+           "same-frame corrections prematurely exhausted the lost-track buffer");
+    // Empty offline flow still advances aging, even without any model calls.
+    for (int index = 21; index <= 51; ++index) {
+        frame.frame_index = index;
+        processor.applyFlow(frame, false);
+    }
+    const auto expired = processor.applyDetections({detection()}, 51, true);
+    expect(expired.size() == 1 && expired.front().track_id != id,
+           "empty offline flow froze lost-track aging");
 }
 
 void testReplayAndStreamIsolation() {
@@ -869,6 +925,8 @@ int main() {
     testDiscardDoesNotAdvanceState();
     testSingleModelEmptyFlowRule(false);
     testSingleModelEmptyFlowRule(true);
+    testSingleModelSameFrameCorrection();
+    testSingleModelSameFrameLostAge();
     testReplayAndStreamIsolation();
     testEmptyTrackRefreshPredicates();
     testHighResRoiSelectionAndTranslation();

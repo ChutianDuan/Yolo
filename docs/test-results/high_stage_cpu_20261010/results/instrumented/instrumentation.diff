@@ -1,0 +1,95 @@
+--- /home/ubuntu/YOLO/yolo_onnx_cpp/video/video_inference.cpp
++++ docs/test-results/high_stage_cpu_20261010/instrumented/profiled_video.cpp
+@@ -1,4 +1,4 @@
+-#include "video_inference.h"
++#include "profiled_video.h"
+ 
+ #include <algorithm>
+ #include <chrono>
+@@ -48,13 +48,17 @@
+ using video_inference_detail::updateTrackVelocities;
+ using video_inference_detail::videoFrameStride;
+ 
+-VideoInferResult inferVideoFile(
++ProfiledVideoResult profiledInferVideoFile(
+     const std::shared_ptr<YoloEngine>& engine,
+     const AppConfig& config,
+     const std::filesystem::path& video_path,
+     std::shared_ptr<InferenceScheduler> scheduler,
+     std::string stream_id
+ ) {
++    StageProfile profile;
++    if (config.video_model_async || config.video_stride_mode != "fixed" || scheduler) {
++        throw std::runtime_error("Stage experiment requires sync fixed inference without scheduler");
++    }
+     const auto total_start = std::chrono::steady_clock::now();
+     const ProcessUsageSnapshot usage_start = captureProcessUsage();
+     cv::VideoCapture capture;
+@@ -268,6 +272,7 @@
+     };
+ 
+     auto runSyncDetection = [
++        &profile,
+         &engine,
+         &config,
+         &scheduler,
+@@ -309,9 +314,11 @@
+ 
+         auto tracker_start = std::chrono::steady_clock::now();
+         const auto tracks_before_detection = previous_frame_tracks;
++        const auto byte_start = std::chrono::steady_clock::now();
+         const auto& detected_tracks = processor.applyDetections(
+             infer_result.detections, source_frame_index, true
+         );
++        profile.byte_track_ms.push_back(elapsedMs(byte_start));
+         updateTrackVelocities(
+             tracks_before_detection,
+             detected_tracks,
+@@ -332,7 +339,12 @@
+         addTrackerMetrics(result, elapsedMs(tracker_start));
+     };
+ 
+-    while (capture.read(frame)) {
++    while (true) {
++        const auto decode_start = std::chrono::steady_clock::now();
++        const bool decoded = capture.read(frame);
++        const double decode_ms = elapsedMs(decode_start);
++        if (!decoded) break;
++        profile.video_decode_ms.push_back(decode_ms);
+         const auto frame_start = std::chrono::steady_clock::now();
+         VideoFrameTracks frame_result;
+         frame_result.frame_index = frame_index;
+@@ -354,7 +366,9 @@
+         image_width = frame.cols;
+         image_height = frame.rows;
+         const auto tracks_before_flow = previous_frame_tracks;
++        const auto flow_start = std::chrono::steady_clock::now();
+         auto prepared = processor.prepareFrame(frame, frame_index, true);
++        profile.lk_flow_ms.push_back(elapsedMs(flow_start));
+         const auto& weak_result = prepared.weak;
+         frame_motions.push_back(prepared.motion);
+         result.timing.optical_flow_ms += prepared.optical_flow_ms;
+@@ -372,7 +386,10 @@
+ 
+         if (!async_result_applied) {
+             auto tracker_start = std::chrono::steady_clock::now();
+-            frame_result.tracks = processor.applyFlow(prepared, false);
++            const auto byte_start = std::chrono::steady_clock::now();
++            const auto& flow_tracks = processor.applyFlow(prepared, false);
++            profile.byte_track_ms.push_back(elapsedMs(byte_start));
++            frame_result.tracks = flow_tracks;
+             if (!frame_result.tracks.empty()) {
+                 frame_result.tracks_source = "weak_tracked";
+             }
+@@ -486,7 +503,10 @@
+         usage_end
+     );
+ 
+-    return result;
++    profile.cpu_seconds = usage_end.cpu_seconds - usage_start.cpu_seconds;
++    profile.cpu_wall_ms = std::chrono::duration<double, std::milli>(
++        usage_end.wall_time - usage_start.wall_time).count();
++    return {std::move(result), std::move(profile)};
+ }
+ 
+ }  // namespace yolo

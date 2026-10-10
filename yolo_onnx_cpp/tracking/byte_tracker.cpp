@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <stdexcept>
 #include <vector>
 
 namespace yolo {
@@ -476,8 +477,8 @@ void ByteTracker::updateTrack(Track& track, const Detection& detection) {
     track.state = TrackState::Tracked;
     track.activated = true;
     track.matched = true;
+    track.tracklet_len = was_lost ? 0 : track.tracklet_len + (track.frame_id != frame_id_ ? 1 : 0);
     track.frame_id = frame_id_;
-    track.tracklet_len = was_lost ? 0 : track.tracklet_len + 1;
 }
 
 void ByteTracker::markLost(Track& track) {
@@ -600,16 +601,34 @@ void ByteTracker::pruneTracks() {
     );
 }
 
-std::vector<TrackedDetection> ByteTracker::updateTracked(
-    const std::vector<TrackedDetection>& tracked_detections
-) {
-    ++frame_id_;
+void ByteTracker::beginFrame(int64_t frame_index) {
+    if (frame_index < 0 || (last_frame_index_ && frame_index < *last_frame_index_)) {
+        throw std::invalid_argument("ByteTracker frame indices must be nonnegative and monotonic");
+    }
+    const bool advance = !last_frame_index_ || frame_index != *last_frame_index_;
+    if (advance) {
+        // Preserve aging by accepted frames; gaps in source indices are not extra ticks.
+        ++frame_id_;
+        last_frame_index_ = frame_index;
+    }
     for (auto& track : tracks_) {
-        if (track.state != TrackState::Removed) {
+        if (advance && track.state != TrackState::Removed) {
             predictTrack(track);
         }
         track.matched = false;
     }
+}
+
+std::vector<TrackedDetection> ByteTracker::updateTracked(
+    const std::vector<TrackedDetection>& tracked_detections
+) {
+    return updateTracked(tracked_detections, last_frame_index_.value_or(-1) + 1);
+}
+
+std::vector<TrackedDetection> ByteTracker::updateTracked(
+    const std::vector<TrackedDetection>& tracked_detections, int64_t frame_index
+) {
+    beginFrame(frame_index);
 
     for (const auto& tracked_detection : tracked_detections) {
         auto matched_track = std::find_if(
@@ -646,13 +665,13 @@ std::vector<TrackedDetection> ByteTracker::updateTracked(
 std::vector<TrackedDetection> ByteTracker::update(
     const std::vector<Detection>& detections
 ) {
-    ++frame_id_;
-    for (auto& track : tracks_) {
-        if (track.state != TrackState::Removed) {
-            predictTrack(track);
-        }
-        track.matched = false;
-    }
+    return update(detections, last_frame_index_.value_or(-1) + 1);
+}
+
+std::vector<TrackedDetection> ByteTracker::update(
+    const std::vector<Detection>& detections, int64_t frame_index
+) {
+    beginFrame(frame_index);
 
     std::vector<Detection> high_detections;
     std::vector<Detection> low_detections;

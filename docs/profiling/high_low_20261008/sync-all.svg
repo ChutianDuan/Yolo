@@ -1,0 +1,1371 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1600" height="622" onload="init(evt)" viewBox="0 0 1600 622" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+		if (currentSearchTerm === null) return;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1600.0" height="622.0" fill="url(#background)"  />
+<text id="title" x="800.00" y="24" >High/Low synchronous - ALL threads, including idle workers</text>
+<text id="subtitle" x="800.00" y="48" >GDB stack snapshots including waits; width is NOT CPU time</text>
+<text id="details" x="10.00" y="605" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1490.00" y="24" >Search</text>
+<text id="ignorecase" x="1574.00" y="24" >ic</text>
+<text id="matched" x="1490.00" y="605" > </text>
+<g id="frames">
+<g >
+<title>futex_wait_cancelable (327 snapshots, 5.31%)</title><rect x="1457.9" y="429" width="83.9" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="1460.91" y="439.5" >futex_wai..</text>
+</g>
+<g >
+<title>cv::hal::morph (2 snapshots, 0.03%)</title><rect x="1588.5" y="397" width="0.5" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="1591.46" y="407.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (), onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::RunInParallelInternal(onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::PerThread&amp;, onnxruntime::concurrency::ThreadPoolParallelSection&amp;, unsigned int, bool, std::function&lt;void (unsigned int)&gt;)::{lambda()#1}&gt;::_M_invoke(std::_Any_data const&amp;) (2 snapshots, 0.03%)</title><rect x="1573.1" y="461" width="0.5" height="15.0" fill="rgb(213,37,8)" rx="2" ry="2" />
+<text  x="1576.07" y="471.5" ></text>
+</g>
+<g >
+<title>cv::boxFilter (1 snapshots, 0.02%)</title><rect x="1588.2" y="397" width="0.3" height="15.0" fill="rgb(220,72,17)" rx="2" ry="2" />
+<text  x="1591.20" y="407.5" ></text>
+</g>
+<g >
+<title>std::this_thread::yield (262 snapshots, 4.25%)</title><rect x="1376.6" y="477" width="67.2" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="1379.60" y="487.5" >std::th..</text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__apply (3 snapshots, 0.05%)</title><rect x="1587.2" y="317" width="0.7" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1590.18" y="327.5" ></text>
+</g>
+<g >
+<title>main (62 snapshots, 1.01%)</title><rect x="1574.1" y="541" width="15.9" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="1577.10" y="551.5" ></text>
+</g>
+<g >
+<title>cv::buildOpticalFlowPyramid (2 snapshots, 0.03%)</title><rect x="1584.1" y="461" width="0.5" height="15.0" fill="rgb(250,210,50)" rx="2" ry="2" />
+<text  x="1587.10" y="471.5" ></text>
+</g>
+<g >
+<title>std::__new_allocator&lt;unsigned char&gt;::deallocate (1 snapshots, 0.02%)</title><rect x="1588.7" y="189" width="0.3" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1591.72" y="199.5" ></text>
+</g>
+<g >
+<title>futex_wake (2 snapshots, 0.03%)</title><rect x="1584.9" y="365" width="0.5" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="1587.87" y="375.5" ></text>
+</g>
+<g >
+<title>__GI___libc_free (1 snapshots, 0.02%)</title><rect x="1587.9" y="109" width="0.3" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="1590.95" y="119.5" ></text>
+</g>
+<g >
+<title>MlasComputeLogisticF32KernelFma3 (1 snapshots, 0.02%)</title><rect x="1583.3" y="125" width="0.3" height="15.0" fill="rgb(251,211,50)" rx="2" ry="2" />
+<text  x="1586.33" y="135.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_broadcast (2 snapshots, 0.03%)</title><rect x="1584.9" y="381" width="0.5" height="15.0" fill="rgb(221,78,18)" rx="2" ry="2" />
+<text  x="1587.87" y="391.5" ></text>
+</g>
+<g >
+<title>cv::parallel_for_ (1 snapshots, 0.02%)</title><rect x="1583.8" y="413" width="0.3" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="1586.84" y="423.5" ></text>
+</g>
+<g >
+<title>cv::Ptr&lt;cv::FilterEngine&gt;::~Ptr (1 snapshots, 0.02%)</title><rect x="1588.7" y="365" width="0.3" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="1591.72" y="375.5" ></text>
+</g>
+<g >
+<title>operator() (1 snapshots, 0.02%)</title><rect x="1376.3" y="461" width="0.3" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1379.34" y="471.5" ></text>
+</g>
+<g >
+<title>cv::WorkerThread::thread_body (5,544 snapshots, 90.00%)</title><rect x="21.8" y="493" width="1422.0" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="24.80" y="503.5" >cv::WorkerThread::thread_body</text>
+</g>
+<g >
+<title>decode_simple_internal (4 snapshots, 0.06%)</title><rect x="1574.1" y="397" width="1.0" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="1577.10" y="407.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (2 snapshots, 0.03%)</title><rect x="1573.6" y="429" width="0.5" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1576.58" y="439.5" ></text>
+</g>
+<g >
+<title>std::__shared_ptr&lt;cv::FilterEngine, (__gnu_cxx::_Lock_policy)2&gt;::~__shared_ptr (1 snapshots, 0.02%)</title><rect x="1588.7" y="333" width="0.3" height="15.0" fill="rgb(237,151,36)" rx="2" ry="2" />
+<text  x="1591.72" y="343.5" ></text>
+</g>
+<g >
+<title>onnxruntime::ExecutionFrame::ExecutionFrame(gsl::span&lt;int const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, gsl::span&lt;int const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, std::unordered_map&lt;unsigned long, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt;, std::hash&lt;unsigned long&gt;, std::equal_to&lt;unsigned long&gt;, std::allocator&lt;std::pair&lt;unsigned long const, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt; &gt; &gt; &gt; const&amp;, onnxruntime::DeviceStreamCollection const*, onnxruntime::SessionState const&amp;) (1 snapshots, 0.02%)</title><rect x="1583.6" y="285" width="0.2" height="15.0" fill="rgb(249,206,49)" rx="2" ry="2" />
+<text  x="1586.59" y="295.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (1 snapshots, 0.02%)</title><rect x="1575.1" y="173" width="0.3" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1578.12" y="183.5" ></text>
+</g>
+<g >
+<title>std::__new_allocator&lt;unsigned char*&gt;::deallocate (1 snapshots, 0.02%)</title><rect x="1587.9" y="125" width="0.3" height="15.0" fill="rgb(237,151,36)" rx="2" ry="2" />
+<text  x="1590.95" y="135.5" ></text>
+</g>
+<g >
+<title>start_thread (6,052 snapshots, 98.25%)</title><rect x="21.8" y="525" width="1552.3" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="24.80" y="535.5" >start_thread</text>
+</g>
+<g >
+<title>cv::VideoCapture::read (4 snapshots, 0.06%)</title><rect x="1574.1" y="509" width="1.0" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="1577.10" y="519.5" ></text>
+</g>
+<g >
+<title>cv::hal::sepFilter2D (4 snapshots, 0.06%)</title><rect x="1587.2" y="365" width="1.0" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="1590.18" y="375.5" ></text>
+</g>
+<g >
+<title>sched_yield (1 snapshots, 0.02%)</title><rect x="1589.7" y="333" width="0.3" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="1592.74" y="343.5" ></text>
+</g>
+<g >
+<title>onnxruntime::Conv&lt;float&gt;::Compute(onnxruntime::OpKernelContext*) const (21 snapshots, 0.34%)</title><rect x="1575.4" y="253" width="5.4" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1578.38" y="263.5" ></text>
+</g>
+<g >
+<title>MlasConvOperation(MLAS_CONV_PARAMETERS const*, float const*, float const*, float const*, float*, float*, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1573.6" y="397" width="0.5" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1576.58" y="407.5" ></text>
+</g>
+<g >
+<title>MlasConvIm2Col(MLAS_CONV_PARAMETERS const*, float const*, float*, unsigned long, unsigned long, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1573.1" y="381" width="0.5" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="1576.07" y="391.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::SpinPause() (122 snapshots, 1.98%)</title><rect x="1541.8" y="461" width="31.3" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="1544.78" y="471.5" >on..</text>
+</g>
+<g >
+<title>__gthread_yield (3 snapshots, 0.05%)</title><rect x="1585.6" y="365" width="0.8" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1588.64" y="375.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;) (4 snapshots, 0.06%)</title><rect x="1579.7" y="189" width="1.1" height="15.0" fill="rgb(229,111,26)" rx="2" ry="2" />
+<text  x="1582.74" y="199.5" ></text>
+</g>
+<g >
+<title>build_table (1 snapshots, 0.02%)</title><rect x="1574.1" y="301" width="0.3" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="1577.10" y="311.5" ></text>
+</g>
+<g >
+<title>onnxruntime::ExecuteKernel(onnxruntime::StreamExecutionContext&amp;, unsigned long, unsigned long, bool const&amp;, onnxruntime::SessionScope&amp;) (33 snapshots, 0.54%)</title><rect x="1575.1" y="269" width="8.5" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1578.12" y="279.5" ></text>
+</g>
+<g >
+<title>onnxruntime::LaunchKernelStep::Execute(onnxruntime::StreamExecutionContext&amp;, unsigned long, onnxruntime::SessionScope&amp;, bool const&amp;, bool&amp;) (33 snapshots, 0.54%)</title><rect x="1575.1" y="285" width="8.5" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1578.12" y="295.5" ></text>
+</g>
+<g >
+<title>MlasGemmFloatKernelAvx512F (46 snapshots, 0.75%)</title><rect x="10.0" y="509" width="11.8" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="13.00" y="519.5" ></text>
+</g>
+<g >
+<title>calcScharrDeriv (1 snapshots, 0.02%)</title><rect x="1584.1" y="445" width="0.3" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="1587.10" y="455.5" ></text>
+</g>
+<g >
+<title>onnxruntime::InferenceSession::Run(OrtRunOptions const&amp;, gsl::span&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, gsl::span&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;*, std::vector&lt;OrtDevice, std::allocator&lt;OrtDevice&gt; &gt; const*) (34 snapshots, 0.55%)</title><rect x="1575.1" y="381" width="8.7" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="1578.12" y="391.5" ></text>
+</g>
+<g >
+<title>std::_Sp_counted_base&lt;(__gnu_cxx::_Lock_policy)2&gt;::_M_release (1 snapshots, 0.02%)</title><rect x="1587.9" y="253" width="0.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1590.95" y="263.5" ></text>
+</g>
+<g >
+<title>std::_Sp_counted_ptr&lt;cv::FilterEngine*, (__gnu_cxx::_Lock_policy)2&gt;::_M_dispose (1 snapshots, 0.02%)</title><rect x="1587.9" y="237" width="0.3" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1590.95" y="247.5" ></text>
+</g>
+<g >
+<title>cv::parallel_for_ (7 snapshots, 0.11%)</title><rect x="1584.6" y="429" width="1.8" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="1587.61" y="439.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::WorkerLoop(int, Eigen::ThreadPoolInterface*) (508 snapshots, 8.25%)</title><rect x="1443.8" y="493" width="130.3" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="1446.80" y="503.5" >onnxruntime::con..</text>
+</g>
+<g >
+<title>Ort::detail::SessionImpl&lt;OrtSession&gt;::Run (34 snapshots, 0.55%)</title><rect x="1575.1" y="445" width="8.7" height="15.0" fill="rgb(231,120,28)" rx="2" ry="2" />
+<text  x="1578.12" y="455.5" ></text>
+</g>
+<g >
+<title>cornerEigenValsVecs (7 snapshots, 0.11%)</title><rect x="1586.7" y="413" width="1.8" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="1589.67" y="423.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long), MlasGemmBatch(CBLAS_TRANSPOSE, CBLAS_TRANSPOSE, unsigned long, unsigned long, unsigned long, MLAS_SGEMM_DATA_PARAMS const*, unsigned long, onnxruntime::concurrency::ThreadPool*)::{lambda(long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;) (2 snapshots, 0.03%)</title><rect x="1580.3" y="109" width="0.5" height="15.0" fill="rgb(247,196,47)" rx="2" ry="2" />
+<text  x="1583.25" y="119.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::WorkerLoop(int) (508 snapshots, 8.25%)</title><rect x="1443.8" y="477" width="130.3" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1446.80" y="487.5" >onnxruntime::con..</text>
+</g>
+<g >
+<title>MlasConvOperationThreaded(void*, long) (11 snapshots, 0.18%)</title><rect x="1576.9" y="109" width="2.8" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="1579.92" y="119.5" ></text>
+</g>
+<g >
+<title>futex_wait_cancelable (5,281 snapshots, 85.73%)</title><rect x="21.8" y="445" width="1354.5" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="24.80" y="455.5" >futex_wait_cancelable</text>
+</g>
+<g >
+<title>cv::VideoCapture::grab (4 snapshots, 0.06%)</title><rect x="1574.1" y="493" width="1.0" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="1577.10" y="503.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (2 snapshots, 0.03%)</title><rect x="1573.1" y="445" width="0.5" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1576.07" y="455.5" ></text>
+</g>
+<g >
+<title>cv::cvtColorBGR2Gray (1 snapshots, 0.02%)</title><rect x="1583.8" y="477" width="0.3" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="1586.84" y="487.5" ></text>
+</g>
+<g >
+<title>yolo::YoloEngine::infer (34 snapshots, 0.55%)</title><rect x="1575.1" y="493" width="8.7" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="1578.12" y="503.5" ></text>
+</g>
+<g >
+<title>ff_mjpeg_decode_sos (3 snapshots, 0.05%)</title><rect x="1574.4" y="365" width="0.7" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1577.35" y="375.5" ></text>
+</g>
+<g >
+<title>ff_vlc_init_from_lengths (1 snapshots, 0.02%)</title><rect x="1574.1" y="333" width="0.3" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1577.10" y="343.5" ></text>
+</g>
+<g >
+<title>cv::parallel_for_ (1 snapshots, 0.02%)</title><rect x="1589.7" y="413" width="0.3" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="1592.74" y="423.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;) (4 snapshots, 0.06%)</title><rect x="1579.7" y="205" width="1.1" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1582.74" y="215.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__apply (1 snapshots, 0.02%)</title><rect x="1588.2" y="365" width="0.3" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1591.20" y="375.5" ></text>
+</g>
+<g >
+<title>std::this_thread::yield (3 snapshots, 0.05%)</title><rect x="1585.6" y="381" width="0.8" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="1588.64" y="391.5" ></text>
+</g>
+<g >
+<title>MlasExecuteThreaded(void (*)(void*, long), void*, long, onnxruntime::concurrency::ThreadPool*) (15 snapshots, 0.24%)</title><rect x="1575.9" y="221" width="3.8" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1578.89" y="231.5" ></text>
+</g>
+<g >
+<title>CvCapture_FFMPEG::grabFrame (4 snapshots, 0.06%)</title><rect x="1574.1" y="477" width="1.0" height="15.0" fill="rgb(222,79,18)" rx="2" ry="2" />
+<text  x="1577.10" y="487.5" ></text>
+</g>
+<g >
+<title>cv::FilterEngine::apply (1 snapshots, 0.02%)</title><rect x="1588.2" y="381" width="0.3" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="1591.20" y="391.5" ></text>
+</g>
+<g >
+<title>CvtColorLoop&lt;cv::hal::cpu_baseline::(anonymous namespace)::RGB2Gray&lt;unsigned char&gt; &gt; (1 snapshots, 0.02%)</title><rect x="1583.8" y="429" width="0.3" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="1586.84" y="439.5" ></text>
+</g>
+<g >
+<title>MlasSgemmThreaded(long, long, CBLAS_TRANSPOSE, CBLAS_TRANSPOSE, unsigned long, unsigned long, unsigned long, MLAS_SGEMM_DATA_PARAMS const*, long) (2 snapshots, 0.03%)</title><rect x="1580.3" y="93" width="0.5" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="1583.25" y="103.5" ></text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (1 snapshots, 0.02%)</title><rect x="1575.1" y="109" width="0.3" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1578.12" y="119.5" ></text>
+</g>
+<g >
+<title>yolo::YoloEngine::Impl::infer (34 snapshots, 0.55%)</title><rect x="1575.1" y="477" width="8.7" height="15.0" fill="rgb(248,201,48)" rx="2" ry="2" />
+<text  x="1578.12" y="487.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (12 snapshots, 0.19%)</title><rect x="1576.7" y="125" width="3.0" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1579.66" y="135.5" ></text>
+</g>
+<g >
+<title>std::_Vector_base&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;::_M_deallocate (1 snapshots, 0.02%)</title><rect x="1588.7" y="221" width="0.3" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1591.72" y="231.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long), onnxruntime::concurrency::ThreadPool::TryBatchParallelFor&lt;onnxruntime::contrib::QuickGelu&lt;float&gt;::Compute(onnxruntime::OpKernelContext*) const::{lambda(long)#1}&gt;(onnxruntime::concurrency::ThreadPool*, long, onnxruntime::contrib::QuickGelu&lt;float&gt;::Compute(onnxruntime::OpKernelContext*) const::{lambda(long)#1}&amp;&amp;, long)::{lambda(long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;) (7 snapshots, 0.11%)</title><rect x="1581.8" y="141" width="1.8" height="15.0" fill="rgb(243,175,41)" rx="2" ry="2" />
+<text  x="1584.79" y="151.5" ></text>
+</g>
+<g >
+<title>cv::FilterEngine::~FilterEngine (1 snapshots, 0.02%)</title><rect x="1588.7" y="269" width="0.3" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="1591.72" y="279.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (10 snapshots, 0.16%)</title><rect x="1581.0" y="205" width="2.6" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1584.02" y="215.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (4 snapshots, 0.06%)</title><rect x="1579.7" y="157" width="1.1" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="1582.74" y="167.5" ></text>
+</g>
+<g >
+<title>cv::FilterEngine::apply (3 snapshots, 0.05%)</title><rect x="1587.2" y="333" width="0.7" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="1590.18" y="343.5" ></text>
+</g>
+<g >
+<title>cv::goodFeaturesToTrack (14 snapshots, 0.23%)</title><rect x="1586.4" y="461" width="3.6" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="1589.41" y="471.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::RowFilter&lt;unsigned char, float, cv::cpu_baseline::RowNoVec&gt;::operator() (3 snapshots, 0.05%)</title><rect x="1587.2" y="285" width="0.7" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="1590.18" y="295.5" ></text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (1 snapshots, 0.02%)</title><rect x="1580.8" y="189" width="0.2" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1583.77" y="199.5" ></text>
+</g>
+<g >
+<title>MlasConv(MLAS_CONV_PARAMETERS const*, float const*, float const*, float const*, float*, float*, onnxruntime::concurrency::ThreadPool*) (21 snapshots, 0.34%)</title><rect x="1575.4" y="237" width="5.4" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="1578.38" y="247.5" ></text>
+</g>
+<g >
+<title>yolo::(anonymous namespace)::runModel (34 snapshots, 0.55%)</title><rect x="1575.1" y="509" width="8.7" height="15.0" fill="rgb(212,36,8)" rx="2" ry="2" />
+<text  x="1578.12" y="519.5" ></text>
+</g>
+<g >
+<title>decode_block (1 snapshots, 0.02%)</title><rect x="1574.9" y="333" width="0.2" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="1577.87" y="343.5" ></text>
+</g>
+<g >
+<title>cv::cvtColor (1 snapshots, 0.02%)</title><rect x="1583.8" y="493" width="0.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1586.84" y="503.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (2 snapshots, 0.03%)</title><rect x="1580.3" y="141" width="0.5" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1583.25" y="151.5" ></text>
+</g>
+<g >
+<title>void onnxruntime::StridedCopy&lt;unsigned int&gt;(onnxruntime::concurrency::ThreadPool*, unsigned int*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;, onnxruntime::TensorShape const&amp;, unsigned int const*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1575.1" y="205" width="0.3" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1578.12" y="215.5" ></text>
+</g>
+<g >
+<title>vlc_common_end (1 snapshots, 0.02%)</title><rect x="1574.1" y="317" width="0.3" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="1577.10" y="327.5" ></text>
+</g>
+<g >
+<title>all-thread snapshots (6,160 snapshots, 100.00%)</title><rect x="10.0" y="557" width="1580.0" height="15.0" fill="rgb(233,133,31)" rx="2" ry="2" />
+<text  x="13.00" y="567.5" >all-thread snapshots</text>
+</g>
+<g >
+<title>avcodec_send_packet (4 snapshots, 0.06%)</title><rect x="1574.1" y="461" width="1.0" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1577.10" y="471.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::SpinPause() (3 snapshots, 0.05%)</title><rect x="1581.0" y="173" width="0.8" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="1584.02" y="183.5" ></text>
+</g>
+<g >
+<title>MlasActivation(MLAS_ACTIVATION const*, float*, float const*, unsigned long, unsigned long, unsigned long) (1 snapshots, 0.02%)</title><rect x="1576.7" y="77" width="0.2" height="15.0" fill="rgb(237,149,35)" rx="2" ry="2" />
+<text  x="1579.66" y="87.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_wait_common (327 snapshots, 5.31%)</title><rect x="1457.9" y="445" width="83.9" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1460.91" y="455.5" >__pthread..</text>
+</g>
+<g >
+<title>std::this_thread::yield (1 snapshots, 0.02%)</title><rect x="1584.1" y="381" width="0.3" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="1587.10" y="391.5" ></text>
+</g>
+<g >
+<title>onnxruntime::contrib::QuickGelu&lt;float&gt;::Compute(onnxruntime::OpKernelContext*) const (10 snapshots, 0.16%)</title><rect x="1581.0" y="253" width="2.6" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1584.02" y="263.5" ></text>
+</g>
+<g >
+<title>MlasConvOperation(MLAS_CONV_PARAMETERS const*, float const*, float const*, float const*, float*, float*, unsigned long, unsigned long) (11 snapshots, 0.18%)</title><rect x="1576.9" y="93" width="2.8" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1579.92" y="103.5" ></text>
+</g>
+<g >
+<title>onnxruntime::InferenceSession::Run(OrtRunOptions const&amp;, gsl::span&lt;char const* const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const* const, 18446744073709551615ul&gt;, gsl::span&lt;char const* const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue*, 18446744073709551615ul&gt;) (34 snapshots, 0.55%)</title><rect x="1575.1" y="397" width="8.7" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1578.12" y="407.5" ></text>
+</g>
+<g >
+<title>ff_mjpeg_decode_dht (1 snapshots, 0.02%)</title><rect x="1574.1" y="365" width="0.3" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="1577.10" y="375.5" ></text>
+</g>
+<g >
+<title>cv::minMaxIdx (3 snapshots, 0.05%)</title><rect x="1589.0" y="413" width="0.7" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1591.97" y="423.5" ></text>
+</g>
+<g >
+<title>std::shared_ptr&lt;cv::FilterEngine&gt;::~shared_ptr (1 snapshots, 0.02%)</title><rect x="1587.9" y="317" width="0.3" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1590.95" y="327.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;) (10 snapshots, 0.16%)</title><rect x="1581.0" y="237" width="2.6" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1584.02" y="247.5" ></text>
+</g>
+<g >
+<title>ocvSepFilter (4 snapshots, 0.06%)</title><rect x="1587.2" y="349" width="1.0" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="1590.18" y="359.5" ></text>
+</g>
+<g >
+<title>onnxruntime::ExecuteThePlan(onnxruntime::SessionState const&amp;, gsl::span&lt;int const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, gsl::span&lt;int const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;&amp;, std::unordered_map&lt;unsigned long, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt;, std::hash&lt;unsigned long&gt;, std::equal_to&lt;unsigned long&gt;, std::allocator&lt;std::pair&lt;unsigned long const, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt; &gt; &gt; &gt; const&amp;, onnxruntime::logging::Logger const&amp;, onnxruntime::DeviceStreamCollection const*, bool const&amp;, bool, bool) (34 snapshots, 0.55%)</title><rect x="1575.1" y="317" width="8.7" height="15.0" fill="rgb(221,74,17)" rx="2" ry="2" />
+<text  x="1578.12" y="327.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1575.1" y="189" width="0.3" height="15.0" fill="rgb(229,111,26)" rx="2" ry="2" />
+<text  x="1578.12" y="199.5" ></text>
+</g>
+<g >
+<title>void onnxruntime::StridedCopy&lt;unsigned int&gt;(onnxruntime::concurrency::ThreadPool*, unsigned int*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;, onnxruntime::TensorShape const&amp;, unsigned int const*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1580.8" y="221" width="0.2" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="1583.77" y="231.5" ></text>
+</g>
+<g >
+<title>onnxruntime::BFCArena::Extend(unsigned long) (1 snapshots, 0.02%)</title><rect x="1583.6" y="253" width="0.2" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="1586.59" y="263.5" ></text>
+</g>
+<g >
+<title>MlasConvIm2Col(MLAS_CONV_PARAMETERS const*, float const*, float*, unsigned long, unsigned long, unsigned long, unsigned long) (6 snapshots, 0.10%)</title><rect x="1577.2" y="77" width="1.5" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="1580.18" y="87.5" ></text>
+</g>
+<g >
+<title>std::_Vector_base&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;::~_Vector_base (1 snapshots, 0.02%)</title><rect x="1588.7" y="237" width="0.3" height="15.0" fill="rgb(241,168,40)" rx="2" ry="2" />
+<text  x="1591.72" y="247.5" ></text>
+</g>
+<g >
+<title>yolo::StreamProcessor::prepareFrame (24 snapshots, 0.39%)</title><rect x="1583.8" y="509" width="6.2" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1586.84" y="519.5" ></text>
+</g>
+<g >
+<title>cv::calcOpticalFlowPyrLK (7 snapshots, 0.11%)</title><rect x="1584.6" y="461" width="1.8" height="15.0" fill="rgb(237,151,36)" rx="2" ry="2" />
+<text  x="1587.61" y="471.5" ></text>
+</g>
+<g >
+<title>MlasActivation(MLAS_ACTIVATION const*, float*, float const*, unsigned long, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1575.4" y="221" width="0.5" height="15.0" fill="rgb(237,149,35)" rx="2" ry="2" />
+<text  x="1578.38" y="231.5" ></text>
+</g>
+<g >
+<title>MlasGemmBatch(CBLAS_TRANSPOSE, CBLAS_TRANSPOSE, unsigned long, unsigned long, unsigned long, MLAS_SGEMM_DATA_PARAMS const*, unsigned long, onnxruntime::concurrency::ThreadPool*) (4 snapshots, 0.06%)</title><rect x="1579.7" y="221" width="1.1" height="15.0" fill="rgb(231,124,29)" rx="2" ry="2" />
+<text  x="1582.74" y="231.5" ></text>
+</g>
+<g >
+<title>cv::sepFilter2D (4 snapshots, 0.06%)</title><rect x="1587.2" y="381" width="1.0" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1590.18" y="391.5" ></text>
+</g>
+<g >
+<title>cv::ParallelJob::execute (1 snapshots, 0.02%)</title><rect x="1376.3" y="477" width="0.3" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1379.34" y="487.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (2 snapshots, 0.03%)</title><rect x="1580.3" y="125" width="0.5" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1583.25" y="135.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;) (15 snapshots, 0.24%)</title><rect x="1575.9" y="205" width="3.8" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="1578.89" y="215.5" ></text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (1 snapshots, 0.02%)</title><rect x="1584.4" y="413" width="0.2" height="15.0" fill="rgb(205,0,0)" rx="2" ry="2" />
+<text  x="1587.36" y="423.5" ></text>
+</g>
+<g >
+<title>__gthread_yield (262 snapshots, 4.25%)</title><rect x="1376.6" y="461" width="67.2" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1379.60" y="471.5" >__gthre..</text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (10 snapshots, 0.16%)</title><rect x="1581.0" y="189" width="2.6" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="1584.02" y="199.5" ></text>
+</g>
+<g >
+<title>decode_simple_receive_frame (4 snapshots, 0.06%)</title><rect x="1574.1" y="413" width="1.0" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="1577.10" y="423.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;) (15 snapshots, 0.24%)</title><rect x="1575.9" y="189" width="3.8" height="15.0" fill="rgb(229,111,26)" rx="2" ry="2" />
+<text  x="1578.89" y="199.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (7 snapshots, 0.11%)</title><rect x="1581.8" y="157" width="1.8" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1584.79" y="167.5" ></text>
+</g>
+<g >
+<title>MlasSgemmCopyPackB(float*, float const*, unsigned long, unsigned long, unsigned long) (4 snapshots, 0.06%)</title><rect x="1578.7" y="61" width="1.0" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1581.71" y="71.5" ></text>
+</g>
+<g >
+<title>cv::ThreadPool::run (1 snapshots, 0.02%)</title><rect x="1589.7" y="381" width="0.3" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="1592.74" y="391.5" ></text>
+</g>
+<g >
+<title>std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;::~vector (1 snapshots, 0.02%)</title><rect x="1588.7" y="253" width="0.3" height="15.0" fill="rgb(243,174,41)" rx="2" ry="2" />
+<text  x="1591.72" y="263.5" ></text>
+</g>
+<g >
+<title>std::allocator_traits&lt;std::allocator&lt;unsigned char&gt; &gt;::deallocate (1 snapshots, 0.02%)</title><rect x="1588.7" y="205" width="0.3" height="15.0" fill="rgb(245,184,44)" rx="2" ry="2" />
+<text  x="1591.72" y="215.5" ></text>
+</g>
+<g >
+<title>sched_yield (1 snapshots, 0.02%)</title><rect x="1584.1" y="349" width="0.3" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="1587.10" y="359.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::ParallelFor(long, onnxruntime::TensorOpCost const&amp;, std::function&lt;void (long, long)&gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1580.8" y="205" width="0.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1583.77" y="215.5" ></text>
+</g>
+<g >
+<title>ff_decode_receive_frame_internal (4 snapshots, 0.06%)</title><rect x="1574.1" y="429" width="1.0" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="1577.10" y="439.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (), onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::ScheduleOnPreferredWorkers(onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::PerThread&amp;, onnxruntime::concurrency::ThreadPoolParallelSection&amp;, absl::lts_20260107::InlinedVector&lt;int, 11ul, std::allocator&lt;int&gt; &gt;&amp;, unsigned int, unsigned int, std::function&lt;void (unsigned int)&gt;)::{lambda()#1}&gt;::_M_invoke(std::_Any_data const&amp;) (2 snapshots, 0.03%)</title><rect x="1573.6" y="461" width="0.5" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="1576.58" y="471.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_wait_common (5,281 snapshots, 85.73%)</title><rect x="21.8" y="461" width="1354.5" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="24.80" y="471.5" >__pthread_cond_wait_common</text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (1 snapshots, 0.02%)</title><rect x="1575.1" y="157" width="0.3" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="1578.12" y="167.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::StridedCopy&lt;unsigned int&gt;(onnxruntime::concurrency::ThreadPool*, unsigned int*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;, onnxruntime::TensorShape const&amp;, unsigned int const*, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (1 snapshots, 0.02%)</title><rect x="1575.1" y="125" width="0.3" height="15.0" fill="rgb(209,20,5)" rx="2" ry="2" />
+<text  x="1578.12" y="135.5" ></text>
+</g>
+<g >
+<title>onnxruntime::Concat::Compute(onnxruntime::OpKernelContext*) const (1 snapshots, 0.02%)</title><rect x="1575.1" y="253" width="0.3" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="1578.12" y="263.5" ></text>
+</g>
+<g >
+<title>std::_Sp_counted_base&lt;(__gnu_cxx::_Lock_policy)2&gt;::_M_release (1 snapshots, 0.02%)</title><rect x="1588.7" y="301" width="0.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1591.72" y="311.5" ></text>
+</g>
+<g >
+<title>cv::FilterEngine::apply (1 snapshots, 0.02%)</title><rect x="1588.5" y="365" width="0.2" height="15.0" fill="rgb(230,118,28)" rx="2" ry="2" />
+<text  x="1591.46" y="375.5" ></text>
+</g>
+<g >
+<title>operator() (1 snapshots, 0.02%)</title><rect x="1588.2" y="333" width="0.3" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1591.20" y="343.5" ></text>
+</g>
+<g >
+<title>cv::detail::LKTrackerInvoker::operator() (1 snapshots, 0.02%)</title><rect x="1376.3" y="445" width="0.3" height="15.0" fill="rgb(238,156,37)" rx="2" ry="2" />
+<text  x="1379.34" y="455.5" ></text>
+</g>
+<g >
+<title>MlasConvOperationThreaded(void*, long) (2 snapshots, 0.03%)</title><rect x="1573.6" y="413" width="0.5" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="1576.58" y="423.5" ></text>
+</g>
+<g >
+<title>onnxruntime::StreamExecutionContext::StreamExecutionContext(onnxruntime::SessionState const&amp;, int, gsl::span&lt;unsigned long const, 18446744073709551615ul&gt;, unsigned long, onnxruntime::DeviceStreamCollection const*, gsl::span&lt;int const, 18446744073709551615ul&gt;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, gsl::span&lt;int const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;&amp;, std::unordered_map&lt;unsigned long, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt;, std::hash&lt;unsigned long&gt;, std::equal_to&lt;unsigned long&gt;, std::allocator&lt;std::pair&lt;unsigned long const, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt; &gt; &gt; &gt; const&amp;, onnxruntime::logging::Logger const&amp;, bool) (1 snapshots, 0.02%)</title><rect x="1583.6" y="301" width="0.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="1586.59" y="311.5" ></text>
+</g>
+<g >
+<title>copyMakeBorder_8u (1 snapshots, 0.02%)</title><rect x="1584.4" y="429" width="0.2" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="1587.36" y="439.5" ></text>
+</g>
+<g >
+<title>std::this_thread::yield (1 snapshots, 0.02%)</title><rect x="1589.7" y="365" width="0.3" height="15.0" fill="rgb(231,123,29)" rx="2" ry="2" />
+<text  x="1592.74" y="375.5" ></text>
+</g>
+<g >
+<title>std::__shared_ptr&lt;cv::FilterEngine, (__gnu_cxx::_Lock_policy)2&gt;::~__shared_ptr (1 snapshots, 0.02%)</title><rect x="1587.9" y="301" width="0.3" height="15.0" fill="rgb(237,151,36)" rx="2" ry="2" />
+<text  x="1590.95" y="311.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_broadcast (1 snapshots, 0.02%)</title><rect x="1583.8" y="365" width="0.3" height="15.0" fill="rgb(221,78,18)" rx="2" ry="2" />
+<text  x="1586.84" y="375.5" ></text>
+</g>
+<g >
+<title>minMaxIdx_&lt;float, float&gt; (3 snapshots, 0.05%)</title><rect x="1589.0" y="381" width="0.7" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="1591.97" y="391.5" ></text>
+</g>
+<g >
+<title>cv::ThreadPool::run (1 snapshots, 0.02%)</title><rect x="1583.8" y="381" width="0.3" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="1586.84" y="391.5" ></text>
+</g>
+<g >
+<title>cv::hal::cpu_baseline::cvtBGRtoGray (1 snapshots, 0.02%)</title><rect x="1583.8" y="445" width="0.3" height="15.0" fill="rgb(205,2,0)" rx="2" ry="2" />
+<text  x="1586.84" y="455.5" ></text>
+</g>
+<g >
+<title>build_table (1 snapshots, 0.02%)</title><rect x="1574.1" y="285" width="0.3" height="15.0" fill="rgb(229,114,27)" rx="2" ry="2" />
+<text  x="1577.10" y="295.5" ></text>
+</g>
+<g >
+<title>__gthread_yield (1 snapshots, 0.02%)</title><rect x="1589.7" y="349" width="0.3" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1592.74" y="359.5" ></text>
+</g>
+<g >
+<title>onnxruntime::ConcatBase::ComputeImpl(onnxruntime::Prepare&amp;, onnxruntime::OpKernelContext*) const (1 snapshots, 0.02%)</title><rect x="1575.1" y="237" width="0.3" height="15.0" fill="rgb(212,33,7)" rx="2" ry="2" />
+<text  x="1578.12" y="247.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__apply (1 snapshots, 0.02%)</title><rect x="1588.5" y="349" width="0.2" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1591.46" y="359.5" ></text>
+</g>
+<g >
+<title>yolo::weakTrackWithOpticalFlow (23 snapshots, 0.37%)</title><rect x="1584.1" y="493" width="5.9" height="15.0" fill="rgb(253,220,52)" rx="2" ry="2" />
+<text  x="1587.10" y="503.5" ></text>
+</g>
+<g >
+<title>MlasConvOperationThreaded(void*, long) (2 snapshots, 0.03%)</title><rect x="1573.1" y="413" width="0.5" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="1576.07" y="423.5" ></text>
+</g>
+<g >
+<title>sched_yield (3 snapshots, 0.05%)</title><rect x="1585.6" y="349" width="0.8" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="1588.64" y="359.5" ></text>
+</g>
+<g >
+<title>cv::goodFeaturesToTrack (14 snapshots, 0.23%)</title><rect x="1586.4" y="445" width="3.6" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="1589.41" y="455.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (12 snapshots, 0.19%)</title><rect x="1576.7" y="141" width="3.0" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1579.66" y="151.5" ></text>
+</g>
+<g >
+<title>morphOp (2 snapshots, 0.03%)</title><rect x="1588.5" y="413" width="0.5" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1591.46" y="423.5" ></text>
+</g>
+<g >
+<title>onnxruntime::utils::ExecuteGraphImpl(onnxruntime::SessionState const&amp;, onnxruntime::FeedsFetchesManager const&amp;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;&amp;, std::unordered_map&lt;unsigned long, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt;, std::hash&lt;unsigned long&gt;, std::equal_to&lt;unsigned long&gt;, std::allocator&lt;std::pair&lt;unsigned long const, std::function&lt;onnxruntime::common::Status (onnxruntime::TensorShape const&amp;, OrtDevice const&amp;, OrtValue&amp;, bool&amp;)&gt; &gt; &gt; &gt; const&amp;, ExecutionMode, bool const&amp;, onnxruntime::logging::Logger const&amp;, onnxruntime::DeviceStreamCollection*, bool, onnxruntime::Stream*) (34 snapshots, 0.55%)</title><rect x="1575.1" y="333" width="8.7" height="15.0" fill="rgb(205,1,0)" rx="2" ry="2" />
+<text  x="1578.12" y="343.5" ></text>
+</g>
+<g >
+<title>ocvMorph (2 snapshots, 0.03%)</title><rect x="1588.5" y="381" width="0.5" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="1591.46" y="391.5" ></text>
+</g>
+<g >
+<title>onnxruntime::common::Status onnxruntime::DispatchStridedCopy&lt;onnxruntime::TypeList&lt;int, long, float, double, unsigned long, unsigned int, short, unsigned short, signed char, unsigned char, onnxruntime::MLFloat16, onnxruntime::BFloat16, bool, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &gt; &gt;(onnxruntime::concurrency::ThreadPool*, onnxruntime::Tensor&amp;, long, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;, onnxruntime::TensorShape const&amp;, onnxruntime::Tensor const&amp;, long, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1580.8" y="237" width="0.2" height="15.0" fill="rgb(215,47,11)" rx="2" ry="2" />
+<text  x="1583.77" y="247.5" ></text>
+</g>
+<g >
+<title>onnxruntime::(anonymous namespace)::PosixThread::ThreadMain(void*) (508 snapshots, 8.25%)</title><rect x="1443.8" y="509" width="130.3" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="1446.80" y="519.5" >onnxruntime::(an..</text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (long, long), onnxruntime::concurrency::ThreadPool::SimpleParallelFor(long, std::function&lt;void (long)&gt; const&amp;)::{lambda(long, long)#1}&gt;::_M_invoke(std::_Any_data const&amp;, long&amp;&amp;, std::_Any_data const&amp;) (2 snapshots, 0.03%)</title><rect x="1573.1" y="429" width="0.5" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="1576.07" y="439.5" ></text>
+</g>
+<g >
+<title>Ort::detail::SessionImpl&lt;OrtSession&gt;::Run (34 snapshots, 0.55%)</title><rect x="1575.1" y="429" width="8.7" height="15.0" fill="rgb(231,120,28)" rx="2" ry="2" />
+<text  x="1578.12" y="439.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::SpinPause() (2 snapshots, 0.03%)</title><rect x="1579.7" y="141" width="0.6" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="1582.74" y="151.5" ></text>
+</g>
+<g >
+<title>yolo::weakTrackWithOpticalFlowImpl (23 snapshots, 0.37%)</title><rect x="1584.1" y="477" width="5.9" height="15.0" fill="rgb(206,5,1)" rx="2" ry="2" />
+<text  x="1587.10" y="487.5" ></text>
+</g>
+<g >
+<title>cv::ParallelJob::execute (1 snapshots, 0.02%)</title><rect x="1585.4" y="381" width="0.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1588.38" y="391.5" ></text>
+</g>
+<g >
+<title>yolo::inferVideoFileHighLow (62 snapshots, 1.01%)</title><rect x="1574.1" y="525" width="15.9" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1577.10" y="535.5" ></text>
+</g>
+<g >
+<title>cv::ThreadPool::run (1 snapshots, 0.02%)</title><rect x="1584.1" y="397" width="0.3" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="1587.10" y="407.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__proceed (1 snapshots, 0.02%)</title><rect x="1588.5" y="333" width="0.2" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="1591.46" y="343.5" ></text>
+</g>
+<g >
+<title>cv::cornerMinEigenVal (7 snapshots, 0.11%)</title><rect x="1586.7" y="429" width="1.8" height="15.0" fill="rgb(251,213,51)" rx="2" ry="2" />
+<text  x="1589.67" y="439.5" ></text>
+</g>
+<g >
+<title>cv::hal::cvtBGRtoGray (1 snapshots, 0.02%)</title><rect x="1583.8" y="461" width="0.3" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1586.84" y="471.5" ></text>
+</g>
+<g >
+<title>?? (46 snapshots, 0.75%)</title><rect x="10.0" y="525" width="11.8" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="13.00" y="535.5" ></text>
+</g>
+<g >
+<title>_int_free (1 snapshots, 0.02%)</title><rect x="1588.7" y="173" width="0.3" height="15.0" fill="rgb(247,196,46)" rx="2" ry="2" />
+<text  x="1591.72" y="183.5" ></text>
+</g>
+<g >
+<title>ff_mjpeg_decode_frame_from_buf (4 snapshots, 0.06%)</title><rect x="1574.1" y="381" width="1.0" height="15.0" fill="rgb(250,210,50)" rx="2" ry="2" />
+<text  x="1577.10" y="391.5" ></text>
+</g>
+<g >
+<title>calc (7 snapshots, 0.11%)</title><rect x="1584.6" y="445" width="1.8" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1587.61" y="455.5" ></text>
+</g>
+<g >
+<title>mjpeg_decode_scan (3 snapshots, 0.05%)</title><rect x="1574.4" y="349" width="0.7" height="15.0" fill="rgb(232,128,30)" rx="2" ry="2" />
+<text  x="1577.35" y="359.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::SpinPause() (3 snapshots, 0.05%)</title><rect x="1575.9" y="141" width="0.8" height="15.0" fill="rgb(228,108,25)" rx="2" ry="2" />
+<text  x="1578.89" y="151.5" ></text>
+</g>
+<g >
+<title>operator() (1 snapshots, 0.02%)</title><rect x="1588.5" y="317" width="0.2" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="1591.46" y="327.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__proceed (3 snapshots, 0.05%)</title><rect x="1587.2" y="301" width="0.7" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="1590.18" y="311.5" ></text>
+</g>
+<g >
+<title>decode_receive_frame_internal (4 snapshots, 0.06%)</title><rect x="1574.1" y="445" width="1.0" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="1577.10" y="455.5" ></text>
+</g>
+<g >
+<title>onnxruntime::utils::ExecuteGraph(onnxruntime::SessionState const&amp;, onnxruntime::FeedsFetchesManager&amp;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;&amp;, ExecutionMode, bool const&amp;, onnxruntime::logging::Logger const&amp;, onnxruntime::DeviceStreamCollectionHolder&amp;, bool, onnxruntime::Stream*) (34 snapshots, 0.55%)</title><rect x="1575.1" y="349" width="8.7" height="15.0" fill="rgb(230,119,28)" rx="2" ry="2" />
+<text  x="1578.12" y="359.5" ></text>
+</g>
+<g >
+<title>std::_Vector_base&lt;unsigned char*, std::allocator&lt;unsigned char*&gt; &gt;::_M_deallocate (1 snapshots, 0.02%)</title><rect x="1587.9" y="157" width="0.3" height="15.0" fill="rgb(215,48,11)" rx="2" ry="2" />
+<text  x="1590.95" y="167.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPoolTempl&lt;onnxruntime::Env&gt;::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (15 snapshots, 0.24%)</title><rect x="1575.9" y="157" width="3.8" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="1578.89" y="167.5" ></text>
+</g>
+<g >
+<title>onnxruntime::RunSince(unsigned long, onnxruntime::StreamExecutionContext&amp;, onnxruntime::SessionScope&amp;, bool const&amp;, unsigned long) (33 snapshots, 0.54%)</title><rect x="1575.1" y="301" width="8.5" height="15.0" fill="rgb(213,37,8)" rx="2" ry="2" />
+<text  x="1578.12" y="311.5" ></text>
+</g>
+<g >
+<title>ff_mjpeg_build_vlc (1 snapshots, 0.02%)</title><rect x="1574.1" y="349" width="0.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1577.10" y="359.5" ></text>
+</g>
+<g >
+<title>parallel_for_impl (1 snapshots, 0.02%)</title><rect x="1589.7" y="397" width="0.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1592.74" y="407.5" ></text>
+</g>
+<g >
+<title>parallel_for_impl (7 snapshots, 0.11%)</title><rect x="1584.6" y="413" width="1.8" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1587.61" y="423.5" ></text>
+</g>
+<g >
+<title>cv::WorkerThread::thread_loop_wrapper (5,544 snapshots, 90.00%)</title><rect x="21.8" y="509" width="1422.0" height="15.0" fill="rgb(208,16,3)" rx="2" ry="2" />
+<text  x="24.80" y="519.5" >cv::WorkerThread::thread_loop_wrapper</text>
+</g>
+<g >
+<title>MlasSgemmOperation(CBLAS_TRANSPOSE, CBLAS_TRANSPOSE, unsigned long, unsigned long, unsigned long, float, float const*, unsigned long, float const*, unsigned long, float, float*, unsigned long) (4 snapshots, 0.06%)</title><rect x="1578.7" y="77" width="1.0" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1581.71" y="87.5" ></text>
+</g>
+<g >
+<title>std::_Sp_counted_base&lt;(__gnu_cxx::_Lock_policy)2&gt;::_M_release (1 snapshots, 0.02%)</title><rect x="1588.7" y="285" width="0.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1591.72" y="295.5" ></text>
+</g>
+<g >
+<title>MlasSgemmCopyPackB(float*, float const*, unsigned long, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1580.3" y="61" width="0.5" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="1583.25" y="71.5" ></text>
+</g>
+<g >
+<title>MlasActivation(MLAS_ACTIVATION const*, float*, float const*, unsigned long, unsigned long, unsigned long) (1 snapshots, 0.02%)</title><rect x="1576.9" y="77" width="0.3" height="15.0" fill="rgb(237,149,35)" rx="2" ry="2" />
+<text  x="1579.92" y="87.5" ></text>
+</g>
+<g >
+<title>minMaxIdx_32f (3 snapshots, 0.05%)</title><rect x="1589.0" y="397" width="0.7" height="15.0" fill="rgb(253,223,53)" rx="2" ry="2" />
+<text  x="1591.97" y="407.5" ></text>
+</g>
+<g >
+<title>sched_yield (262 snapshots, 4.25%)</title><rect x="1376.6" y="445" width="67.2" height="15.0" fill="rgb(241,166,39)" rx="2" ry="2" />
+<text  x="1379.60" y="455.5" >sched_y..</text>
+</g>
+<g >
+<title>cv::FilterEngine::~FilterEngine (1 snapshots, 0.02%)</title><rect x="1587.9" y="221" width="0.3" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="1590.95" y="231.5" ></text>
+</g>
+<g >
+<title>OrtApis::Run(OrtSession*, OrtRunOptions const*, char const* const*, OrtValue const* const*, unsigned long, char const* const*, unsigned long, OrtValue**) (34 snapshots, 0.55%)</title><rect x="1575.1" y="413" width="8.7" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="1578.12" y="423.5" ></text>
+</g>
+<g >
+<title>all (6,160 snapshots, 100%)</title><rect x="10.0" y="573" width="1580.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="583.5" ></text>
+</g>
+<g >
+<title>onnxruntime::common::Status onnxruntime::DispatchStridedCopy&lt;onnxruntime::TypeList&lt;int, long, float, double, unsigned long, unsigned int, short, unsigned short, signed char, unsigned char, onnxruntime::MLFloat16, onnxruntime::BFloat16, bool, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &gt; &gt;(onnxruntime::concurrency::ThreadPool*, onnxruntime::Tensor&amp;, long, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;, onnxruntime::TensorShape const&amp;, onnxruntime::Tensor const&amp;, long, absl::lts_20260107::InlinedVector&lt;long, 6ul, std::allocator&lt;long&gt; &gt; const&amp;) (1 snapshots, 0.02%)</title><rect x="1575.1" y="221" width="0.3" height="15.0" fill="rgb(215,47,11)" rx="2" ry="2" />
+<text  x="1578.12" y="231.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (4 snapshots, 0.06%)</title><rect x="1579.7" y="173" width="1.1" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1582.74" y="183.5" ></text>
+</g>
+<g >
+<title>clone (6,052 snapshots, 98.25%)</title><rect x="21.8" y="541" width="1552.3" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="24.80" y="551.5" >clone</text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;) (10 snapshots, 0.16%)</title><rect x="1581.0" y="221" width="2.6" height="15.0" fill="rgb(229,111,26)" rx="2" ry="2" />
+<text  x="1584.02" y="231.5" ></text>
+</g>
+<g >
+<title>onnxruntime::SplitImpl::Compute(onnxruntime::OpKernelContext*) const (1 snapshots, 0.02%)</title><rect x="1580.8" y="253" width="0.2" height="15.0" fill="rgb(232,125,30)" rx="2" ry="2" />
+<text  x="1583.77" y="263.5" ></text>
+</g>
+<g >
+<title>onnxruntime::BFCArena::AllocateRawInternal(unsigned long, bool, onnxruntime::Stream*) (1 snapshots, 0.02%)</title><rect x="1583.6" y="269" width="0.2" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1586.59" y="279.5" ></text>
+</g>
+<g >
+<title>cv::ThreadPool::run (7 snapshots, 0.11%)</title><rect x="1584.6" y="397" width="1.8" height="15.0" fill="rgb(235,141,33)" rx="2" ry="2" />
+<text  x="1587.61" y="407.5" ></text>
+</g>
+<g >
+<title>cv::cpu_baseline::FilterEngine__proceed (1 snapshots, 0.02%)</title><rect x="1588.2" y="349" width="0.3" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="1591.20" y="359.5" ></text>
+</g>
+<g >
+<title>__memset_avx2_erms (1 snapshots, 0.02%)</title><rect x="1583.6" y="237" width="0.2" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="1586.59" y="247.5" ></text>
+</g>
+<g >
+<title>std::allocator_traits&lt;std::allocator&lt;unsigned char*&gt; &gt;::deallocate (1 snapshots, 0.02%)</title><rect x="1587.9" y="141" width="0.3" height="15.0" fill="rgb(223,86,20)" rx="2" ry="2" />
+<text  x="1590.95" y="151.5" ></text>
+</g>
+<g >
+<title>futex_wake (1 snapshots, 0.02%)</title><rect x="1583.8" y="349" width="0.3" height="15.0" fill="rgb(219,65,15)" rx="2" ry="2" />
+<text  x="1586.84" y="359.5" ></text>
+</g>
+<g >
+<title>cv::threshold (1 snapshots, 0.02%)</title><rect x="1589.7" y="429" width="0.3" height="15.0" fill="rgb(226,100,24)" rx="2" ry="2" />
+<text  x="1592.74" y="439.5" ></text>
+</g>
+<g >
+<title>MlasConvIm2Col(MLAS_CONV_PARAMETERS const*, float const*, float*, unsigned long, unsigned long, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1573.6" y="381" width="0.5" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="1576.58" y="391.5" ></text>
+</g>
+<g >
+<title>MlasConvOperation(MLAS_CONV_PARAMETERS const*, float const*, float const*, float const*, float*, float*, unsigned long, unsigned long) (1 snapshots, 0.02%)</title><rect x="1576.7" y="93" width="0.2" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1579.66" y="103.5" ></text>
+</g>
+<g >
+<title>MlasSgemmOperation(CBLAS_TRANSPOSE, CBLAS_TRANSPOSE, unsigned long, unsigned long, unsigned long, float, float const*, unsigned long, float const*, unsigned long, float, float*, unsigned long) (2 snapshots, 0.03%)</title><rect x="1580.3" y="77" width="0.5" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1583.25" y="87.5" ></text>
+</g>
+<g >
+<title>parallel_for_impl (1 snapshots, 0.02%)</title><rect x="1583.8" y="397" width="0.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1586.84" y="407.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (2 snapshots, 0.03%)</title><rect x="1573.6" y="445" width="0.5" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1576.58" y="455.5" ></text>
+</g>
+<g >
+<title>cv::Sobel (4 snapshots, 0.06%)</title><rect x="1587.2" y="397" width="1.0" height="15.0" fill="rgb(225,96,23)" rx="2" ry="2" />
+<text  x="1590.18" y="407.5" ></text>
+</g>
+<g >
+<title>std::vector&lt;unsigned char*, std::allocator&lt;unsigned char*&gt; &gt;::~vector (1 snapshots, 0.02%)</title><rect x="1587.9" y="189" width="0.3" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="1590.95" y="199.5" ></text>
+</g>
+<g >
+<title>cv::Ptr&lt;cv::FilterEngine&gt;::~Ptr (1 snapshots, 0.02%)</title><rect x="1587.9" y="333" width="0.3" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="1590.95" y="343.5" ></text>
+</g>
+<g >
+<title>std::__shared_count&lt;(__gnu_cxx::_Lock_policy)2&gt;::~__shared_count (1 snapshots, 0.02%)</title><rect x="1587.9" y="285" width="0.3" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1590.95" y="295.5" ></text>
+</g>
+<g >
+<title>cv::minMaxLoc (3 snapshots, 0.05%)</title><rect x="1589.0" y="429" width="0.7" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="1591.97" y="439.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_wait (327 snapshots, 5.31%)</title><rect x="1457.9" y="461" width="83.9" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="1460.91" y="471.5" >__pthread..</text>
+</g>
+<g >
+<title>MlasConvExpandThenGemmSegmentedThreaded(void*, long) (1 snapshots, 0.02%)</title><rect x="1576.7" y="109" width="0.2" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="1579.66" y="119.5" ></text>
+</g>
+<g >
+<title>onnxruntime::utils::ExecuteGraph(onnxruntime::SessionState const&amp;, onnxruntime::FeedsFetchesManager&amp;, gsl::span&lt;OrtValue const, 18446744073709551615ul&gt;, std::vector&lt;OrtValue, std::allocator&lt;OrtValue&gt; &gt;&amp;, ExecutionMode, OrtRunOptions const&amp;, onnxruntime::DeviceStreamCollectionHolder&amp;, onnxruntime::logging::Logger const&amp;) (34 snapshots, 0.55%)</title><rect x="1575.1" y="365" width="8.7" height="15.0" fill="rgb(244,181,43)" rx="2" ry="2" />
+<text  x="1578.12" y="375.5" ></text>
+</g>
+<g >
+<title>std::shared_ptr&lt;cv::FilterEngine&gt;::~shared_ptr (1 snapshots, 0.02%)</title><rect x="1588.7" y="349" width="0.3" height="15.0" fill="rgb(245,187,44)" rx="2" ry="2" />
+<text  x="1591.72" y="359.5" ></text>
+</g>
+<g >
+<title>MlasConvOperation(MLAS_CONV_PARAMETERS const*, float const*, float const*, float const*, float*, float*, unsigned long, unsigned long) (2 snapshots, 0.03%)</title><rect x="1573.1" y="397" width="0.5" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="1576.07" y="407.5" ></text>
+</g>
+<g >
+<title>std::_Vector_base&lt;unsigned char*, std::allocator&lt;unsigned char*&gt; &gt;::~_Vector_base (1 snapshots, 0.02%)</title><rect x="1587.9" y="173" width="0.3" height="15.0" fill="rgb(249,202,48)" rx="2" ry="2" />
+<text  x="1590.95" y="183.5" ></text>
+</g>
+<g >
+<title>parallel_for_impl (1 snapshots, 0.02%)</title><rect x="1584.1" y="413" width="0.3" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="1587.10" y="423.5" ></text>
+</g>
+<g >
+<title>__gthread_yield (1 snapshots, 0.02%)</title><rect x="1584.1" y="365" width="0.3" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1587.10" y="375.5" ></text>
+</g>
+<g >
+<title>cv::dilate (2 snapshots, 0.03%)</title><rect x="1588.5" y="429" width="0.5" height="15.0" fill="rgb(212,32,7)" rx="2" ry="2" />
+<text  x="1591.46" y="439.5" ></text>
+</g>
+<g >
+<title>cv::FilterEngine::~FilterEngine (1 snapshots, 0.02%)</title><rect x="1587.9" y="205" width="0.3" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="1590.95" y="215.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (7 snapshots, 0.11%)</title><rect x="1581.8" y="173" width="1.8" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1584.79" y="183.5" ></text>
+</g>
+<g >
+<title>std::_Function_handler&lt;void (unsigned int), onnxruntime::concurrency::ThreadPool::ParallelForFixedBlockSizeScheduling(long, long, std::function&lt;void (long, long)&gt; const&amp;)::{lambda(unsigned int)#1}&gt;::_M_invoke(std::_Any_data const&amp;, unsigned int&amp;&amp;) (1 snapshots, 0.02%)</title><rect x="1575.1" y="141" width="0.3" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="1578.12" y="151.5" ></text>
+</g>
+<g >
+<title>cv::parallel_for_ (1 snapshots, 0.02%)</title><rect x="1584.1" y="429" width="0.3" height="15.0" fill="rgb(214,41,9)" rx="2" ry="2" />
+<text  x="1587.10" y="439.5" ></text>
+</g>
+<g >
+<title>yolo::YoloEngine::Impl::inferOnnxRuntime (34 snapshots, 0.55%)</title><rect x="1575.1" y="461" width="8.7" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1578.12" y="471.5" ></text>
+</g>
+<g >
+<title>__pthread_cond_wait (5,281 snapshots, 85.73%)</title><rect x="21.8" y="477" width="1354.5" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="24.80" y="487.5" >__pthread_cond_wait</text>
+</g>
+<g >
+<title>std::__shared_count&lt;(__gnu_cxx::_Lock_policy)2&gt;::~__shared_count (1 snapshots, 0.02%)</title><rect x="1588.7" y="317" width="0.3" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1591.72" y="327.5" ></text>
+</g>
+<g >
+<title>std::_Sp_counted_base&lt;(__gnu_cxx::_Lock_policy)2&gt;::_M_release (1 snapshots, 0.02%)</title><rect x="1587.9" y="269" width="0.3" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1590.95" y="279.5" ></text>
+</g>
+<g >
+<title>?? (46 snapshots, 0.75%)</title><rect x="10.0" y="541" width="11.8" height="15.0" fill="rgb(249,205,49)" rx="2" ry="2" />
+<text  x="13.00" y="551.5" ></text>
+</g>
+<g >
+<title>cv::copyMakeBorder (1 snapshots, 0.02%)</title><rect x="1584.4" y="445" width="0.2" height="15.0" fill="rgb(218,61,14)" rx="2" ry="2" />
+<text  x="1587.36" y="455.5" ></text>
+</g>
+<g >
+<title>onnxruntime::concurrency::ThreadPool::RunInParallel(std::function&lt;void (unsigned int)&gt;, unsigned int, long) (15 snapshots, 0.24%)</title><rect x="1575.9" y="173" width="3.8" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="1578.89" y="183.5" ></text>
+</g>
+</g>
+</svg>

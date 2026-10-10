@@ -1,0 +1,722 @@
+{
+  "models": {
+    "fp32": {
+      "frame_count": 10833,
+      "model_calls": 1359,
+      "wall_ms": 421922.742551,
+      "amortized_wall_ms": 38.94791309434136,
+      "throughput_fps": 25.675316610103234,
+      "stages": {
+        "Decode": {
+          "n": 10833,
+          "mean_ms": 5.086391494876765,
+          "total_ms": 55100.879063999906,
+          "p95_ms": 7.46737,
+          "amortized_ms_per_frame": 5.086391494876756,
+          "wall_percent": 13.0594712033897
+        },
+        "Preprocess": {
+          "n": 1359,
+          "mean_ms": 4.864131590139809,
+          "total_ms": 6610.354831000005,
+          "p95_ms": 7.882643099999996,
+          "amortized_ms_per_frame": 0.6102053753346262,
+          "wall_percent": 1.5667216208903405
+        },
+        "YOLO": {
+          "n": 1359,
+          "mean_ms": 153.6188668852097,
+          "total_ms": 208768.04009700025,
+          "p95_ms": 205.73860109999998,
+          "amortized_ms_per_frame": 19.271488977845497,
+          "wall_percent": 49.48015810542979
+        },
+        "LK Flow": {
+          "n": 10833,
+          "mean_ms": 13.55080477993169,
+          "total_ms": 146795.8681810003,
+          "p95_ms": 22.798887199999996,
+          "amortized_ms_per_frame": 13.550804779931717,
+          "wall_percent": 34.79212030464471
+        },
+        "ByteTrack": {
+          "n": 12192,
+          "mean_ms": 0.024368317913385826,
+          "total_ms": 297.0985319999999,
+          "p95_ms": 0.06096354999999998,
+          "amortized_ms_per_frame": 0.027425323733037934,
+          "wall_percent": 0.07041538699803272
+        },
+        "Postprocess": {
+          "n": 1359,
+          "mean_ms": 0.03143473509933775,
+          "total_ms": 42.71980499999998,
+          "p95_ms": 0.04720219999999995,
+          "amortized_ms_per_frame": 0.003943487953475489,
+          "wall_percent": 0.010125030175361125
+        }
+      },
+      "other_ms": 4307.782040999562,
+      "other_ms_per_frame": 0.397653654666257,
+      "other_wall_percent": 1.0209883484720803,
+      "cpu_seconds": 2205.953148,
+      "cpu_wall_ms": 421922.75167,
+      "cpu_process_percent": 522.8334189774507,
+      "cpu_host_percent": 8.169272171522667,
+      "equivalent_busy_cores": 5.228334189774507,
+      "cpu_ms_per_frame": 203.632710052617,
+      "logical_cpus": 64,
+      "affinity_cpus": 64,
+      "rss_mean_mib": 337.06242341631327
+    },
+    "int8": {
+      "frame_count": 10833,
+      "model_calls": 1359,
+      "wall_ms": 322308.891019,
+      "amortized_wall_ms": 29.752505401920057,
+      "throughput_fps": 33.61061485381549,
+      "stages": {
+        "Decode": {
+          "n": 10833,
+          "mean_ms": 5.1715296364811225,
+          "total_ms": 56023.18055200006,
+          "p95_ms": 8.1800254,
+          "amortized_ms_per_frame": 5.171529636481129,
+          "wall_percent": 17.381829081685968
+        },
+        "Preprocess": {
+          "n": 1359,
+          "mean_ms": 4.809085348785872,
+          "total_ms": 6535.546989000003,
+          "p95_ms": 7.386106699999999,
+          "amortized_ms_per_frame": 0.6032998235945725,
+          "wall_percent": 2.0277278012212006
+        },
+        "YOLO": {
+          "n": 1359,
+          "mean_ms": 81.1296681486387,
+          "total_ms": 110255.21901400002,
+          "p95_ms": 112.6919588,
+          "amortized_ms_per_frame": 10.17771799261516,
+          "wall_percent": 34.20793595405363
+        },
+        "LK Flow": {
+          "n": 10833,
+          "mean_ms": 13.384579129603988,
+          "total_ms": 144995.14571099897,
+          "p95_ms": 22.5099318,
+          "amortized_ms_per_frame": 13.384579129603893,
+          "wall_percent": 44.98639341055335
+        },
+        "ByteTrack": {
+          "n": 12192,
+          "mean_ms": 0.02936297719816273,
+          "total_ms": 357.9934179999999,
+          "p95_ms": 0.08456684999999996,
+          "amortized_ms_per_frame": 0.03304656309424905,
+          "wall_percent": 0.11107153044031177
+        },
+        "Postprocess": {
+          "n": 1359,
+          "mean_ms": 0.030633676968359086,
+          "total_ms": 41.63116699999999,
+          "p95_ms": 0.04299949999999998,
+          "amortized_ms_per_frame": 0.0038429951998523023,
+          "wall_percent": 0.012916543154729742
+        }
+      },
+      "other_ms": 4100.174168000929,
+      "other_ms_per_frame": 0.37848926133120364,
+      "other_wall_percent": 1.2721256788908208,
+      "cpu_seconds": 1480.2880709999997,
+      "cpu_wall_ms": 322308.912173,
+      "cpu_process_percent": 459.2761835283822,
+      "cpu_host_percent": 7.176190367630972,
+      "equivalent_busy_cores": 4.592761835283822,
+      "cpu_ms_per_frame": 136.6461802824702,
+      "logical_cpus": 64,
+      "affinity_cpus": 64,
+      "rss_mean_mib": 311.05570620751797
+    }
+  },
+  "rounds": {
+    "fp32": [
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 145833.586369,
+        "amortized_wall_ms": 40.385928099972304,
+        "throughput_fps": 24.761099894115983,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 5.473654077263916,
+            "total_ms": 19765.364873000035,
+            "p95_ms": 8.7502335,
+            "amortized_ms_per_frame": 5.473654077263926,
+            "wall_percent": 13.55336953929673
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 5.199272898454746,
+            "total_ms": 2355.2706229999994,
+            "p95_ms": 8.346809399999998,
+            "amortized_ms_per_frame": 0.6522488571032953,
+            "wall_percent": 1.6150399106557676
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 157.44959549006623,
+            "total_ms": 71324.66675700001,
+            "p95_ms": 216.6987816,
+            "amortized_ms_per_frame": 19.752053934367215,
+            "wall_percent": 48.90825805828332
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 14.061203414843533,
+            "total_ms": 50775.00553100002,
+            "p95_ms": 23.044078499999998,
+            "amortized_ms_per_frame": 14.061203414843538,
+            "wall_percent": 34.81708623864257
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.024895916830708662,
+            "total_ms": 101.177006,
+            "p95_ms": 0.06530665,
+            "amortized_ms_per_frame": 0.028019109941844367,
+            "wall_percent": 0.06937839802142266
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.03218352097130243,
+            "total_ms": 14.579134999999992,
+            "p95_ms": 0.05045839999999988,
+            "amortized_ms_per_frame": 0.004037423151481582,
+            "wall_percent": 0.009997103796865203
+          }
+        },
+        "other_ms": 1497.5224439999147,
+        "other_ms_per_frame": 0.41471128330100104,
+        "other_wall_percent": 1.026870751303312,
+        "cpu_seconds": 749.377532,
+        "cpu_wall_ms": 145833.58208700002,
+        "cpu_process_percent": 513.8580025778585,
+        "cpu_host_percent": 8.02903129027904,
+        "equivalent_busy_cores": 5.138580025778586,
+        "cpu_ms_per_frame": 207.52631736361118,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 335.0946568253324
+      },
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 142076.974125,
+        "amortized_wall_ms": 39.345603468568264,
+        "throughput_fps": 25.41580028881404,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 5.191810217114373,
+            "total_ms": 18747.62669400001,
+            "p95_ms": 7.1632905000000004,
+            "amortized_ms_per_frame": 5.191810217114376,
+            "wall_percent": 13.195401161560323
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 4.923319757174393,
+            "total_ms": 2230.2638499999994,
+            "p95_ms": 8.0024518,
+            "amortized_ms_per_frame": 0.6176305317086678,
+            "wall_percent": 1.569757424618153
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 154.84264367108167,
+            "total_ms": 70143.71758299996,
+            "p95_ms": 204.7662952,
+            "amortized_ms_per_frame": 19.42501179257822,
+            "wall_percent": 49.37022203280257
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 13.670764003046248,
+            "total_ms": 49365.12881499981,
+            "p95_ms": 23.083536000000002,
+            "amortized_ms_per_frame": 13.670764003046195,
+            "wall_percent": 34.745340769693
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.024677694143700787,
+            "total_ms": 100.29014899999977,
+            "p95_ms": 0.06393424999999997,
+            "amortized_ms_per_frame": 0.02777351121572965,
+            "wall_percent": 0.07058860143781216
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.03262281015452539,
+            "total_ms": 14.778132999999997,
+            "p95_ms": 0.05042639999999999,
+            "amortized_ms_per_frame": 0.004092531985599556,
+            "wall_percent": 0.01040149756215819
+          }
+        },
+        "other_ms": 1475.168901000201,
+        "other_ms_per_frame": 0.4085208809194686,
+        "other_wall_percent": 1.0382885123259595,
+        "cpu_seconds": 743.082882,
+        "cpu_wall_ms": 142076.9854,
+        "cpu_process_percent": 523.0142516804837,
+        "cpu_host_percent": 8.172097682507557,
+        "equivalent_busy_cores": 5.230142516804836,
+        "cpu_ms_per_frame": 205.7831298809194,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 335.16442930625243
+      },
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 134012.182057,
+        "amortized_wall_ms": 37.112207714483525,
+        "throughput_fps": 26.945311572227943,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 4.593710190252008,
+            "total_ms": 16587.88749699999,
+            "p95_ms": 6.5560905,
+            "amortized_ms_per_frame": 4.593710190252005,
+            "wall_percent": 12.377895234885877
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 4.469802114790287,
+            "total_ms": 2024.8203580000018,
+            "p95_ms": 7.2454978,
+            "amortized_ms_per_frame": 0.5607367371919141,
+            "wall_percent": 1.5109226093630623
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 148.56436149448123,
+            "total_ms": 67299.65575700002,
+            "p95_ms": 196.20822699999994,
+            "amortized_ms_per_frame": 18.637401206590976,
+            "wall_percent": 50.21905824082109
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 12.92044692190529,
+            "total_ms": 46655.73383500014,
+            "p95_ms": 22.0825825,
+            "amortized_ms_per_frame": 12.920446921905327,
+            "wall_percent": 34.81454679631725
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.02353134276574803,
+            "total_ms": 95.63137700000009,
+            "p95_ms": 0.05496104999999997,
+            "amortized_ms_per_frame": 0.026483350041539764,
+            "wall_percent": 0.07136021183456648
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.02949787417218543,
+            "total_ms": 13.362536999999993,
+            "p95_ms": 0.039047999999999985,
+            "amortized_ms_per_frame": 0.0037005087233453315,
+            "wall_percent": 0.009971136052628742
+          }
+        },
+        "other_ms": 1335.0906959998247,
+        "other_ms_per_frame": 0.36972879977840617,
+        "other_wall_percent": 0.9962457707255036,
+        "cpu_seconds": 713.4927339999999,
+        "cpu_wall_ms": 134012.184183,
+        "cpu_process_percent": 532.4088539783007,
+        "cpu_host_percent": 8.318888343410949,
+        "equivalent_busy_cores": 5.324088539783007,
+        "cpu_ms_per_frame": 197.58868291332038,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 340.92818411735504
+      }
+    ],
+    "int8": [
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 109431.533963,
+        "amortized_wall_ms": 30.305049560509552,
+        "throughput_fps": 32.997801175124884,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 5.28445800692329,
+            "total_ms": 19082.177863,
+            "p95_ms": 8.208672499999999,
+            "amortized_ms_per_frame": 5.28445800692329,
+            "wall_percent": 17.437549463075143
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 4.846898315673289,
+            "total_ms": 2195.6449370000005,
+            "p95_ms": 7.248276599999999,
+            "amortized_ms_per_frame": 0.608043460814179,
+            "wall_percent": 2.006409722578112
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 81.48457882119206,
+            "total_ms": 36912.514206000014,
+            "p95_ms": 118.76833559999997,
+            "amortized_ms_per_frame": 10.222241541401278,
+            "wall_percent": 33.731149394726145
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 13.7721534680144,
+            "total_ms": 49731.24617300017,
+            "p95_ms": 22.4805455,
+            "amortized_ms_per_frame": 13.772153468014446,
+            "wall_percent": 45.44507818908474
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.02938607603346457,
+            "total_ms": 119.4250130000001,
+            "p95_ms": 0.09207889999999999,
+            "amortized_ms_per_frame": 0.033072559678759376,
+            "wall_percent": 0.1091321748632154
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.03185523841059602,
+            "total_ms": 14.43042299999999,
+            "p95_ms": 0.05032619999999999,
+            "amortized_ms_per_frame": 0.0039962400996953725,
+            "wall_percent": 0.013186713625780916
+          }
+        },
+        "other_ms": 1376.0953479998134,
+        "other_ms_per_frame": 0.3810842835779046,
+        "other_wall_percent": 1.2574943420468605,
+        "cpu_seconds": 498.90055699999994,
+        "cpu_wall_ms": 109431.545128,
+        "cpu_process_percent": 455.9019580838829,
+        "cpu_host_percent": 7.12346809506067,
+        "equivalent_busy_cores": 4.559019580838829,
+        "cpu_ms_per_frame": 138.16132844087508,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 311.027960997411
+      },
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 110880.476058,
+        "amortized_wall_ms": 30.706307410135697,
+        "throughput_fps": 32.56659899359683,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 5.525576417335918,
+            "total_ms": 19952.856443000022,
+            "p95_ms": 8.830005499999999,
+            "amortized_ms_per_frame": 5.525576417335924,
+            "wall_percent": 17.994923139185445
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 5.125255470198676,
+            "total_ms": 2321.7407280000016,
+            "p95_ms": 7.607712999999995,
+            "amortized_ms_per_frame": 0.6429633697036836,
+            "wall_percent": 2.093913022871161
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 82.67707093598234,
+            "total_ms": 37452.713134,
+            "p95_ms": 113.72444999999999,
+            "amortized_ms_per_frame": 10.371839693713651,
+            "wall_percent": 33.77755441310427
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 13.74096576433121,
+            "total_ms": 49618.6273750001,
+            "p95_ms": 23.297449999999998,
+            "amortized_ms_per_frame": 13.740965764331238,
+            "wall_percent": 44.74965218317182
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.031268403789370076,
+            "total_ms": 127.07479299999997,
+            "p95_ms": 0.09044509999999999,
+            "amortized_ms_per_frame": 0.035191025477707,
+            "wall_percent": 0.1146052014905933
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.031229754966887416,
+            "total_ms": 14.147079000000007,
+            "p95_ms": 0.04170559999999998,
+            "amortized_ms_per_frame": 0.003917773193021326,
+            "wall_percent": 0.012758854852498894
+          }
+        },
+        "other_ms": 1393.3165059998719,
+        "other_ms_per_frame": 0.3858533663804685,
+        "other_wall_percent": 1.2565931853242114,
+        "cpu_seconds": 504.68402100000003,
+        "cpu_wall_ms": 110880.479472,
+        "cpu_process_percent": 455.16038837787033,
+        "cpu_host_percent": 7.111881068404224,
+        "equivalent_busy_cores": 4.551603883778704,
+        "cpu_ms_per_frame": 139.76295236776517,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 310.97215398434815
+      },
+      {
+        "frame_count": 3611,
+        "model_calls": 453,
+        "wall_ms": 101996.88099800001,
+        "amortized_wall_ms": 28.246159235114927,
+        "throughput_fps": 35.4030433545395,
+        "stages": {
+          "Decode": {
+            "n": 3611,
+            "mean_ms": 4.704554485184159,
+            "total_ms": 16988.14624600002,
+            "p95_ms": 6.7406775,
+            "amortized_ms_per_frame": 4.704554485184165,
+            "wall_percent": 16.655554640276822
+          },
+          "Preprocess": {
+            "n": 453,
+            "mean_ms": 4.455102260485651,
+            "total_ms": 2018.1613239999986,
+            "p95_ms": 7.0927878,
+            "amortized_ms_per_frame": 0.558892640265854,
+            "wall_percent": 1.9786500373865072
+          },
+          "YOLO": {
+            "n": 453,
+            "mean_ms": 79.22735468874173,
+            "total_ms": 35889.99167400004,
+            "p95_ms": 106.07321379999999,
+            "amortized_ms_per_frame": 9.939072742730557,
+            "wall_percent": 35.18734232148117
+          },
+          "LK Flow": {
+            "n": 3611,
+            "mean_ms": 12.640618156466353,
+            "total_ms": 45645.2721629999,
+            "p95_ms": 21.5425585,
+            "amortized_ms_per_frame": 12.640618156466324,
+            "wall_percent": 44.751635262155645
+          },
+          "ByteTrack": {
+            "n": 4064,
+            "mean_ms": 0.027434451771653542,
+            "total_ms": 111.49361199999981,
+            "p95_ms": 0.07431169999999998,
+            "amortized_ms_per_frame": 0.030876104126280758,
+            "wall_percent": 0.10931080530019935
+          },
+          "Postprocess": {
+            "n": 453,
+            "mean_ms": 0.02881603752759382,
+            "total_ms": 13.053665000000008,
+            "p95_ms": 0.038366599999999994,
+            "amortized_ms_per_frame": 0.0036149723068402127,
+            "wall_percent": 0.01279810213045237
+          }
+        },
+        "other_ms": 1330.7623140000505,
+        "other_ms_per_frame": 0.36853013403490736,
+        "other_wall_percent": 1.3047088312692077,
+        "cpu_seconds": 476.703493,
+        "cpu_wall_ms": 101996.88757300001,
+        "cpu_process_percent": 467.3706270290055,
+        "cpu_host_percent": 7.302666047328211,
+        "equivalent_busy_cores": 4.673706270290055,
+        "cpu_ms_per_frame": 132.0142600387704,
+        "logical_cpus": 64,
+        "affinity_cpus": 64,
+        "rss_mean_mib": 311.16700364079475
+      }
+    ]
+  },
+  "model_metadata": {
+    "fp32": {
+      "path": "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "sha256": "0148f206a0fe96dc605f3d66356208d466c267cfd4121b7a03062806267a4ae0",
+      "size_bytes": 38373442
+    },
+    "int8": {
+      "path": "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "sha256": "7fe31442a8d5787f963c3ecc79ec94dd559f3d2c02834e7c8a5dffcb58680b42",
+      "size_bytes": 10463092
+    }
+  },
+  "runner_sha256": "2b4f4069284411c667536476e1b619bcf106d23cd1578d5e9b356806c5188e90",
+  "prediction_parity": "all 18 outputs equal baseline",
+  "commands": [
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r1_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r1_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r1_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r1_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r1_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r1_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r2_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r2_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r2_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r2_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r2_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r2_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r3_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r3_002d290d-90f2bab2.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/002d290d-90f2bab2.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r3_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r3_0090c713-9d58a186.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/0090c713-9d58a186.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_fp32_opset13.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_fp32_r3_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ],
+    [
+      "/tmp/high-stage-cpu-20261010-build/high_lk_runner",
+      "/home/ubuntu/YOLO/docs/test-results/high_fp32_int8_lk_20261008/models_u8s8/high_int8_u8s8_perchannel.onnx",
+      "/home/ubuntu/YOLO/docs/test-results/high_stage_cpu_20261010/results/measured/high_lk_int8_r3_02344f0c-d5d916ff.json",
+      "high_lk",
+      "10",
+      "/home/ubuntu/YOLO/datasets/bdd100k_tracking_video/bdd100k_videos_train_00/bdd100k/videos/train/02344f0c-d5d916ff.mov"
+    ]
+  ]
+}
