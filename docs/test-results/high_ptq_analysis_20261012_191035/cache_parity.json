@@ -1,0 +1,7 @@
+{
+  "initializers_equal": true,
+  "outputs_equal": true,
+  "checked_images": 3,
+  "calibration_threads": 8,
+  "ort_version": "1.23.2"
+}

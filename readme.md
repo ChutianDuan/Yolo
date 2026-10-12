@@ -1,369 +1,490 @@
-# 把一段交通视频摊开来看：VisionTrack 的架构与实现
+# VisionTrack
 
-道路视频检测真正困难的部分，不是让 YOLO 在一张图片上画出框，而是让一段视频在有限 CPU 资源上持续产生可信、可解释、可部署的结果。
+基于 YOLO26 的道路目标检测与视频跟踪项目，提供 C++ 推理服务、Web 工作台和 Qt 图片客户端。训练与导出使用 Python，部署使用 ONNX Runtime / OpenVINO CPU 推理，通过动态检测间隔、LK 光流和目标跟踪减少视频中的模型调用。
 
-每帧都运行高分辨率模型，精度基线清楚，但吞吐和延迟很快成为瓶颈；简单抽帧，车辆、行人和交通灯的轨迹又会在检测帧之间断开。异步推理还会带来另一个问题：模型返回的是过去某一帧的结果，系统必须把它校正到当前时间线，才能避免轨迹回跳。
+当前面向 BDD100K 道路场景，支持 `person`、`rider`、`car`、`truck`、`bus`、`train`、`motor`、`bike`、`traffic light`、`traffic sign` 共 10 类目标。
 
-VisionTrack 围绕这个工程矛盾展开：
+- [实现效果](#实现效果)
+- [系统框架](#系统框架)
+- [具体流程](#具体流程)
+- [环境与运行](#环境与运行)
+- [PTQ INT8 量化](#ptq-int8-量化)
+- [模型训练与导出](#模型训练与导出)
+- [验证与排查](#验证与排查)
+- [当前限制](#当前限制)
+- [相关文档](#相关文档)
 
-- 用 YOLO26 完成图片和视频强检测；
-- 用动态 stride 控制模型调用频率；
-- 在跳过的帧上使用 LK 光流和 ByteTrack 续轨；
-- 用高低分辨率模型协同处理速度与精度的取舍；
-- 将训练环境与 C++ 部署环境分开；
-- 通过 Drogon HTTP 接口、Web 工作台和 Qt 客户端交付结果。
+## 实现效果
 
-项目当前面向 BDD100K 道路场景，识别人、车辆、交通灯和交通标志等 10 类目标。
+### 视频检测与跟踪
 
-本文运行说明于 2026-09-29 对照源码同步；带日期的性能数据为历史实验结果。
+[![道路视频检测与跟踪结果，第 360 帧](docs/assets/visiontrack-video-frame-360.jpg)](Readme/dynamic_onnx_flow_detections.mp4)
 
-## 系统边界
+上图截取自仓库已有预测视频的约第 12 秒，点击图片可查看完整视频。画面中车辆、交通灯和交通标志带有目标框；标签依次显示轨迹 ID、类别和分数。左上角标明当前帧、结果来源及轨迹数量，便于观察模型检测与光流传播的切换。
 
-开发环境中，浏览器首先访问 Vite。Vite 只代理推理请求，真正的 Gateway、API 和视频 worker 都位于同一个 **yolo_api** 进程中。curl 或其它客户端可以绕过 Vite，直接访问 Drogon 的 8080 端口。
+这张图和视频是已保存的演示结果。Web 工作台与 API 可用于验证当前代码和本地模型的输出。
 
-~~~mermaid
+### Web 工作台
+
+![VisionTrack 工作台](docs/assets/visiontrack-workbench-overview.png)
+
+| 区域 | 可查看内容 |
+| --- | --- |
+| 输入与请求 | 媒体信息、接口路径、上传字段、请求状态 |
+| 结果画布 | 当前帧目标框、类别、分数和轨迹 ID |
+| 时间线与轨迹面板 | 逐帧回放、轨迹出现区间、当前可见状态和结果来源 |
+| 性能与事件面板 | 响应提供的阶段耗时、检测次数及请求诊断 |
+
+上图使用内置 BDD100K Demo replay 展示界面。Demo 不发送推理请求；实际检测需连接后端、上传媒体并点击 `Run`。响应未提供的指标显示为 `not reported`。
+
+### CPU 视频处理对比
+
+2026-10-10 的 High + LK 分阶段实验，在同一组本地视频上对比 FP32 与 INT8：
+
+| 指标 | FP32 + LK | INT8 + LK |
+| --- | ---: | ---: |
+| 整链路处理吞吐 | 25.68 FPS | 33.61 FPS |
+| 单次模型推理平均耗时 | 153.62 ms | 81.13 ms |
+| 运行期平均 RSS | 337.06 MiB | 311.06 MiB |
+
+该实验使用 OpenVINO CPU、1280×736 输入、固定 stride=8、同步单模型，三段视频各运行三轮。整链路加速约 **1.31×**，与单次模型推理加速不同。
+
+这是跟踪时钟修复前的实验快照，不代表当前版本或多路 RTSP 性能；量化也需结合精度变化评估。阶段统计、实验条件和复现方法见 [对应测试说明](docs/test-results/high_stage_cpu_20261010/README.md)。
+
+## 系统框架
+
+```mermaid
 flowchart LR
-    Browser[Browser / React workbench]
-    Client[curl / other client]
-    Vite[Vite dev server<br/>UI and reverse proxy]
+    Train[Python 训练与导出] --> Models[(模型与 YAML 配置)]
+    Browser[React 工作台] --> Vite[Vite 开发代理]
+    Vite --> Gateway
+    Client[curl / 业务客户端] --> Gateway
 
-    subgraph Service[yolo_api process]
-        Gateway[ApiGateway<br/>routes and limits]
-        ImageAPI[Image handler]
-        VideoAPI[Video handler]
-        Temp[Temporary video]
-        Jobs[VideoJobExecutor]
-        Streams[RealtimeStreamManager]
-        Shared[Shared InferenceScheduler]
-        SSE[SSE events]
-        CV[OpenCV preprocess]
-        Scheduler[Dynamic scheduler]
-        Worker[AsyncInferWorker<br/>in-process thread]
-        Tracking[LK flow and trackers]
-        Engine[YoloEngine<br/>ORT or OpenVINO]
-        JSON[response_json]
+    subgraph Backend[yolo_api 进程]
+        Gateway[Drogon API Gateway]
+        Gateway --> Image[图片处理]
+        Gateway --> Video[上传视频任务池]
+        Gateway --> Streams[实时流管理]
+        Video --> FileProcessor[每个上传任务独立处理与跟踪]
+        Streams --> LiveProcessor[每路流独立解码与跟踪]
+        FileProcessor --> Scheduler[高低模型共享推理调度器]
+        LiveProcessor --> Scheduler
+        Image --> Engine[YoloEngine]
+        Scheduler --> Engine
+        Engine --> Result[结果与指标]
+        FileProcessor --> Result
+        LiveProcessor --> Result
+        Result --> Output[HTTP JSON / SSE]
     end
 
-    Models[(Models, classes and config)]
-
-    Browser --> Vite --> Gateway
-    Client --> Gateway
-    Gateway --> ImageAPI --> CV --> Engine
-    Gateway --> VideoAPI --> Temp --> Jobs --> Scheduler
-    Gateway --> Streams --> Shared --> Engine
-    Streams --> SSE
-    SSE --> Client
-    Scheduler --> Worker --> Shared
-    Scheduler --> Tracking
     Models --> Engine
-    Engine --> JSON
-    Tracking --> JSON
-    JSON --> Gateway --> Browser
-~~~
+    Models --> Qt[Qt 本地图片客户端]
+    Output --> Browser
+    Output --> Client
+```
 
-这里没有数据库、Redis、消息队列或向量库：
+| 模块 | 目录 | 职责 |
+| --- | --- | --- |
+| 模型开发 | `model/` | 训练、困难样本挖掘、蒸馏与 ONNX / INT8 导出 |
+| Web 界面 | `front/` | React + TypeScript 工作台、上传与结果回放 |
+| 服务入口 | `yolo_onnx_cpp/main.cpp`、`config/` | 配置解析、模型加载和服务启动 |
+| HTTP 接入 | `yolo_onnx_cpp/drogon/` | 路由、请求门禁、上传任务池、JSON 与 SSE |
+| 推理执行 | `yolo_onnx_cpp/image/`、`model/` | 预处理、输出解析、推理后端与共享调度 |
+| 视频与实时流 | `yolo_onnx_cpp/video/`、`stream/` | 检测节奏、解码队列、光流、异步校正与流生命周期 |
+| 跟踪与观测 | `yolo_onnx_cpp/tracking/`、`metrics/` | ByteTrack、AuthorityTracker、计时与资源统计 |
+| 桌面界面 | `qt_ui/` | 直接复用 C++ 推理代码的 Qt Widgets 图片客户端 |
 
-- 模型、类别文件和 YAML 配置是磁盘上的持久化输入；
-- 上传视频会写入系统临时目录，请求结束后删除；
-- 上传视频的帧、轨迹和结果属于单次请求，HTTP 响应后不保存可查询的任务结果；
-- 实时流由 `/streams` 注册，独立于创建请求持续运行；每路保存跟踪状态及最多 256 条 SSE 事件，终态记录需要 DELETE 释放；
-- 共享推理调度器、任务池和累计指标属于进程内状态，进程重启后不会恢复；
-- **yolo_onnx_cpp/test_outputs/** 保存本地生成的大型运行产物；纳入版本管理的历史验证快照集中在 **docs/test-results/**。它们都不是在线数据库。
+Gateway、视频 worker、实时流线程和调度器运行在同一个 `yolo_api` 进程内。每个上传任务、每路实时流各自维护帧历史、光流与跟踪状态；高、低模型分别拥有共享调度器，上传视频和实时流共用推理资源。轨迹 ID 属于当前任务或流，不用于跨摄像头身份识别。Qt 直接加载模型，不经过 HTTP。
 
-因此，Gateway 是进程内 HTTP 边界，不是独立微服务；Worker 是内存工作线程，也不是可恢复的队列消费者。
+| 使用场景 | 入口 | 结果交付 |
+| --- | --- | --- |
+| 单张图片检测 | Web、`/infer` 或 Qt | 检测框与类别；Qt 在本地显示 |
+| 本地视频分析 | Web 或 `/infer_video` | 完整处理后返回逐帧轨迹与摘要 |
+| 高低模型协同分析 | `/infer_video_high_low` | 逐帧轨迹、摘要与 High/Low 诊断 |
+| 持续监测摄像头 | `/streams` | 独立运行，通过 SSE 持续订阅 |
 
-## 关键架构取舍
+Web 当前接入图片和单模型上传视频；High/Low 与实时流使用 API。实时流是否使用低模型由服务启动时的配置决定。
 
-### 训练与部署环境分开
+训练环境与 C++ 部署环境独立。在线服务不依赖 Python、数据库或消息队列；任务、轨迹和 SSE 缓存保存在内存中，进程重启后不恢复。
 
-训练、验证和 ONNX 导出使用 **yolo** Conda 环境，可以使用 PyTorch 和 CUDA。在线服务使用 CMake、GCC15 和 **/root/vcpkg** 中的 Drogon、OpenCV、ONNX Runtime 或 OpenVINO，不依赖 Python 运行时。
+## 具体流程
 
-仓库中的 **rag-api** 环境不参与 VisionTrack 推理链路。
+### 1. 服务初始化
 
-### C++ CPU 推理基准结论
+1. `main.cpp` 读取命令行指定的 YAML；未指定时使用构建 preset 选定的默认配置。
+2. 解析模型路径、输入尺寸、类别、线程与队列限制。模型相对路径以 **YAML 所在目录** 为基准。
+3. 加载高分辨率模型；配置了 `low_res_model_path` 时同时加载低分辨率模型。任一已配置模型加载失败，服务退出。
+4. 创建请求门禁、上传视频任务池、高低模型调度器与实时流管理器。
+5. 注册路由，在 `0.0.0.0:8080` 监听请求。
 
-2026-09-03 使用同一套 C++ OpenCV 预处理、YoloEngine、decode 和 NMS，对 ONNX Runtime 1.23.2 与 OpenVINO 2026.1.0 进行了单实例、batch=1、同步 CPU 推理测试。两个后端读取相同 ONNX 权重；每个模型、后端和线程数组合采集 150 个正式样本，共 3000 个样本。
+### 2. 图片检测
 
-![C++ CPU 推理基准：OpenVINO 与 ONNX Runtime 线程性能及 8/16 线程稳定性对比](docs/assets/cpu-backend-thread-benchmark.png)
+```text
+上传 image → 请求校验 → OpenCV 解码 → letterbox / resize
+→ RGB、归一化、NCHW float32 → 模型推理
+→ 输出解析、坐标还原、class-aware NMS → HTTP JSON
+```
 
-| 模型 | ONNX Runtime 最优 | OpenVINO 最优 | OpenVINO 相对优势 |
-| --- | ---: | ---: | ---: |
-| 1280 × 736 | 137.38 ms，16 线程 | 91.98 ms，16 线程 | 1.49x |
-| 640 × 384 | 46.23 ms，16 线程 | 22.90 ms，16 线程 | 2.02x |
+结果包含检测框、类别、分数、输出 shape 和性能统计。当前部署 YOLO26 的输出为 `[1, 300, 6]`，每行是 `x1, y1, x2, y2, score, class_id`；服务还会执行外部 NMS，并保留旧候选输出格式的解析兼容。
 
-结论：
+### 3. 上传视频检测与跟踪
 
-- CPU 单实例平均延迟优先选择 OpenVINO，并将 thread_num 设为 16；
-- OpenVINO 16 线程波动更大。大模型 8 线程 P95 为 114.28 ms，优于 16 线程的 146.99 ms；需要更稳定尾延迟时，8 线程是更保守的候选；
-- High/Low 双 Session 或多请求并发会竞争 CPU，生产配置应继续对 8、16 线程做并发吞吐验证，不能直接用单实例结论替代并发压测。
+```text
+上传 video → 暂存视频 → 有界视频任务池 → 逐帧解码
+→ 检测节奏判断、LK 光流传播、模型结果校正、轨迹更新
+→ 汇总帧结果与指标 → 一次性返回 JSON → 清理临时视频
+```
 
-thread_num 在 C++ 中分别映射到 ONNX Runtime 的 SetIntraOpNumThreads 和 OpenVINO 的 ov::inference_num_threads。完整测试条件、大小模型明细和原始数据见 [C++ ONNX Runtime / OpenVINO 合并报告](docs/test-results/onnx_thread_benchmark/20260903_020914_utc/combined_report.md)。
+| 环节 | 单模型 `/infer_video` | High/Low `/infer_video_high_low` |
+| --- | --- | --- |
+| 强检测 | 使用高分辨率模型 | 高模型负责权威校正，低模型负责较频繁刷新 |
+| 检测间隔 | 按源 FPS 和 `video_detect_fps` 计算基础 stride；动态模式随运动与光流质量调整 | 低模型按动态 stride 检测，高模型由基础 stride 推导刷新周期，必要时提前触发 |
+| 中间帧 | LK 光流传播已有目标，ByteTrack 更新轨迹 | LK 光流传播，AuthorityTracker 管理稳定、候选与生命周期状态 |
+| 异步模式 | worker 执行模型，结果返回后补偿到当前时间线 | 高模型可异步执行，返回后进行历史回放校正；低模型在文件处理线程等待结果 |
+| 输出 | 逐帧轨迹、来源、检测次数与阶段指标 | 逐帧轨迹及额外 High/Low 诊断 |
 
-### 强检测与弱跟踪分工
+例如源视频 24 FPS、`video_detect_fps=4` 时，单模型基础 stride 为 6。固定间隔、同步执行时可按下面理解；默认动态与异步模式下，调用位置和校正时机可能变化：
 
-模型强检测负责重新确认类别和几何位置；光流只负责短间隔传播已有框；ByteTrack 负责轨迹 ID 和生命周期。稳定场景不必每帧调用模型，光流质量下降、尺度或速度突变时则提前触发强检测。
+| 源帧 | 第 0 帧 | 第 1–5 帧 | 第 6 帧 |
+| --- | --- | --- | --- |
+| 模型调用 | 检测 | 不调用 | 检测 |
+| 目标位置 | 模型确认 | LK 光流传播 | 模型重新校正 |
+| 轨迹更新 | 检测关联 | 光流更新 | 检测关联 |
 
-光流不是检测器，它只承担检测帧之间的时间连续性。
+模型负责发现目标与校正位置，光流只传播已有目标。动态模式在光流质量下降或目标运动变化时提前检测；`video_detect_fps=0` 表示逐帧检测。
 
-### 结构体先行，JSON 只出现在边界
+单模型帧结果通过 `tracks_source` 标明来源：
 
-推理过程使用 **InferResult**、**VideoFrameTracks** 和 **VideoInferResult** 等 C++ 结构体。上传视频在请求完成后由 **response_json.cpp** 生成响应；实时流通过同文件的 **realtimeFrameEventToJson** 逐事件序列化到 SSE。
+| 来源 | 含义 |
+| --- | --- |
+| `detected` | 同步模型检测与轨迹关联 |
+| `async_corrected` | 异步检测返回后，经过时间补偿的校正结果 |
+| `weak_tracked` | LK 光流传播已有目标 |
+| `interpolated` | 相邻检测帧间的插值兜底 |
+| `empty` | 当前没有可用轨迹 |
 
-### 上传视频等待完整响应，实时流持续输出
+**上传视频请求需要等待完整处理结束。** 内部 worker 异步执行不改变 HTTP 的一次性响应方式。`include_frames=false`、`frame_offset`、`frame_limit` 仅裁剪返回结果，不减少视频推理工作。
 
-视频接口对调用方仍是同步 HTTP：客户端上传完整视频，等待处理完毕，再一次性接收 JSON。内部 **AsyncInferWorker** 可以并行执行强检测；旧帧结果返回时，系统先做运动补偿，再校正当前轨迹。
+`frame_offset=N` 按结果数组的下标裁剪，从 0 开始；`frame_limit=N` 最多返回 N 帧且 N 必须为正整数。返回结果中的 `frames_returned` 和 `has_more_frames` 描述本次裁剪范围，服务不会保存剩余帧供后续查询；重新请求会重新推理。
 
-实时源则走 `/streams`：创建返回 201 后独立运行，通过 SSE 持续输出。当 `video_model_async=true` 且所需共享调度器可用时，单模型和高低模型都采用非阻塞推理、历史回放校正和当前帧光流；本地文件、关闭异步或缺少所需调度器时走同步回退。上传视频仍没有可查询的持久化 job API。
+### 4. 多路实时流
 
-## 真实数据流
+1. 客户端调用 `POST /streams`，提交唯一 `stream_id` 和视频源 `source`。
+2. 管理器注册流并返回 `201`，为该流启动解码与处理线程；创建成功仅表示已注册，连接状态需继续查询。
+3. 解码帧进入有界队列。实时源优先保留新帧并丢弃过期结果，本地文件通过背压等待处理。
+4. 处理线程进行光流传播、检测调度与轨迹更新；多个流通过高低模型共享调度器约束推理并发。
+5. 在开启 `video_model_async` 且所需调度器可用时，实时源采用非阻塞推理和历史回放校正；本地文件、关闭异步或缺少所需调度器时采用同步处理分支。
+6. `GET /streams/{id}/events` 通过 SSE 输出结果，`GET /streams/{id}` 查询状态，`GET /metrics` 查看累计指标。
+7. 调用 `DELETE /streams/{id}` 停止并释放注册名额。已完成或失败的记录也需要 DELETE 释放。
 
-### 图片
+双模型实时流以 `video_detect_fps` 控制低模型刷新、`video_high_detect_fps` 控制高模型周期；单模型实时流使用 `video_detect_fps` 调度高模型。上传 High/Low 视频的高模型周期由基础 stride 推导。实时异步分支按本地解码时钟安排调用，不按摄像头声明的 FPS 直接计数。
 
-~~~text
-multipart image
--> ApiGateway
--> ImageInferenceHandler
--> OpenCV decode and letterbox
--> NCHW float tensor
--> YoloEngine
--> InferResult
--> response_json
--> HTTP JSON
-~~~
+SSE 普通事件名为 `detection`，光流结果也使用该名称；终止事件为 `end`。断线重连可携带 `Last-Event-ID` 补发内存缓存中的后续事件，每路最多缓存 256 条。游标过旧或超前会收到 `error` 并关闭连接；进程重启或记录删除后不能恢复。
 
-图片请求不会创建后台任务。响应包含检测框、输出 shape、阶段耗时、CPU 利用率和 RSS 内存。
+## 环境与运行
 
-### 普通视频
+服务端与 Qt 使用仓库现有 `/root/vcpkg`、`x64-linux-gcc15` triplet 和 GCC15 toolchain，具体边界见 [AGENTS.md](AGENTS.md)。以下命令均注明起始目录，后端与前端分别在独立终端运行。
 
-~~~text
-multipart video
--> temporary file
--> bounded VideoJobExecutor
--> OpenCV VideoCapture
--> calculate base stride
--> LK optical flow on readable frames
--> schedule model detection when due or quality degrades
--> compensate completed async detections
--> update ByteTrack
--> interpolate only when no tracking result is usable
--> collect VideoInferResult
--> serialize one HTTP response
--> delete temporary file
-~~~
+### 1. 准备环境与模型
 
-以 24 FPS 视频和目标检测帧率 4 FPS 为例，基础 stride 是 6。稳定阶段大约每 6 帧调度一次模型；复杂运动或光流质量下降时，动态策略会缩短间隔。
+| 用途 | 环境 / 依赖 | 说明 |
+| --- | --- | --- |
+| C++ 服务 | CMake ≥ 3.20、Ninja、GCC15；vcpkg 中的 Drogon、OpenCV、ONNX Runtime、jsoncpp | OpenVINO 是可选构建后端 |
+| Web 工作台 | Node.js / npm | 依赖由 `front/package-lock.json` 锁定 |
+| 训练、导出及 Python 测试 | Conda `yolo` | 规格见 [envs/yolo.yml](envs/yolo.yml) |
+| Qt 客户端 | 同一 vcpkg 工具链、Qt6 Widgets | 详见 [Qt 说明](qt_ui/README.md) |
 
-每帧通过 **tracks_source** 说明来源：
+`rag-api` 不参与本项目推理流程，不需要为启动 VisionTrack 创建该环境。已有 Python 环境的边界见 [环境说明](envs/README.md)。
 
-- **async_corrected**：异步模型结果已经过时间补偿；
-- **detected**：同步或兼容路径的强检测结果；
-- **weak_tracked**：使用 LK 光流传播；
-- **interpolated**：相邻检测帧之间的插值兜底；
-- **empty**：没有可用结果。
+模型需要本地准备，服务不会自动下载。默认配置需要以下两个权重：
 
-### 高低分辨率协同
+```bash
+# 仓库根目录
+ls -lh yolo_onnx_cpp/deploy/best.onnx \
+  yolo_onnx_cpp/deploy/best_640x384.onnx
+```
 
-**/infer_video_high_low** 使用高分辨率模型维护权威状态，低分辨率模型承担更频繁的轻量刷新。AuthorityTracker 在 high-res、low-res、flow 及异步 replay 后更新 stable、provisional、去重和生命周期状态。
-
-2026-07-10 三场景伪标签回归中，pooled precision 从 0.5048 提高到 0.7249，F1 从 0.6384 提高到 0.7726，FP 减少约 63%。完整记录见 [优化计划](docs/reports/优化计划.md) 和 [视频算法对比报告](docs/reports/video_algorithm_comparison_20260710.md)。
-
-预测视频：[dynamic_onnx_flow_detections.mp4](Readme/dynamic_onnx_flow_detections.mp4)。
-
-## 当前工作台
-
-![VisionTrack workbench overview](docs/assets/visiontrack-workbench-overview.png)
-
-截图由当前 **front/** 代码正式构建后，在 1440 × 900 视口生成，使用内置 BDD100K Demo replay。它展示的是真实界面状态，但不是一次真实 Drogon 响应，因此明确标记了 Demo、Not checked 和 not reported。
-
-界面可以观察：
-
-- endpoint、multipart 字段和请求状态；
-- 强检测、跳帧、光流、动态 stride、ByteTrack 和 JSON 节点；
-- 当前帧目标框、类别、置信度与结果来源；
-- 轨迹生命周期和可见状态；
-- 模型、光流、跟踪及端到端指标；
-- 当前响应未提供的字段，而不是前端生成的虚构数据。
-
-前端当前调用 **/infer** 和 **/infer_video**。High/Low endpoint 已由后端提供，但尚未加入工作台模式选择。
-
-## 状态、可观测性与失败语义
-
-上传接口和实时流有不同的结束边界：
-
-- `/infer` 和两个上传视频接口一次性返回 JSON；成功响应的 `code` 为 0。上传连接重试会重新计算，没有幂等键或任务续算。
-- `/streams/{id}/events` 使用 SSE，普通事件为 `detection`、终止事件为 `end`；每条结果包含递增的事件 ID。光流帧也使用 `detection` 名称。
-- 携带 `Last-Event-ID` 可以补发该流内存缓存中游标之后的事件，再接收新事件。缓存最多 256 条，游标过旧或超前会收到 `error` 并关闭；不支持进程重启后的恢复，也没有 WebSocket 路由。
-- 上传、媒体或参数错误通常返回 400，模型或内部异常返回 500；开启门禁后有 401/429，上传任务池满返回 503，实时流重复 ID 或注册容量满返回 409。
-
-应用结构化日志采用字段白名单：上传日志关联 request ID、route、stream ID、状态码与性能计数，不记录上传文件名或原始异常文本；流日志不记录源地址。响应中的 timing、metrics 和 high_low_diagnostics 提供请求诊断，`/metrics` 提供流、调度器、任务池与门禁的 Prometheus 指标。
-
-~~~bash
-curl -i http://127.0.0.1:8080/health
-curl -i http://127.0.0.1:8080/ready
-~~~
-
-`/health` 返回 `{"status":"ok"}`，`/ready` 只检查流管理器是否存在；两者免鉴权和限流，不能证明摄像头连通或业务推理质量。`/metrics` 仍受门禁约束。
-
-## 最短运行路径
-
-以下路径假设 **/root/vcpkg** 已按仓库约束准备好。项目没有 .env、数据库初始化或一键整栈脚本。
-
-### 1. 确认本地模型
-
-项目不会自动下载权重：
-
-~~~bash
-ls -lh yolo_onnx_cpp/deploy/best.onnx yolo_onnx_cpp/deploy/best_640x384.onnx yolo_onnx_cpp/deploy/classes.json
-~~~
+核对 [config.yaml](yolo_onnx_cpp/config.yaml) 中的路径与输入尺寸：高模型 `1280×736`，低模型 `640×384`。类别从 YAML 的 `class_names` 读取，`classes.json` 是导出元数据。只使用单模型时，可在自己的配置中清空 `low_res_model_path`。
 
 ### 2. 构建并启动后端
 
-~~~bash
+默认 ONNX Runtime 路径：
+
+```bash
+# 从仓库根目录开始
 cd yolo_onnx_cpp
 cmake --preset vcpkg-gcc15-release
 cmake --build --preset vcpkg-gcc15-release
 ../build/yolo_api config.yaml
-~~~
+```
 
-服务监听 0.0.0.0:8080，日志直接输出到终端。项目不创建 PID 文件或固定日志目录；使用 Ctrl-C 停止。
+需要 OpenVINO 时，使用包含该后端的 preset；环境须已准备好可由 CMake 找到的 OpenVINO Runtime：
 
-### 3. 安装并启动前端
+```bash
+# 从仓库根目录开始
+cd yolo_onnx_cpp
+cmake --preset vcpkg-gcc15-openvino
+cmake --build --preset vcpkg-gcc15-openvino
+../build-openvino/yolo_api config.multistream.yaml
+```
 
-在另一个终端运行：
+| 配置 | 用途 | 关键区别 |
+| --- | --- | --- |
+| [config.yaml](yolo_onnx_cpp/config.yaml) | 默认图片与视频流程 | `.onnx` + `auto` 使用 ONNX Runtime，默认动态 stride 与异步模式 |
+| [config.reference.yaml](yolo_onnx_cpp/config.reference.yaml) | 单模型逐帧检测参考 | `video_detect_fps=0`、关闭异步、无低模型 |
+| [config.multistream.yaml](yolo_onnx_cpp/config.multistream.yaml) | CPU 多路调参起点 | 显式 OpenVINO、throughput、分别配置高低模型与服务线程 |
 
-~~~bash
+`auto` 对 `.onnx` 选择 ONNX Runtime，对 `.xml` 选择 OpenVINO；使用 OpenVINO 加载 ONNX 时需要显式配置 `model_backend: openvino`。多路配置是调参起点，线程数和请求池大小需按实际负载验证。
+
+服务日志输出到终端，使用 `Ctrl-C` 停止。默认使用 HTTP，鉴权与限流关闭；可通过配置启用 Bearer 门禁、限流及 TLS。
+
+### 3. 关键配置
+
+以下值来自默认 `config.yaml`，多路配置可能不同。修改 YAML 后需要重启服务。
+
+| 配置项 | 默认值 | 作用与调整依据 |
+| --- | --- | --- |
+| `conf_threshold` / `iou_threshold` | `0.25` / `0.45` | 模型输出分数过滤与外部 NMS，调整后需重新检查漏检与重复框 |
+| `use_letterbox` | `true` | 保持宽高比并补边；输入宽高仍需匹配模型静态 shape |
+| `video_detect_fps` | `4.0` | 上传视频的基础采样频率、实时流的模型刷新预算；不是视频处理吞吐 |
+| `video_high_detect_fps` | `1.0` | 双模型实时流的高模型周期；0 关闭周期刷新，保留首帧与紧急检测 |
+| `video_stride_mode` / `video_model_async` | `dynamic` / `true` | 前者调整上传视频检测间隔，后者控制视频与实时流的异步分支 |
+| `max_streams` | `4` | 同时注册的流数量上限，包含尚未删除的终态记录 |
+| `per_stream_queue_depth` | `2` | 每路帧队列与推理排队的容量限制 |
+| `max_request_age_ms` | `300` | 共享调度器对排队请求的新鲜度约束 |
+| `max_result_age_ms` | `300` | 实时源从本地解码到结果输出的时限；0 关闭过期丢弃 |
+| `video_job_threads` / `video_job_queue_depth` | `2` / `4` | 上传视频任务的执行线程与等待容量，满载时返回 503 |
+| `client_max_body_mb` / `client_max_memory_body_mb` | `256` / `16` | 请求体总上限与内存存储阈值，大请求可暂存到磁盘 |
+
+模型线程通过 `high_model_threads`、`low_model_threads` 设置：高模型为 0 时回退到 `thread_num`，低模型为 0 时继承解析后的高模型线程数。`server_io_threads=0` 回退到 `thread_num`；`opencv_threads=0` 时服务不主动设置 OpenCV 线程数。
+
+OpenVINO 的 `infer_request_count=0` 使用运行时报告的最优请求数量；`low_res_infer_request_count=0` 继承高模型请求数量配置。线程数与请求数需一起验证，增加线程或并发并不保证降低延迟。
+
+### 4. 检查服务并启动 Web
+
+先在新终端确认服务可访问：
+
+```bash
+curl -i http://127.0.0.1:8080/health
+curl -i http://127.0.0.1:8080/ready
+```
+
+预期分别返回 `{"status":"ok"}` 和 `{"status":"ready"}`。这两个接口免鉴权和限流，`/ready` 仅检查流管理器是否存在；实际推理仍需上传图片验证。
+
+然后启动工作台：
+
+```bash
+# 从仓库根目录开始，在另一个终端运行
 cd front
 npm ci
-npm run dev -- --host 0.0.0.0
-~~~
+npm run dev
+```
 
-Vite 默认代理图片和视频接口到 127.0.0.1:8080。连接其它后端时使用：
+打开 Vite 输出的访问地址。默认通过 [vite.config.ts](front/vite.config.ts) 将图片与视频请求代理到 `127.0.0.1:8080`。后端不在同机时，修改代理 `target`；`VITE_API_BASE_URL` 则会让浏览器直接请求该地址，跨域时需由部署侧配置 CORS 或使用同源反向代理。生产构建使用 `npm run build`，代理需由部署环境提供。
 
-~~~bash
-VITE_API_BASE_URL=http://127.0.0.1:8080 npm run dev -- --host 0.0.0.0
-~~~
+工作台操作顺序：
 
-前后端分别运行在两个前台终端，可以独立使用 Ctrl-C 重启或停止。当前没有统一 PID、日志和服务编排脚本。
+1. 点击 `Upload` 或 `Select image or video` 选择媒体，确认接口与上传字段随媒体类型切换。
+2. 点击 `Run` 发起请求。视频需等待完整处理结束，再进入结果回放。
+3. 在画布和结果列表查看目标；视频可通过时间线播放、暂停或逐帧定位，并选择轨迹查看出现区间。
+4. 查看请求状态与性能指标；报错时先检查事件面板和后端终端日志。
 
-### 4. 直接验证 API
+`UI score filter` 只过滤已经返回的目标框，不改变服务端 `conf_threshold`，也不重新运行推理。`Load Demo replay` 可在未连接后端时演示界面。
 
-~~~bash
-curl -X POST http://127.0.0.1:8080/infer -F "image=@/path/to/image.jpg"
+### 5. 调用 API
 
-curl -X POST "http://127.0.0.1:8080/infer_video?include_frames=false" -F "video=@/path/to/video.mp4"
-~~~
+| Method | Path | 请求内容 / 用途 |
+| --- | --- | --- |
+| POST | `/infer` | multipart 字段 `image`，图片检测 |
+| POST | `/infer_video` | multipart 字段 `video`，单模型视频跟踪 |
+| POST | `/infer_video_high_low` | multipart 字段 `video`，高低模型协同 |
+| POST | `/streams` | JSON 字段 `stream_id`、`source`，注册视频源 |
+| GET | `/streams`、`/streams/{id}` | 流列表与状态 |
+| DELETE | `/streams/{id}` | 停止并释放流 |
+| GET | `/streams/{id}/events` | SSE 结果订阅 |
+| GET | `/health`、`/ready`、`/metrics` | 健康、就绪与 Prometheus 指标 |
 
-在线请求不写数据库；视频只会短暂写入系统临时目录。训练、导出和对比脚本会写入 runs、deploy 或显式输出目录，执行前应单独确认。
+图片及上传视频示例，替换为本地媒体路径：
 
-## 代码分层
+```bash
+curl -X POST http://127.0.0.1:8080/infer \
+  -F 'image=@/path/to/image.jpg'
 
-~~~text
-front/                         React 工作台、HTTP client 和 Demo replay
-model/                         YOLO26 训练、BDD100K 工具和 ONNX 导出
-yolo_onnx_cpp/
-  main.cpp                     配置、模型加载和启动
-  config/                      YAML 配置解析
-  drogon/api_contract.h        路由与上传字段契约
-  drogon/api_gateway.*         路由注册、监听和请求限制
-  drogon/inference_handlers.*  图片和视频 HTTP 编排
-  drogon/realtime_stream_handlers.*  实时流 CRUD、SSE、健康与指标接口
-  drogon/video_job_executor.*  上传视频有界任务池
-  drogon/request_gate.*        Bearer 鉴权与按客户端 IP 限流
-  drogon/request_utils.*       查询参数和临时文件
-  drogon/response_json.*       外部 JSON schema
-  image/                       解码、letterbox、tensor 和输出解析
-  model/                       ONNX Runtime / OpenVINO 推理与共享调度器
-  stream/                      实时解码、异步回放、检测节奏和流生命周期
-  video/                       调度、worker、光流和 High/Low
-  tracking/                    ByteTrack 与 AuthorityTracker
-  metrics/                     延迟、CPU、内存和队列指标
-  test_cpp/                    C++ 回归测试
-qt_ui/                         不经过 HTTP 的本地 Qt 图片客户端
-docs/                          文档索引、正式报告、测试快照和截图资源
-~~~
+curl -X POST 'http://127.0.0.1:8080/infer_video?include_frames=false' \
+  -F 'video=@/path/to/video.mp4'
 
-推荐阅读顺序：**main.cpp → api_gateway.cpp → inference_handlers.cpp → video_inference.cpp → video_inference_detail.cpp → optical_flow_tracker.cpp / byte_tracker.cpp → yolo_engine.cpp**。
+curl -X POST 'http://127.0.0.1:8080/infer_video_high_low?include_frames=false' \
+  -F 'video=@/path/to/video.mp4'
+```
 
-## 常用 API
+实时源示例，`source` 必须是 **服务端可访问** 的地址或本地文件路径：
 
-| Method | Path | 上传字段 | 用途 |
-| --- | --- | --- | --- |
-| POST | /infer | image | 单张图片检测 |
-| POST | /infer_video | video | 动态 stride、异步强检测、光流和 ByteTrack |
-| POST | /infer_video_high_low | video | 高低分辨率协同与 AuthorityTracker |
-| POST | /streams | JSON: stream_id、source | 注册实时流，返回 201 |
-| GET | /streams、/streams/{id} | — | 流列表与状态 |
-| DELETE | /streams/{id} | — | 停止并释放注册名额 |
-| GET | /streams/{id}/events | — | SSE，可带 Last-Event-ID 补发缓存事件 |
-| GET | /health、/ready | — | 存活与就绪检查 |
-| GET | /metrics | — | Prometheus 指标 |
+```bash
+curl -X POST http://127.0.0.1:8080/streams \
+  -H 'Content-Type: application/json' \
+  -d '{"stream_id":"cam-01","source":"rtsp://camera-host/stream"}'
 
-视频接口支持：
+curl http://127.0.0.1:8080/streams/cam-01
+curl -N http://127.0.0.1:8080/streams/cam-01/events
 
-- **include_frames=false**：只返回摘要和指标；
-- **frame_offset=N**：从第 N 个结果帧开始；
-- **frame_limit=N**：最多返回 N 帧，必须为正整数。
+# 在另一终端停止流，或结束订阅后执行
+curl -X DELETE http://127.0.0.1:8080/streams/cam-01
+```
 
-这些参数只裁剪响应序列化范围，不会减少已经完成的视频推理工作。完整字段以 [response_json.cpp](yolo_onnx_cpp/drogon/response_json.cpp) 和 [Gateway 契约测试](yolo_onnx_cpp/test_cpp/api_gateway_contract_test.cpp) 为准。
+`stream_id` 为 1–64 个字母、数字、`.`、`_` 或 `-`。开启鉴权后，除 `/health`、`/ready` 外，请求需携带 `Authorization: Bearer <token>`。字段定义以 [响应序列化](yolo_onnx_cpp/drogon/response_json.cpp) 和 [API 契约测试](yolo_onnx_cpp/test_cpp/api_gateway_contract_test.cpp) 为准。
+
+上传接口返回后，可按下表读取结果：
+
+| 字段 | 含义 |
+| --- | --- |
+| `code` / `message` | 应用结果状态，上传推理成功时 `code=0` |
+| `detections[]` | 图片检测目标，包含类别、分数和 `box` |
+| `frames[].tracks[]` | 视频轨迹，包含 `track_id` 及对应检测字段 |
+| `box.x1/y1/x2/y2` | 还原到原图坐标系的像素坐标 |
+| `source_fps` / `target_detect_fps` | 视频源帧率与目标检测频率 |
+| `average_fps` | 视频实际处理吞吐，与源帧率和检测频率分别解读 |
+| `timing_ms` | 解码、预处理、推理、光流、跟踪、排队等阶段累计耗时 |
+| `high_low_diagnostics` | 高低模型调用、轨迹更新等诊断计数 |
+
+异步模式下不同线程的耗时可能重叠，阶段累计值不能相加当作整次请求的墙钟耗时。浏览器显示的请求耗时还包含上传和响应传输。
+
+实时流的 `201` 响应没有上传接口的结果结构。创建后应查询状态，并观察 `processed_frame_count` 与 `latest_sequence` 是否持续增长：
+
+| 流状态 | 含义与下一步 |
+| --- | --- |
+| `starting` / `reconnecting` | 正在打开或重新连接源，继续查询并检查可达性 |
+| `running` | 已连接，结合处理计数和 SSE 确认结果持续输出 |
+| `completed` | 本地文件已处理完成，删除记录以释放名额 |
+| `failed` / `expired` | 处理失败或达到配置时限，查看 `last_error` 后删除记录 |
+| `stopping` / `stopped` | 正在停止或已经停止 |
+
+断开 SSE 订阅不会停止视频源；需单独 DELETE。DELETE 成功返回 `{"stream_id":"cam-01","status":"stopped"}`，随后查询该 ID 返回 404。保存最近一次 SSE `id` 后，可在重连时将其作为 `Last-Event-ID` 请求头值。
+
+### 6. 可选：Qt 图片客户端
+
+```bash
+# 从仓库根目录开始，需要图形会话
+bash qt_ui/check_env.sh
+cd qt_ui
+cmake --preset vcpkg-gcc15-release
+cmake --build --preset vcpkg-gcc15-release
+../build-qt/yolo_qt
+```
+
+## PTQ INT8 量化
+
+高分辨率模型支持训练后量化（PTQ）及敏感层排除。直接PTQ使用MinMax校准，Conv输入为U8、权重为逐通道对称S8，bias、Conv输出和其他算子保持浮点；优化时将敏感Conv保留FP32，其余继续INT8。**本次优化没有训练、QAT或源权重更新**，最终产物是INT8/FP32混合精度ONNX，不是全网络整数计算。
+
+2026-10-12对当前部署的`best.onnx`进行实测，固定输入`[1,3,736,1280]`，独立验证集1000张图片：
+
+| 模型 | mAP50 | mAP50-95 | 平均推理延迟 | INT8 / FP32 Conv |
+| --- | ---: | ---: | ---: | ---: |
+| 原始FP32 | 60.583% | 35.033% | 255.840 ms | 0 / 102 |
+| 直接PTQ INT8 | 58.519% | 32.415% | 117.817 ms | 102 / 0 |
+| 优化混合精度PTQ | 60.209% | 34.857% | 116.333 ms | 94 / 8 |
+
+敏感层排查先比较全部102个Conv的局部QDQ误差和累计误差，再对23个候选进行单层排除，并验证正收益层的组合，共27组消融。校准、诊断、调优、最终评测使用分离的数据；层选择仅使用256张调优图片，不使用最终评测结果。所有候选复用同一次200张图片的MinMax校准统计。
+
+优化模型保留8个Conv为FP32，恢复93.27%的直接PTQ精度损失，与FP32的mAP50-95差距缩小到0.176个百分点，同时满足保留至少80%推理时间节省的约束。两种INT8模型的微小延迟差异没有显著性检验，不应解读为优化方案必然更快。
+
+上述延迟使用OpenVINO CPU、8线程、单请求、LATENCY及显式FP32浮点精度；各组独立进程预热10次，用相同100个输入测量三轮并轮换顺序。延迟仅含推理与输出读取，不含前后处理或视频跟踪，不能与前述视频整链路FPS直接比较。数据是固定验证子集结果，稀有类别和真实RTSP场景仍需另行验收；本次实验未替换部署模型或修改服务配置。
+
+排查入口为`model/ptq_analysis.py`，单独PTQ导出使用`model/ptq_int8.py`；后者支持重复传入`--exclude-node`，节点名必须与预处理图中的Conv精确匹配。所有输出需写入不存在的新目录，模型权重和逐样本原始运行数据保留在本地，不纳入Git。
+
+```bash
+# 仓库根目录，使用已有 yolo 环境和本地数据
+conda run -n yolo python model/ptq_analysis.py --help
+conda run -n yolo python model/ptq_int8.py --help
+conda run -n yolo python -m unittest model.test_ptq_analysis
+```
+
+完整参数见[量化说明](model/quantization.md)，实测逐层排名、排除节点、消融结果、三段视频复测及检测对照见[高分辨率PTQ优化报告](docs/test-results/high_ptq_analysis_20261012_191035/report.md)。报告中区分了局部量化误差、共享输入QDQ和上游误差传播，不将“误差大”直接等同于“应保留FP32”。
 
 ## 模型训练与导出
 
-训练环境规格位于 **envs/yolo.yml**：
+仅运行 C++ 服务与 Web 时，可以跳过本节。数据集与本地训练权重需自行准备。
 
-~~~bash
+PTQ INT8 与 QAT INT8 的独立脚本、参数及对比方法见 [量化说明](model/quantization.md)。
+
+```bash
+# 仓库根目录；仅首次创建环境时执行 env create
 conda env create -f envs/yolo.yml
 conda run -n yolo python -m pip check
-~~~
+conda run -n yolo python model/train.py --help
+conda run -n yolo python model/onnx.py --help
+```
 
-**model/train.py** 保留已设置的 `CUDA_VISIBLE_DEVICES`；未设置时默认暴露物理 GPU 4、5。默认 `--device auto` 使用第一张可见 GPU，无 CUDA 时回退 CPU；双卡训练需显式指定 `--device 0,1`。训练分为 `base`、`hard`、`distill` 阶段，具体参数见 `--help`：
+训练支持 `base`、`hard`、`distill` 阶段；`hard` 需基础权重与困难样本清单，`distill` 需 teacher 权重。先使用 `--dry-run` 检查配置和数据，再按选定参数训练。检查仍会生成运行配置与采样清单，应指定新的 `--project` / `--name`，避免复用已有实验目录。
 
-~~~bash
-conda run -n yolo python model/train.py
-~~~
+基础训练检查示例，替换为已准备的数据集、权重和新输出路径：
 
-导出不会由服务自动触发：
+```bash
+conda run -n yolo python model/train.py \
+  --stage base \
+  --dataset-dir /path/to/bdd100k_yolo_det \
+  --model /path/to/local/student.pt \
+  --project /path/to/new-training-runs \
+  --name bdd100k_base \
+  --dry-run
+```
 
-~~~bash
-conda run -n yolo python model/onnx.py --pt /path/to/local/best.pt --data model/data/bdd100k_yolo_det/data.yaml --imgsz 384 640 --deploy-dir /path/to/new-export
-~~~
+检查通过后，移除 `--dry-run` 开始训练，并按资源设置 `--batch`、`--epochs`、`--device`。训练与验证的 `--imgsz` 是单个最长边尺寸，ONNX 导出的 `--imgsz` 是高、宽两个参数。
 
-导出尺寸参数顺序为高、宽；高模型应显式使用 `--imgsz 736 1280`。导出默认使用 opset 13，并进行 INT8 校准；仅导出 FP32 时加 `--skip-int8`。输出目录使用新路径，脚本拒绝覆盖已有导出文件。
+`model/train.py` 保留已设置的 `CUDA_VISIBLE_DEVICES`；未设置时默认暴露 GPU 4、5。`--device auto` 使用第一张可见 GPU，无 CUDA 时回退 CPU；双卡需显式指定 `--device 0,1`。
 
-当前 YOLO26 ONNX 输出为 **output0(1, 300, 6)**，每行按 **x1, y1, x2, y2, score, class_id** 解析。解码器同时保留旧 YOLO 原始候选输出的兼容路径。
+FP32 导出示例：
 
-## 验证
+```bash
+conda run -n yolo python model/onnx.py \
+  --pt /path/to/local/best.pt \
+  --imgsz 384 640 \
+  --deploy-dir /path/to/new-export \
+  --skip-int8
+```
 
-~~~bash
+尺寸顺序为 **高、宽**；导出高模型时使用 `--imgsz 736 1280 --fp32-name best.onnx`。需要 INT8 时移除 `--skip-int8`，并通过 `--data` 指定校准数据 YAML；高模型还应设置对应的 `--int8-name`。脚本默认 opset 13，拒绝覆盖已有输出。导出完成后，将服务配置指向新模型，并同步输入尺寸及类别顺序。
+
+## 验证与排查
+
+已有构建与依赖准备好后，运行相关检查：
+
+```bash
+# 从仓库根目录开始
 cd yolo_onnx_cpp
-cmake --preset vcpkg-gcc15-release
-cmake --build --preset vcpkg-gcc15-release
 ctest --preset vcpkg-gcc15-release
 
 cd ../front
 npm run build
-~~~
+```
 
-CTest 覆盖配置、图片处理、跟踪、共享调度、实时流生命周期、异步回放、SSE 补发、Gateway 契约及相关 Python 工具。训练质量管线可另用 `conda run -n yolo python model/test_training_quality_pipeline.py` 验证。
+OpenVINO 构建对应 `ctest --preset vcpkg-gcc15-openvino`。CTest 包含配置、预处理、跟踪、调度器、实时流、JSON 和 API 契约回归；找到 Conda 时还会注册 `yolo` 环境中的 Python 工具测试。部分集成测试需要本地模型、演示视频，并使用 8080 端口，执行前停止手动启动的服务。
 
-历史报告和已纳入版本管理的验证结果统一从 [docs 文档索引](docs/README.md) 查阅。新的测试运行仍写入 **yolo_onnx_cpp/test_outputs/**，不会覆盖文档快照。
+| 现象 | 优先检查 |
+| --- | --- |
+| 启动失败或模型加载失败 | YAML 路径、模型文件、静态输入尺寸与后端是否匹配 |
+| OpenVINO 后端不可用 | 是否使用 `vcpkg-gcc15-openvino` 构建，Runtime 是否可被找到 |
+| Web 请求失败 | 后端是否在运行、Vite 代理地址、浏览器直连时的跨域配置 |
+| `/streams` 返回 409 | `stream_id` 是否重复、注册数是否达到 `max_streams`，终态流是否已删除 |
+| 实时流无结果 | `/streams/{id}` 的状态、源地址可达性、错误与重连计数 |
+| 延迟或丢帧增加 | `/metrics` 中的队列、过期、丢帧计数，以及线程与请求池配置 |
 
-环境检查：
+参数或媒体错误通常返回 400，内部异常返回 500；门禁启用后可能返回 401 / 429，上传视频任务池满返回 503。
 
-~~~bash
-conda run -n yolo python -m pip check
-conda run -n rag-api python -m pip check
-bash qt_ui/check_env.sh
-~~~
+测试源码位于 `yolo_onnx_cpp/test_cpp/`、`yolo_onnx_cpp/test/`、`model/test_training_quality_pipeline.py` 和 `model/test_quantization.py`。测试脚本的默认产物目录为 `yolo_onnx_cpp/test_outputs/`，部分 CTest smoke 产物位于构建目录；版本管理中的历史快照集中在 `docs/test-results/`。
 
-Qt 检查失败时应阅读输出；不要改用系统 Qt，也不要在 qt_ui 下生成独立 vcpkg_installed。
+## 当前限制
 
-## 当前限制与开放问题
+- 上传视频等待完整响应，长视频的处理时间、帧结果缓存与响应体占用需单独评估；摘要模式仅减少返回数据。
+- 任务与 SSE 缓存不持久化，上传接口没有任务查询、续算或幂等机制。
+- Web 尚未接入 High/Low 与实时流管理，也未提供 Bearer token 输入；启用门禁后需由接入侧补充鉴权请求头。Qt 仅支持本地图片推理。
+- 健康探针不验证摄像头连接、检测精度或目标吞吐。
+- 当前多路配置及历史量化收益仍需在真实 RTSP、目标机器和业务真值上验收。
 
-1. **上传视频仍等待完整结果。** 长视频默认响应和逐帧结果占用可能较大；摘要模式只减少响应大小。
-2. **没有任务持久化。** 实时 SSE 仅在同一流的有限内存缓存内补发；进程重启、记录删除或历史淘汰后不能恢复。
-3. **健康检查不做业务自测。** 就绪不代表摄像头连通、吞吐达标或精度合格。
-4. **Web 工作台尚未接入 High/Low 模式和实时流管理。**
-5. **YOLO26 端到端输出后仍执行兼容 NMS。** 是否跳过需要场景回归证据。
-6. **性能结论有实验边界。** 2026-07-10 伪标签回归的 weak-tracked mean IoU 为 0.8614、pooled FPS 为 24.71，分别未达当时 0.88/28 的目标；它们不是当前多路版本的性能结论。后续本地多路长测见[实施记录](docs/reports/多路实时监测实施记录_20260905.md)，真实 RTSP、业务质量和生产闭环仍需验收。
+## 相关文档
 
-完整调用链、实时异步分支与 SSE 补发语义见[初始化到多 IP 任务提交完整流程](docs/reports/初始化到多IP任务提交完整流程.md)。
+- [文档与实验索引](docs/README.md)：报告、历史验证与资源入口。
+- [系统实现与验证综合报告](docs/reports/系统实现与验证综合报告.md)：训练量化、跟踪时钟、ROI、调度回放与测量口径。
+- [技术报告导航](docs/reports/README.md)：按问题查阅，定位历史实验与实施记录。
+- [初始化到多 IP 任务提交完整流程](docs/reports/初始化到多IP任务提交完整流程.md)：详细调用链、队列与 SSE 行为。
+- [多路实时监测代码速读](docs/reports/多路实时监测代码速读记录_20260908.md)：源码阅读顺序。
+- [环境说明](envs/README.md)、[Qt 客户端说明](qt_ui/README.md)：环境边界与桌面构建。

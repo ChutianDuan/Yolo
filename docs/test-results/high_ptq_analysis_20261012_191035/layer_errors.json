@@ -1,0 +1,3368 @@
+[
+  {
+    "node": "/model.0/conv/Conv",
+    "input_tensor": "images",
+    "output_tensor": "/model.0/conv/Conv_output_0",
+    "input": {
+      "elements": 90439680,
+      "nmse": 2.6908816898874175e-15,
+      "cosine": 0.9999999999999923,
+      "sqnr_db": 145.70105396460912,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 241172480,
+      "nmse": 0.0008433447483708061,
+      "cosine": 0.999578633187691,
+      "sqnr_db": 30.739948551396147,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 90439680,
+      "nmse": 2.6908816898874175e-15,
+      "cosine": 0.9999999999999923,
+      "sqnr_db": 145.70105396460912,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 864,
+      "nmse": 3.360636524682157e-05,
+      "cosine": 0.9999831967445514,
+      "sqnr_db": 44.735784568435534,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.1/conv/Conv",
+    "input_tensor": "/model.0/act/Mul_output_0",
+    "output_tensor": "/model.1/conv/Conv_output_0",
+    "input": {
+      "elements": 241172480,
+      "nmse": 0.0018885249320542213,
+      "cosine": 0.9990562337105164,
+      "sqnr_db": 27.238772773007945,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 120586240,
+      "nmse": 0.0038771786813514564,
+      "cosine": 0.9980884277219956,
+      "sqnr_db": 24.114841838943097,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 241172480,
+      "nmse": 0.0015033949286362672,
+      "cosine": 0.9992488206083731,
+      "sqnr_db": 28.229269190819416,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 18432,
+      "nmse": 0.0001180206174265783,
+      "cosine": 0.9999409880466145,
+      "sqnr_db": 39.280421176731714,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.2/cv1/conv/Conv",
+    "input_tensor": "/model.1/act/Mul_output_0",
+    "output_tensor": "/model.2/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 120586240,
+      "nmse": 0.007457042629389107,
+      "cosine": 0.9963404554843807,
+      "sqnr_db": 21.274333741876724,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 120586240,
+      "nmse": 0.005152966391360262,
+      "cosine": 0.9974305069237974,
+      "sqnr_db": 22.87942690081984,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 120586240,
+      "nmse": 0.002072398642518741,
+      "cosine": 0.9989643480880924,
+      "sqnr_db": 26.835267008603132,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 4096,
+      "nmse": 0.00010594861496702183,
+      "cosine": 0.9999470377916908,
+      "sqnr_db": 39.74904716311482,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.2/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.2/Split_output_1",
+    "output_tensor": "/model.2/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.005985314837234646,
+      "cosine": 0.9970711769460646,
+      "sqnr_db": 22.229130000650095,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.002338913674493045,
+      "cosine": 0.9988305840596636,
+      "sqnr_db": 26.309858069993844,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.0003118495466697777,
+      "cosine": 0.9998441213914748,
+      "sqnr_db": 35.0605488293867,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 4608,
+      "nmse": 0.00020190005104655224,
+      "cosine": 0.9998990558565631,
+      "sqnr_db": 36.94863571253324,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.2/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.2/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.2/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.0024355283191157618,
+      "cosine": 0.9987815679558849,
+      "sqnr_db": 26.1340681630194,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.006361007937353005,
+      "cosine": 0.9968175605992236,
+      "sqnr_db": 21.964740625045145,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 4.281195760169657e-05,
+      "cosine": 0.9999785946223668,
+      "sqnr_db": 43.68434913343525,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 4608,
+      "nmse": 0.00012386744663588447,
+      "cosine": 0.9999380645092447,
+      "sqnr_db": 39.070428147215715,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.2/cv2/conv/Conv",
+    "input_tensor": "/model.2/Concat_output_0",
+    "output_tensor": "/model.2/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 180879360,
+      "nmse": 0.004005640731930173,
+      "cosine": 0.9980159698479726,
+      "sqnr_db": 23.973280054011955,
+      "outside_fraction": 5.528546761775362e-09
+    },
+    "output": {
+      "elements": 241172480,
+      "nmse": 0.013651169941927012,
+      "cosine": 0.993239553644744,
+      "sqnr_db": 18.64830126824713,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 180879360,
+      "nmse": 0.0001948470326991111,
+      "cosine": 0.9999025996621458,
+      "sqnr_db": 37.10306203636827,
+      "outside_fraction": 0.000913338039232337
+    },
+    "weight": {
+      "elements": 12288,
+      "nmse": 7.898106374440816e-05,
+      "cosine": 0.9999605092313666,
+      "sqnr_db": 41.024770213311086,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.3/conv/Conv",
+    "input_tensor": "/model.2/cv2/act/Mul_output_0",
+    "output_tensor": "/model.3/conv/Conv_output_0",
+    "input": {
+      "elements": 241172480,
+      "nmse": 0.025512292907436635,
+      "cosine": 0.9871922105855024,
+      "sqnr_db": 15.932505075878789,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.004952241675627037,
+      "cosine": 0.9975212472418074,
+      "sqnr_db": 23.051981693534188,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 241172480,
+      "nmse": 0.0011552515632396996,
+      "cosine": 0.9994257238980618,
+      "sqnr_db": 29.37323435139129,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00014274486084271977,
+      "cosine": 0.9999286369244846,
+      "sqnr_db": 38.454395184434105,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.4/cv1/conv/Conv",
+    "input_tensor": "/model.3/act/Mul_output_0",
+    "output_tensor": "/model.4/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.0023734327481970525,
+      "cosine": 0.998829304918865,
+      "sqnr_db": 26.246230696126567,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.008175018505532405,
+      "cosine": 0.9959178353503031,
+      "sqnr_db": 20.875112555677973,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.00013174440559391142,
+      "cosine": 0.9999341839595765,
+      "sqnr_db": 38.80267817643149,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 9.266880448313663e-05,
+      "cosine": 0.9999536645274119,
+      "sqnr_db": 40.33066439760002,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.4/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.4/Split_output_1",
+    "output_tensor": "/model.4/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.009381105244518158,
+      "cosine": 0.9953144602670307,
+      "sqnr_db": 20.277459917575733,
+      "outside_fraction": 4.3122664741847826e-07
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.011668415910513494,
+      "cosine": 0.9943678296638805,
+      "sqnr_db": 19.329880992261895,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.00018788738079328782,
+      "cosine": 0.9999061838482183,
+      "sqnr_db": 37.261023877327936,
+      "outside_fraction": 3.9805536684782607e-07
+    },
+    "weight": {
+      "elements": 18432,
+      "nmse": 0.00015472000126551532,
+      "cosine": 0.9999226616459769,
+      "sqnr_db": 38.10453539708809,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.4/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.4/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.4/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010243741377778448,
+      "cosine": 0.9950555341849612,
+      "sqnr_db": 19.895413946336692,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.007242163113327054,
+      "cosine": 0.9964266019954419,
+      "sqnr_db": 21.401316979089394,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00016073222338875914,
+      "cosine": 0.9999196887063456,
+      "sqnr_db": 37.93897047710588,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 18432,
+      "nmse": 0.0001145990985984109,
+      "cosine": 0.9999427096187291,
+      "sqnr_db": 39.40818798383251,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.4/cv2/conv/Conv",
+    "input_tensor": "/model.4/Concat_output_0",
+    "output_tensor": "/model.4/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 90439680,
+      "nmse": 0.005734416122865514,
+      "cosine": 0.9971651218393915,
+      "sqnr_db": 22.41510795291334,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 120586240,
+      "nmse": 0.012459905805798583,
+      "cosine": 0.994116887398212,
+      "sqnr_db": 19.044852408370843,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 90439680,
+      "nmse": 0.00015788794689732127,
+      "cosine": 0.9999210761362208,
+      "sqnr_db": 38.01651022593236,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 49152,
+      "nmse": 8.58169368866216e-05,
+      "cosine": 0.9999571063730933,
+      "sqnr_db": 40.66426991049896,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.5/conv/Conv",
+    "input_tensor": "/model.4/cv2/act/Mul_output_0",
+    "output_tensor": "/model.5/conv/Conv_output_0",
+    "input": {
+      "elements": 120586240,
+      "nmse": 0.0189394103827249,
+      "cosine": 0.9904908566900994,
+      "sqnr_db": 17.226335454760864,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.006217237347676108,
+      "cosine": 0.9968959167965128,
+      "sqnr_db": 22.06402552799377,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 120586240,
+      "nmse": 0.0011334291381890468,
+      "cosine": 0.9994341625624493,
+      "sqnr_db": 29.456056267112398,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 589824,
+      "nmse": 0.00013331247613656134,
+      "cosine": 0.9999333524345664,
+      "sqnr_db": 38.751292049468475,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/cv1/conv/Conv",
+    "input_tensor": "/model.5/act/Mul_output_0",
+    "output_tensor": "/model.6/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.003916747807068923,
+      "cosine": 0.9980433939102117,
+      "sqnr_db": 24.070743910572823,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.011939320597068195,
+      "cosine": 0.9940327745679898,
+      "sqnr_db": 19.230203858816314,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0002324356251626372,
+      "cosine": 0.9998841177971648,
+      "sqnr_db": 36.336973073238084,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 8.650817876103509e-05,
+      "cosine": 0.9999567483268664,
+      "sqnr_db": 40.62942830999084,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.6/Split_output_1",
+    "output_tensor": "/model.6/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010730074239890473,
+      "cosine": 0.9946827584694617,
+      "sqnr_db": 19.693972732005697,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.009472834725249181,
+      "cosine": 0.9952665602683362,
+      "sqnr_db": 20.23520039865552,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0005758088481478957,
+      "cosine": 0.9997125377123465,
+      "sqnr_db": 32.39721665834662,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 7.273723537885701e-05,
+      "cosine": 0.9999636414377345,
+      "sqnr_db": 41.38243209777378,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/m/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.6/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.6/m.0/m/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.009678983858068795,
+      "cosine": 0.9951776337304962,
+      "sqnr_db": 20.141702344269156,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.010304915236990808,
+      "cosine": 0.9950406287354799,
+      "sqnr_db": 19.86955576156341,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0003330309157019103,
+      "cosine": 0.999833513435676,
+      "sqnr_db": 34.77515448489105,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 9.228621795280301e-05,
+      "cosine": 0.9999538592499305,
+      "sqnr_db": 40.34863151779725,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/m/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.6/m.0/m/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.6/m.0/m/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.02479984043941079,
+      "cosine": 0.9876617675342222,
+      "sqnr_db": 16.055511133877495,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.012870861848819784,
+      "cosine": 0.9937735434139102,
+      "sqnr_db": 18.903923712265595,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0015961560946356603,
+      "cosine": 0.9992076026050664,
+      "sqnr_db": 27.96924639473991,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 8.640800069149161e-05,
+      "cosine": 0.9999567980480427,
+      "sqnr_db": 40.634460434551514,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/m/m.1/cv1/conv/Conv",
+    "input_tensor": "/model.6/m.0/m/m.0/Add_output_0",
+    "output_tensor": "/model.6/m.0/m/m.1/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.012715904264686377,
+      "cosine": 0.9936315343312047,
+      "sqnr_db": 18.956527504548852,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.012485133834961823,
+      "cosine": 0.9939384860724286,
+      "sqnr_db": 19.03606797848166,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.00035918091017280427,
+      "cosine": 0.9998204807646075,
+      "sqnr_db": 34.44686753371446,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.00010491754596654571,
+      "cosine": 0.9999475472622769,
+      "sqnr_db": 39.791518761607136,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/m/m.1/cv2/conv/Conv",
+    "input_tensor": "/model.6/m.0/m/m.1/cv1/act/Mul_output_0",
+    "output_tensor": "/model.6/m.0/m/m.1/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.017823703974645527,
+      "cosine": 0.9910548492155444,
+      "sqnr_db": 17.490020394353124,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.005450831142844642,
+      "cosine": 0.9972713691566164,
+      "sqnr_db": 22.63537271442614,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0010698224981317717,
+      "cosine": 0.999470781290859,
+      "sqnr_db": 29.706882732275584,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 9.872649376262127e-05,
+      "cosine": 0.999950641295784,
+      "sqnr_db": 40.05566286530836,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.6/Split_output_1",
+    "output_tensor": "/model.6/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010730074239890473,
+      "cosine": 0.9946827584694617,
+      "sqnr_db": 19.693972732005697,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.010538335075660358,
+      "cosine": 0.9947644152602321,
+      "sqnr_db": 19.772279967675203,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0005758088481478957,
+      "cosine": 0.9997125377123465,
+      "sqnr_db": 32.39721665834662,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 6.103988147154302e-05,
+      "cosine": 0.9999694797888288,
+      "sqnr_db": 42.14386318374028,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/m.0/cv3/conv/Conv",
+    "input_tensor": "/model.6/m.0/Concat_output_0",
+    "output_tensor": "/model.6/m.0/cv3/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.004474411186278665,
+      "cosine": 0.9977630047367049,
+      "sqnr_db": 23.492641079179126,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.013417311709896162,
+      "cosine": 0.9932888546736315,
+      "sqnr_db": 18.723344906134532,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00015185179628889045,
+      "cosine": 0.9999240960592253,
+      "sqnr_db": 38.185800663486866,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 6.900609379338981e-05,
+      "cosine": 0.999965508625982,
+      "sqnr_db": 41.61112555871644,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.6/cv2/conv/Conv",
+    "input_tensor": "/model.6/Concat_output_0",
+    "output_tensor": "/model.6/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 45219840,
+      "nmse": 0.012516654995470628,
+      "cosine": 0.993726927513815,
+      "sqnr_db": 19.02511718338602,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.009774795097572234,
+      "cosine": 0.995147314346823,
+      "sqnr_db": 20.098923376585812,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 45219840,
+      "nmse": 0.0009439754100656536,
+      "cosine": 0.9995341738811104,
+      "sqnr_db": 30.25039318638255,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 98304,
+      "nmse": 8.696417089121135e-05,
+      "cosine": 0.9999565190583324,
+      "sqnr_db": 40.60659639211564,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.7/conv/Conv",
+    "input_tensor": "/model.6/cv2/act/Mul_output_0",
+    "output_tensor": "/model.7/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.022476777311249065,
+      "cosine": 0.9887272353131257,
+      "sqnr_db": 16.482659571720458,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.00802650937854378,
+      "cosine": 0.9959997790265012,
+      "sqnr_db": 20.95473282520063,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0016832459850915989,
+      "cosine": 0.9991646747047265,
+      "sqnr_db": 27.7385241274574,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1179648,
+      "nmse": 0.00010837094023325625,
+      "cosine": 0.9999458181480793,
+      "sqnr_db": 39.65087158649014,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/cv1/conv/Conv",
+    "input_tensor": "/model.7/act/Mul_output_0",
+    "output_tensor": "/model.8/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.006414948425113465,
+      "cosine": 0.9967875915002493,
+      "sqnr_db": 21.92806830914722,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.008408833655778799,
+      "cosine": 0.9958710351790423,
+      "sqnr_db": 20.75264238683318,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00040202778460231417,
+      "cosine": 0.9997990371725783,
+      "sqnr_db": 33.95743931287456,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "weight": {
+      "elements": 262144,
+      "nmse": 7.438578674590229e-05,
+      "cosine": 0.9999628093989129,
+      "sqnr_db": 41.28510039286305,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.8/Split_output_1",
+    "output_tensor": "/model.8/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.02387316059715389,
+      "cosine": 0.9881122212986504,
+      "sqnr_db": 16.220900804051702,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.007072468060207591,
+      "cosine": 0.9964655214140156,
+      "sqnr_db": 21.504290051727626,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0036683073117381683,
+      "cosine": 0.9981966644263602,
+      "sqnr_db": 24.355342885414103,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 32768,
+      "nmse": 7.710920163909507e-05,
+      "cosine": 0.9999614460311547,
+      "sqnr_db": 41.12893793380505,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/m/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.8/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.8/m.0/m/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.014226295113559911,
+      "cosine": 0.992931825960355,
+      "sqnr_db": 18.469081864394305,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.006714411438807922,
+      "cosine": 0.9969490273652997,
+      "sqnr_db": 21.729920500214064,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.0009172378560872612,
+      "cosine": 0.9995418831308039,
+      "sqnr_db": 30.375180294430464,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 9.871102108999753e-05,
+      "cosine": 0.9999506498815479,
+      "sqnr_db": 40.056343556245906,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/m/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.8/m.0/m/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.8/m.0/m/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.016334472366504302,
+      "cosine": 0.9918859258242665,
+      "sqnr_db": 17.86894889472386,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.010216767341988238,
+      "cosine": 0.9950773914492822,
+      "sqnr_db": 19.906864963362366,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.001368169797423276,
+      "cosine": 0.9993159781139531,
+      "sqnr_db": 28.638600009288552,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00011022074922468851,
+      "cosine": 0.9999448882466299,
+      "sqnr_db": 39.5773664118714,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/m/m.1/cv1/conv/Conv",
+    "input_tensor": "/model.8/m.0/m/m.0/Add_output_0",
+    "output_tensor": "/model.8/m.0/m/m.1/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.01341547237581172,
+      "cosine": 0.9932820622292822,
+      "sqnr_db": 18.72394030662816,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.005395616513775269,
+      "cosine": 0.9973539687821784,
+      "sqnr_db": 22.67958924802517,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.0005726487473152203,
+      "cosine": 0.9997137039646454,
+      "sqnr_db": 32.421116849751016,
+      "outside_fraction": 0.012856657608695652
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00010842588553752342,
+      "cosine": 0.999945792940332,
+      "sqnr_db": 39.6486702218829,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/m/m.1/cv2/conv/Conv",
+    "input_tensor": "/model.8/m.0/m/m.1/cv1/act/Mul_output_0",
+    "output_tensor": "/model.8/m.0/m/m.1/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.011104908892565704,
+      "cosine": 0.9944329486365874,
+      "sqnr_db": 19.54485000160828,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.006357444018604049,
+      "cosine": 0.9968232798454693,
+      "sqnr_db": 21.96717455378505,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.000687189032563174,
+      "cosine": 0.9996576177125898,
+      "sqnr_db": 31.629237803981518,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00013266069219585954,
+      "cosine": 0.999933683058929,
+      "sqnr_db": 38.772577409735845,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.8/Split_output_1",
+    "output_tensor": "/model.8/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.02387316059715389,
+      "cosine": 0.9881122212986504,
+      "sqnr_db": 16.220900804051702,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.00977279981002575,
+      "cosine": 0.9951016244866034,
+      "sqnr_db": 20.09980997401977,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0036683073117381683,
+      "cosine": 0.9981966644263602,
+      "sqnr_db": 24.355342885414103,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 32768,
+      "nmse": 5.183769341526116e-05,
+      "cosine": 0.9999740814648641,
+      "sqnr_db": 42.853543311982385,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/m.0/cv3/conv/Conv",
+    "input_tensor": "/model.8/m.0/Concat_output_0",
+    "output_tensor": "/model.8/m.0/cv3/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.0075641167017422815,
+      "cosine": 0.9962110267834003,
+      "sqnr_db": 21.212417793336446,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.007395071082420874,
+      "cosine": 0.9963012895960617,
+      "sqnr_db": 21.310576471498774,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0004244222348483079,
+      "cosine": 0.999787975482512,
+      "sqnr_db": 33.72201872134086,
+      "outside_fraction": 0.0014937691066576088
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 7.60217335007176e-05,
+      "cosine": 0.9999619946094787,
+      "sqnr_db": 41.19062231533593,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.8/cv2/conv/Conv",
+    "input_tensor": "/model.8/Concat_output_0",
+    "output_tensor": "/model.8/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 22609920,
+      "nmse": 0.014138024183885527,
+      "cosine": 0.9929060359990166,
+      "sqnr_db": 18.496112797889474,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.005978809863735503,
+      "cosine": 0.9970150475420062,
+      "sqnr_db": 22.23385257659208,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 22609920,
+      "nmse": 0.0008866154511980497,
+      "cosine": 0.9995575879809565,
+      "sqnr_db": 30.522647044470386,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 393216,
+      "nmse": 8.824651310662974e-05,
+      "cosine": 0.9999558801730704,
+      "sqnr_db": 40.54302445922773,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.9/cv1/conv/Conv",
+    "input_tensor": "/model.8/cv2/act/Mul_output_0",
+    "output_tensor": "/model.9/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.0068887019793366505,
+      "cosine": 0.9965544385736033,
+      "sqnr_db": 21.618626033926095,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.001454611170585682,
+      "cosine": 0.9992729966053127,
+      "sqnr_db": 28.37253081617401,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.000252599535900664,
+      "cosine": 0.9998737249622845,
+      "sqnr_db": 35.97567451706127,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 8.289230820608731e-05,
+      "cosine": 0.9999585588171623,
+      "sqnr_db": 40.814857669000816,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.9/cv2/conv/Conv",
+    "input_tensor": "/model.9/Concat_output_0",
+    "output_tensor": "/model.9/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.001257463233702089,
+      "cosine": 0.999373525361801,
+      "sqnr_db": 29.005047041915034,
+      "outside_fraction": 2.6603367017663042e-05
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.005098533328683525,
+      "cosine": 0.9974815992173137,
+      "sqnr_db": 22.925547374054812,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 6.45785337075185e-05,
+      "cosine": 0.9999677129970129,
+      "sqnr_db": 41.899118201110994,
+      "outside_fraction": 2.6603367017663042e-05
+    },
+    "weight": {
+      "elements": 524288,
+      "nmse": 9.423175033624985e-05,
+      "cosine": 0.9999528868000669,
+      "sqnr_db": 40.25802741872231,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/cv1/conv/Conv",
+    "input_tensor": "/model.9/Add_output_0",
+    "output_tensor": "/model.10/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.00886694610195062,
+      "cosine": 0.99557143248318,
+      "sqnr_db": 20.522259314017973,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.011328230525336257,
+      "cosine": 0.9944730229469871,
+      "sqnr_db": 19.458379218309652,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0003531433778443735,
+      "cosine": 0.9998235110587429,
+      "sqnr_db": 34.52048933240116,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 262144,
+      "nmse": 7.665945110296965e-05,
+      "cosine": 0.9999616728828766,
+      "sqnr_db": 41.15434294706045,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/m/m.0/attn/qkv/conv/Conv",
+    "input_tensor": "/model.10/Split_output_1",
+    "output_tensor": "/model.10/m/m.0/attn/qkv/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.009385739184707032,
+      "cosine": 0.9952982096436924,
+      "sqnr_db": 20.27531518333233,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 5.3821037052450794e-05,
+      "cosine": 0.9999731090018936,
+      "sqnr_db": 42.69047938273906,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0001041810231325216,
+      "cosine": 0.9999479217811378,
+      "sqnr_db": 39.82211381798441,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 6.688279849781979e-05,
+      "cosine": 0.9999665655910279,
+      "sqnr_db": 41.74685563518595,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/m/m.0/attn/pe/conv/Conv",
+    "input_tensor": "/model.10/m/m.0/attn/Reshape_2_output_0",
+    "output_tensor": "/model.10/m/m.0/attn/pe/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.015524856559144382,
+      "cosine": 0.9922111059859093,
+      "sqnr_db": 18.08972403767154,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0014221945048339556,
+      "cosine": 0.9992892618153513,
+      "sqnr_db": 28.470410037472917,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0003102310985961533,
+      "cosine": 0.9998449173002478,
+      "sqnr_db": 35.08314669218284,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "weight": {
+      "elements": 2304,
+      "nmse": 2.570286790178659e-05,
+      "cosine": 0.9999871806222292,
+      "sqnr_db": 45.900184157958904,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/m/m.0/attn/proj/conv/Conv",
+    "input_tensor": "/model.10/m/m.0/attn/Add_output_0",
+    "output_tensor": "/model.10/m/m.0/attn/proj/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.0013176965379591038,
+      "cosine": 0.9993409351664967,
+      "sqnr_db": 28.80184595101892,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0010264731319706798,
+      "cosine": 0.9994869921612252,
+      "sqnr_db": 29.88652413842913,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 8.14003949333311e-05,
+      "cosine": 0.9999593030650489,
+      "sqnr_db": 40.893734880229566,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 6.51953169788096e-05,
+      "cosine": 0.9999674095380827,
+      "sqnr_db": 41.85783598797295,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/m/m.0/ffn/ffn.0/conv/Conv",
+    "input_tensor": "/model.10/m/m.0/Add_output_0",
+    "output_tensor": "/model.10/m/m.0/ffn/ffn.0/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.0017428129750023244,
+      "cosine": 0.9991282162984456,
+      "sqnr_db": 27.58749215461705,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.002139813789740527,
+      "cosine": 0.9989295661935378,
+      "sqnr_db": 26.696240180558497,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 8.063471786800132e-05,
+      "cosine": 0.9999596852638615,
+      "sqnr_db": 40.93477929260585,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 5.7854311933367644e-05,
+      "cosine": 0.9999710735045868,
+      "sqnr_db": 42.37664267151625,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/m/m.0/ffn/ffn.1/conv/Conv",
+    "input_tensor": "/model.10/m/m.0/ffn/ffn.0/act/Mul_output_0",
+    "output_tensor": "/model.10/m/m.0/ffn/ffn.1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.009254478642185277,
+      "cosine": 0.9953633802399641,
+      "sqnr_db": 20.336480425188306,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.000937624345855944,
+      "cosine": 0.9995311371932034,
+      "sqnr_db": 30.279711245196467,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0006142669145835582,
+      "cosine": 0.9996972271397891,
+      "sqnr_db": 32.11642875858605,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 6.71769895458917e-05,
+      "cosine": 0.9999664114695012,
+      "sqnr_db": 41.72779462430974,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.10/cv2/conv/Conv",
+    "input_tensor": "/model.10/Concat_output_0",
+    "output_tensor": "/model.10/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.001236621445327332,
+      "cosine": 0.9993814998937236,
+      "sqnr_db": 29.077632262937463,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.0030844925014339056,
+      "cosine": 0.9984568093015548,
+      "sqnr_db": 25.10816281211811,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00012098378598220059,
+      "cosine": 0.9999395073367209,
+      "sqnr_db": 39.172728291074634,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "weight": {
+      "elements": 262144,
+      "nmse": 6.614208449573347e-05,
+      "cosine": 0.9999669318656575,
+      "sqnr_db": 41.79522122232578,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/cv1/conv/Conv",
+    "input_tensor": "/model.12/Concat_output_0",
+    "output_tensor": "/model.13/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 90439680,
+      "nmse": 0.007202005139606273,
+      "cosine": 0.9963941419078647,
+      "sqnr_db": 21.425465730366792,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.007478853412842651,
+      "cosine": 0.996256631603894,
+      "sqnr_db": 21.261649789596696,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 90439680,
+      "nmse": 0.0004464854093430372,
+      "cosine": 0.9997770817444681,
+      "sqnr_db": 33.50192728814275,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 196608,
+      "nmse": 8.490182366792857e-05,
+      "cosine": 0.9999575539597494,
+      "sqnr_db": 40.71082981129286,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.13/Split_output_1",
+    "output_tensor": "/model.13/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010188594829951493,
+      "cosine": 0.9948938376168682,
+      "sqnr_db": 19.91885708013044,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.011117613493795859,
+      "cosine": 0.9945582303275623,
+      "sqnr_db": 19.539884283753008,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0004835807068167954,
+      "cosine": 0.9997586046003021,
+      "sqnr_db": 33.15531034300403,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 5.586911323458835e-05,
+      "cosine": 0.9999720669926652,
+      "sqnr_db": 42.528282217914615,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/m/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.13/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.13/m.0/m/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.018512315044854528,
+      "cosine": 0.9907064218574207,
+      "sqnr_db": 17.325392674525226,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.008815767951243704,
+      "cosine": 0.9956235522610576,
+      "sqnr_db": 20.547398498467267,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0004039744580266046,
+      "cosine": 0.9997980728287549,
+      "sqnr_db": 33.93646093029924,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 8.935686185830638e-05,
+      "cosine": 0.9999553265026612,
+      "sqnr_db": 40.488720917003285,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/m/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.13/m.0/m/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.13/m.0/m/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.04797153907148045,
+      "cosine": 0.9757475465217015,
+      "sqnr_db": 13.19016347835358,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.020287761014916156,
+      "cosine": 0.9898156344490475,
+      "sqnr_db": 16.927658796557388,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.002725217044512728,
+      "cosine": 0.9986460361630282,
+      "sqnr_db": 25.645989034862453,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 7.794058811274432e-05,
+      "cosine": 0.9999610335383686,
+      "sqnr_db": 41.08236321494881,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/m/m.1/cv1/conv/Conv",
+    "input_tensor": "/model.13/m.0/m/m.0/Add_output_0",
+    "output_tensor": "/model.13/m.0/m/m.1/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.01950551923593969,
+      "cosine": 0.9902149194366889,
+      "sqnr_db": 17.09842484301076,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.01423020299230248,
+      "cosine": 0.9929117993445621,
+      "sqnr_db": 18.467889047078415,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0005343341842869048,
+      "cosine": 0.9997329787102671,
+      "sqnr_db": 32.72187040729561,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 8.980625522480247e-05,
+      "cosine": 0.9999550980198361,
+      "sqnr_db": 40.466934126088276,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/m/m.1/cv2/conv/Conv",
+    "input_tensor": "/model.13/m.0/m/m.1/cv1/act/Mul_output_0",
+    "output_tensor": "/model.13/m.0/m/m.1/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.04768720319533445,
+      "cosine": 0.9759439878428805,
+      "sqnr_db": 13.215981477370512,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.011319858353226436,
+      "cosine": 0.9943252334145116,
+      "sqnr_db": 19.46159007493774,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.002782242085413837,
+      "cosine": 0.9986160502522874,
+      "sqnr_db": 25.556050843420884,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 9.209317189777789e-05,
+      "cosine": 0.9999539559967534,
+      "sqnr_db": 40.35772568685311,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.13/Split_output_1",
+    "output_tensor": "/model.13/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010188594829951493,
+      "cosine": 0.9948938376168682,
+      "sqnr_db": 19.91885708013044,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.015254848449943079,
+      "cosine": 0.9926423391872157,
+      "sqnr_db": 18.165921025204522,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0004835807068167954,
+      "cosine": 0.9997586046003021,
+      "sqnr_db": 33.15531034300403,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 4.6793076125943633e-05,
+      "cosine": 0.9999766327068643,
+      "sqnr_db": 43.298184038223475,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/m.0/cv3/conv/Conv",
+    "input_tensor": "/model.13/m.0/Concat_output_0",
+    "output_tensor": "/model.13/m.0/cv3/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.009433318747951886,
+      "cosine": 0.9952725440554505,
+      "sqnr_db": 20.25335490681829,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.013319378213849202,
+      "cosine": 0.9933231012767274,
+      "sqnr_db": 18.755160487841255,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00018408027514864517,
+      "cosine": 0.9999079709232929,
+      "sqnr_db": 37.349927451898644,
+      "outside_fraction": 0.00028878916864809784
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 5.240080793288931e-05,
+      "cosine": 0.999973810568042,
+      "sqnr_db": 42.80662016869507,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.13/cv2/conv/Conv",
+    "input_tensor": "/model.13/Concat_output_0",
+    "output_tensor": "/model.13/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 45219840,
+      "nmse": 0.007978362087603953,
+      "cosine": 0.9960047365673131,
+      "sqnr_db": 20.98086257687754,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.009742063521560299,
+      "cosine": 0.995179618434306,
+      "sqnr_db": 20.113490430076094,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 45219840,
+      "nmse": 0.00027039378666989823,
+      "cosine": 0.9998651463501208,
+      "sqnr_db": 35.68003292190389,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 98304,
+      "nmse": 7.66541974484403e-05,
+      "cosine": 0.9999616740324342,
+      "sqnr_db": 41.15464058959839,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/cv1/conv/Conv",
+    "input_tensor": "/model.15/Concat_output_0",
+    "output_tensor": "/model.16/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 241172480,
+      "nmse": 0.008802151777295129,
+      "cosine": 0.9955939533666924,
+      "sqnr_db": 20.55411147080339,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.005629850207791527,
+      "cosine": 0.9971838960758197,
+      "sqnr_db": 22.495031601744092,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 241172480,
+      "nmse": 0.0002022635977188955,
+      "cosine": 0.9998988946201328,
+      "sqnr_db": 36.940822721098826,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 0.00011616521872987399,
+      "cosine": 0.9999419208772461,
+      "sqnr_db": 39.34923885498359,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.16/Split_output_1",
+    "output_tensor": "/model.16/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.005635907337537635,
+      "cosine": 0.9972009911802926,
+      "sqnr_db": 22.490361559329628,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.008572258955016962,
+      "cosine": 0.9957047156525144,
+      "sqnr_db": 20.66904718050619,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.00010811567064781443,
+      "cosine": 0.9999460155930442,
+      "sqnr_db": 39.66111353385902,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 2048,
+      "nmse": 4.778522894097693e-05,
+      "cosine": 0.9999761223254809,
+      "sqnr_db": 43.207063289276995,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/m/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.16/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.16/m.0/m/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.006194373013574347,
+      "cosine": 0.9968984499079273,
+      "sqnr_db": 22.080026457891584,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.02257484358569594,
+      "cosine": 0.9886758953728969,
+      "sqnr_db": 16.463752500999263,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00014877377169231342,
+      "cosine": 0.9999256110589883,
+      "sqnr_db": 38.27473626675351,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.00011342958168512184,
+      "cosine": 0.9999432987056619,
+      "sqnr_db": 39.4527366954152,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/m/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.16/m.0/m/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.16/m.0/m/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.03139347346210529,
+      "cosine": 0.9844852039903588,
+      "sqnr_db": 15.03160630079833,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.021042528680039023,
+      "cosine": 0.9894420002209989,
+      "sqnr_db": 16.769020722274256,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0003277733097310038,
+      "cosine": 0.9998362916331203,
+      "sqnr_db": 34.84426413512538,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.00013834921303143146,
+      "cosine": 0.9999308281687741,
+      "sqnr_db": 38.59023306903071,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/m/m.1/cv1/conv/Conv",
+    "input_tensor": "/model.16/m.0/m/m.0/Add_output_0",
+    "output_tensor": "/model.16/m.0/m/m.1/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.010733057508092631,
+      "cosine": 0.9946458035166075,
+      "sqnr_db": 19.69276543668478,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.02553299814260365,
+      "cosine": 0.9874716300671798,
+      "sqnr_db": 15.928981863575466,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00023861479013083934,
+      "cosine": 0.9998807152932535,
+      "sqnr_db": 36.22302640828551,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.00011919719913800129,
+      "cosine": 0.9999403997762983,
+      "sqnr_db": 39.23733949404522,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/m/m.1/cv2/conv/Conv",
+    "input_tensor": "/model.16/m.0/m/m.1/cv1/act/Mul_output_0",
+    "output_tensor": "/model.16/m.0/m/m.1/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.03504948187505234,
+      "cosine": 0.9824078037940944,
+      "sqnr_db": 14.553183976821696,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.015554528382536154,
+      "cosine": 0.99230054783922,
+      "sqnr_db": 18.08143152280588,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0008392598177812718,
+      "cosine": 0.9995828277164815,
+      "sqnr_db": 30.76103569611327,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.00013878856912989812,
+      "cosine": 0.99993069813815,
+      "sqnr_db": 38.57646301663871,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.16/Split_output_1",
+    "output_tensor": "/model.16/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.005635907337537635,
+      "cosine": 0.9972009911802926,
+      "sqnr_db": 22.490361559329628,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.017536017774687086,
+      "cosine": 0.9911982486903383,
+      "sqnr_db": 17.560690229901702,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.00010811567064781443,
+      "cosine": 0.9999460155930442,
+      "sqnr_db": 39.66111353385902,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 2048,
+      "nmse": 5.4388722950992537e-05,
+      "cosine": 0.9999728216873401,
+      "sqnr_db": 42.64491138313864,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/m.0/cv3/conv/Conv",
+    "input_tensor": "/model.16/m.0/Concat_output_0",
+    "output_tensor": "/model.16/m.0/cv3/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.012378371379463762,
+      "cosine": 0.9938787837089227,
+      "sqnr_db": 19.073364916195924,
+      "outside_fraction": 3.3171280570652174e-08
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.03179219524511642,
+      "cosine": 0.9843545536032299,
+      "sqnr_db": 14.976794830973606,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.00044260414675009556,
+      "cosine": 0.9997787768459891,
+      "sqnr_db": 33.53984521492701,
+      "outside_fraction": 3.3171280570652174e-08
+    },
+    "weight": {
+      "elements": 4096,
+      "nmse": 8.179102120524193e-05,
+      "cosine": 0.9999591566381248,
+      "sqnr_db": 40.87294369373233,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.16/cv2/conv/Conv",
+    "input_tensor": "/model.16/Concat_output_0",
+    "output_tensor": "/model.16/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 90439680,
+      "nmse": 0.01059738879169381,
+      "cosine": 0.9947152694202136,
+      "sqnr_db": 19.748011321937714,
+      "outside_fraction": 1.1057093523550725e-08
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.01730847770341056,
+      "cosine": 0.9913548306893062,
+      "sqnr_db": 17.61741127045521,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 90439680,
+      "nmse": 0.0003525053759481356,
+      "cosine": 0.9998238204433851,
+      "sqnr_db": 34.52834255334123,
+      "outside_fraction": 0.031148617509482564
+    },
+    "weight": {
+      "elements": 24576,
+      "nmse": 0.000139410427648551,
+      "cosine": 0.9999302937512654,
+      "sqnr_db": 38.55704740579096,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.17/conv/Conv",
+    "input_tensor": "/model.16/cv2/act/Mul_output_0",
+    "output_tensor": "/model.17/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.008475632053093032,
+      "cosine": 0.9957751559992722,
+      "sqnr_db": 20.71827905285909,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.025758372088706516,
+      "cosine": 0.9873216040355124,
+      "sqnr_db": 15.890815875557056,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.00015616431458691837,
+      "cosine": 0.9999219707652417,
+      "sqnr_db": 38.064182006033256,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00015761106275979868,
+      "cosine": 0.9999211976788213,
+      "sqnr_db": 38.02413302538615,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/cv1/conv/Conv",
+    "input_tensor": "/model.18/Concat_output_0",
+    "output_tensor": "/model.19/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 45219840,
+      "nmse": 0.014159853684498023,
+      "cosine": 0.9929321957337852,
+      "sqnr_db": 18.489412342411246,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.014392981875881977,
+      "cosine": 0.9928253524815078,
+      "sqnr_db": 18.418492214849046,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 45219840,
+      "nmse": 0.00025755089753470443,
+      "cosine": 0.9998713588353022,
+      "sqnr_db": 35.891369323153754,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 98304,
+      "nmse": 9.12659864999879e-05,
+      "cosine": 0.9999543712005438,
+      "sqnr_db": 40.3969104752216,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.19/Split_output_1",
+    "output_tensor": "/model.19/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.031649283548090566,
+      "cosine": 0.9842648636747188,
+      "sqnr_db": 14.996361167566604,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0037751050147168904,
+      "cosine": 0.9981147127247659,
+      "sqnr_db": 24.230709627956635,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0005061577783537524,
+      "cosine": 0.9997471122886864,
+      "sqnr_db": 32.95714084765961,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 6.389029915659721e-05,
+      "cosine": 0.9999680559139932,
+      "sqnr_db": 41.945650783453175,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/m/m.0/cv1/conv/Conv",
+    "input_tensor": "/model.19/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.19/m.0/m/m.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.01721735817408748,
+      "cosine": 0.9914094459281939,
+      "sqnr_db": 17.640334857763513,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.02976286170152148,
+      "cosine": 0.9851393741088074,
+      "sqnr_db": 15.26325313669538,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.00023167639585691137,
+      "cosine": 0.9998841799420195,
+      "sqnr_db": 36.351182116622915,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.0001342491522834168,
+      "cosine": 0.9999328978915148,
+      "sqnr_db": 38.72088447973261,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/m/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.19/m.0/m/m.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.19/m.0/m/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.03834546205598829,
+      "cosine": 0.9808570154368864,
+      "sqnr_db": 14.162860246916624,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.03229040767904491,
+      "cosine": 0.9839936453940887,
+      "sqnr_db": 14.9092647181028,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.000544618564205767,
+      "cosine": 0.9997295964749531,
+      "sqnr_db": 32.63907559112993,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.0001437377595739442,
+      "cosine": 0.9999281467278567,
+      "sqnr_db": 38.42429128731088,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/m/m.1/cv1/conv/Conv",
+    "input_tensor": "/model.19/m.0/m/m.0/Add_output_0",
+    "output_tensor": "/model.19/m.0/m/m.1/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.030928056873414992,
+      "cosine": 0.9845533453805775,
+      "sqnr_db": 15.096473646933163,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.03655488334078237,
+      "cosine": 0.9815559697375928,
+      "sqnr_db": 14.370545977405909,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.00037549048857474487,
+      "cosine": 0.9998123615143161,
+      "sqnr_db": 34.25401059490226,
+      "outside_fraction": 0.0037555197010869564
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.00017017147535400558,
+      "cosine": 0.9999149198528622,
+      "sqnr_db": 37.69113235876345,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/m/m.1/cv2/conv/Conv",
+    "input_tensor": "/model.19/m.0/m/m.1/cv1/act/Mul_output_0",
+    "output_tensor": "/model.19/m.0/m/m.1/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.06540556911902448,
+      "cosine": 0.9673563691300874,
+      "sqnr_db": 11.843852710230106,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.03943613271659006,
+      "cosine": 0.9803415650244689,
+      "sqnr_db": 14.041056805004459,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0010594975820417932,
+      "cosine": 0.999474031084283,
+      "sqnr_db": 29.74900030087783,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.00017806256907112786,
+      "cosine": 0.9999109970384781,
+      "sqnr_db": 37.494273649519826,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/cv2/conv/Conv",
+    "input_tensor": "/model.19/Split_output_1",
+    "output_tensor": "/model.19/m.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.031649283548090566,
+      "cosine": 0.9842648636747188,
+      "sqnr_db": 14.996361167566604,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.034231451214676384,
+      "cosine": 0.983026540980328,
+      "sqnr_db": 14.655746889086828,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0005061577783537524,
+      "cosine": 0.9997471122886864,
+      "sqnr_db": 32.95714084765961,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 8192,
+      "nmse": 8.576170360954114e-05,
+      "cosine": 0.9999571188014422,
+      "sqnr_db": 40.667066005422285,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/m.0/cv3/conv/Conv",
+    "input_tensor": "/model.19/m.0/Concat_output_0",
+    "output_tensor": "/model.19/m.0/cv3/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.030545168799527397,
+      "cosine": 0.9847776532083712,
+      "sqnr_db": 15.150574705155783,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.0566259131952487,
+      "cosine": 0.9717430579422657,
+      "sqnr_db": 12.469847811387677,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00027697835407470347,
+      "cosine": 0.999861620614607,
+      "sqnr_db": 35.57554169828101,
+      "outside_fraction": 0.0002300760020380435
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 0.00010841125460776207,
+      "cosine": 0.9999457937272788,
+      "sqnr_db": 39.64925629602738,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.19/cv2/conv/Conv",
+    "input_tensor": "/model.19/Concat_output_0",
+    "output_tensor": "/model.19/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 45219840,
+      "nmse": 0.03315525926869331,
+      "cosine": 0.9834470982550146,
+      "sqnr_db": 14.794475716270266,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.02715640247980095,
+      "cosine": 0.986461137963463,
+      "sqnr_db": 15.661277633552352,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 45219840,
+      "nmse": 0.0005807177697260823,
+      "cosine": 0.9997096178625438,
+      "sqnr_db": 32.36034884529947,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 98304,
+      "nmse": 0.00022034177954541887,
+      "cosine": 0.9998898502024908,
+      "sqnr_db": 36.56903147398939,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.20/conv/Conv",
+    "input_tensor": "/model.19/cv2/act/Mul_output_0",
+    "output_tensor": "/model.20/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.04813086802120059,
+      "cosine": 0.9760092725794147,
+      "sqnr_db": 13.175763059225114,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0317776717436938,
+      "cosine": 0.984202307023264,
+      "sqnr_db": 14.978779254391267,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0007519590157065119,
+      "cosine": 0.9996246326107844,
+      "sqnr_db": 31.23805829272131,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "weight": {
+      "elements": 589824,
+      "nmse": 0.00020771535363998502,
+      "cosine": 0.9998961582412355,
+      "sqnr_db": 36.825314006498886,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/cv1/conv/Conv",
+    "input_tensor": "/model.21/Concat_output_0",
+    "output_tensor": "/model.22/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 22609920,
+      "nmse": 0.016941361260844712,
+      "cosine": 0.9915150357293051,
+      "sqnr_db": 17.71051696465685,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.012143347551187381,
+      "cosine": 0.9939354994577282,
+      "sqnr_db": 19.15661574990351,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 22609920,
+      "nmse": 0.0009492403123611785,
+      "cosine": 0.9995262777313997,
+      "sqnr_db": 30.226238264342037,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 393216,
+      "nmse": 9.832913459849305e-05,
+      "cosine": 0.9999508372835069,
+      "sqnr_db": 40.073177830767925,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.0/cv1/conv/Conv",
+    "input_tensor": "/model.22/Split_output_1",
+    "output_tensor": "/model.22/m.0/m.0.0/cv1/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.02278014537156467,
+      "cosine": 0.9885574253862278,
+      "sqnr_db": 16.424435087965623,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.015606514851748653,
+      "cosine": 0.9922942527319031,
+      "sqnr_db": 18.066940700088978,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0016461155183451768,
+      "cosine": 0.9991914754171131,
+      "sqnr_db": 27.83539690861604,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 294912,
+      "nmse": 0.00013794890430481646,
+      "cosine": 0.9999310325897485,
+      "sqnr_db": 38.6028174466839,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.0/cv2/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.0/cv1/act/Mul_output_0",
+    "output_tensor": "/model.22/m.0/m.0.0/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.027647897633761114,
+      "cosine": 0.9862289489779269,
+      "sqnr_db": 15.583378871719393,
+      "outside_fraction": 5.307404891304348e-07
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.020241154239322684,
+      "cosine": 0.9901755609964975,
+      "sqnr_db": 16.937647257514193,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.0007103612622467735,
+      "cosine": 0.9996459326582852,
+      "sqnr_db": 31.48520729733925,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "weight": {
+      "elements": 294912,
+      "nmse": 0.0001688449779823135,
+      "cosine": 0.9999155865260853,
+      "sqnr_db": 37.72511852215449,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.1/attn/qkv/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.0/Add_output_0",
+    "output_tensor": "/model.22/m.0/m.0.1/attn/qkv/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.020897911932450604,
+      "cosine": 0.9895158229311345,
+      "sqnr_db": 16.79897105349111,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 8.045495898173641e-05,
+      "cosine": 0.9999597805584345,
+      "sqnr_db": 40.944471822420134,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.00032161206418397723,
+      "cosine": 0.9998395739809668,
+      "sqnr_db": 34.92667668535964,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 9.413621787943308e-05,
+      "cosine": 0.9999529366005225,
+      "sqnr_db": 40.2624325437325,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.1/attn/pe/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.1/attn/Reshape_2_output_0",
+    "output_tensor": "/model.22/m.0/m.0.1/attn/pe/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.011678782200484827,
+      "cosine": 0.994144162623686,
+      "sqnr_db": 19.32602440715322,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.003349408045585567,
+      "cosine": 0.9983239116695876,
+      "sqnr_db": 24.750319407995743,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0005043093426799029,
+      "cosine": 0.9997479358370395,
+      "sqnr_db": 32.97302986160232,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 2304,
+      "nmse": 2.251388219391714e-05,
+      "cosine": 0.99998878666007,
+      "sqnr_db": 46.47549610729243,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.1/attn/proj/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.1/attn/Add_output_0",
+    "output_tensor": "/model.22/m.0/m.0.1/attn/proj/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.003550543057047266,
+      "cosine": 0.9982232355576579,
+      "sqnr_db": 24.497052163416264,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0016106322593659348,
+      "cosine": 0.9991948048125142,
+      "sqnr_db": 27.930036066689546,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.0001416888886277816,
+      "cosine": 0.9999291633472944,
+      "sqnr_db": 38.48664206187615,
+      "outside_fraction": 1.326851222826087e-07
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 0.00012759194353849615,
+      "cosine": 0.9999362170905991,
+      "sqnr_db": 38.94176747144921,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.1/ffn/ffn.0/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.1/Add_output_0",
+    "output_tensor": "/model.22/m.0/m.0.1/ffn/ffn.0/conv/Conv_output_0",
+    "input": {
+      "elements": 7536640,
+      "nmse": 0.0036617882487482317,
+      "cosine": 0.9981689995567434,
+      "sqnr_db": 24.363067733765114,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.012821272965770519,
+      "cosine": 0.9935812425489812,
+      "sqnr_db": 18.920688535563357,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 7536640,
+      "nmse": 0.00015615819922963885,
+      "cosine": 0.9999219304234903,
+      "sqnr_db": 38.06435207804562,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 0.00010828024953669266,
+      "cosine": 0.9999458609716078,
+      "sqnr_db": 39.654507520492615,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/m.0/m.0.1/ffn/ffn.1/conv/Conv",
+    "input_tensor": "/model.22/m.0/m.0.1/ffn/ffn.0/act/Mul_output_0",
+    "output_tensor": "/model.22/m.0/m.0.1/ffn/ffn.1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.047868558544977936,
+      "cosine": 0.9758668495607931,
+      "sqnr_db": 13.199496501321612,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 7536640,
+      "nmse": 0.0022653982724769877,
+      "cosine": 0.9988666641878925,
+      "sqnr_db": 26.448554350049143,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0022360705256054604,
+      "cosine": 0.9989092657666074,
+      "sqnr_db": 26.50514502933082,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 131072,
+      "nmse": 9.744685805043772e-05,
+      "cosine": 0.9999512811100476,
+      "sqnr_db": 40.11232159146208,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.22/cv2/conv/Conv",
+    "input_tensor": "/model.22/Concat_output_0",
+    "output_tensor": "/model.22/cv2/conv/Conv_output_0",
+    "input": {
+      "elements": 22609920,
+      "nmse": 0.0028847037105498613,
+      "cosine": 0.9985572265910219,
+      "sqnr_db": 25.398987868345063,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.0072599650916858076,
+      "cosine": 0.9963638147641778,
+      "sqnr_db": 21.390654675264457,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 22609920,
+      "nmse": 0.00026495966460091894,
+      "cosine": 0.9998675189818637,
+      "sqnr_db": 35.768202346463546,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 393216,
+      "nmse": 0.0001955151558804501,
+      "cosine": 0.9999022546891421,
+      "sqnr_db": 37.088195714644,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/conv/Conv",
+    "input_tensor": "/model.22/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.02916848774178026,
+      "cosine": 0.9853769020333584,
+      "sqnr_db": 15.350860865596164,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.008282925583259312,
+      "cosine": 0.9958683009123721,
+      "sqnr_db": 20.818162404791792,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.001937627983067654,
+      "cosine": 0.9990477644306666,
+      "sqnr_db": 27.127296021097177,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 4608,
+      "nmse": 1.535469112733987e-05,
+      "cosine": 0.9999923326858055,
+      "sqnr_db": 48.13758915335604,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.008182626819437233,
+      "cosine": 0.9959282903142166,
+      "sqnr_db": 20.87107255001935,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.010823694554337944,
+      "cosine": 0.9945806376545663,
+      "sqnr_db": 19.656244720679798,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00048122316532816324,
+      "cosine": 0.9997594222594931,
+      "sqnr_db": 33.17653474574008,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 65536,
+      "nmse": 0.0001554019307655334,
+      "cosine": 0.9999223369800944,
+      "sqnr_db": 38.085435896817714,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.0/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.0/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.01933078749559615,
+      "cosine": 0.9902877849532019,
+      "sqnr_db": 17.13750453367952,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.01157437279427093,
+      "cosine": 0.9942877594027721,
+      "sqnr_db": 19.36502533732676,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 9.021374207423658e-05,
+      "cosine": 0.9999548921139124,
+      "sqnr_db": 40.44727302231528,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1152,
+      "nmse": 1.544103678763955e-05,
+      "cosine": 0.999992281281176,
+      "sqnr_db": 48.11323542340069,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.1/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.011465505689506723,
+      "cosine": 0.9944155261629987,
+      "sqnr_db": 19.4060678582553,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.03970607526971305,
+      "cosine": 0.9799660809546142,
+      "sqnr_db": 14.011430384698249,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.0025094119144844595,
+      "cosine": 0.9987694026891242,
+      "sqnr_db": 26.00428044343248,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 7.638244958519202e-05,
+      "cosine": 0.9999618216326196,
+      "sqnr_db": 41.17006417915136,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv",
+    "input_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.03998397428904952,
+      "cosine": 0.9798761195091036,
+      "sqnr_db": 13.98114040482519,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 294400,
+      "nmse": 0.014709789234101848,
+      "cosine": 0.9926239117960204,
+      "sqnr_db": 18.323935499184458,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.004563259537167972,
+      "cosine": 0.9977209148058427,
+      "sqnr_db": 23.407248298566472,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1280,
+      "nmse": 0.00010721034733838688,
+      "cosine": 0.9999463939670299,
+      "sqnr_db": 39.697632969650854,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.0/conv/Conv",
+    "input_tensor": "/model.19/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.0/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.04813086802120059,
+      "cosine": 0.9760092725794147,
+      "sqnr_db": 13.175763059225114,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 30146560,
+      "nmse": 0.005840851210318048,
+      "cosine": 0.9970836101946287,
+      "sqnr_db": 22.33523856824999,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0007519590157065119,
+      "cosine": 0.9996246326107844,
+      "sqnr_db": 31.23805829272131,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "weight": {
+      "elements": 2304,
+      "nmse": 2.2859405551062387e-05,
+      "cosine": 0.9999886519720927,
+      "sqnr_db": 46.40935067433742,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.1/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.006545275313118713,
+      "cosine": 0.9967330611107572,
+      "sqnr_db": 21.840720810530954,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.017163371764562337,
+      "cosine": 0.9913986085014904,
+      "sqnr_db": 17.65397390444263,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0005957841592667374,
+      "cosine": 0.9997020662238514,
+      "sqnr_db": 32.24911048006677,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 32768,
+      "nmse": 0.0001483970181445931,
+      "cosine": 0.9999258069953355,
+      "sqnr_db": 38.285748255823265,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.0/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.0/one2one_cv3.1.0.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.0/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.018092924521848668,
+      "cosine": 0.9909230404136776,
+      "sqnr_db": 17.4249122854945,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.019562199159255767,
+      "cosine": 0.9902145533889098,
+      "sqnr_db": 17.08582323932724,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00016750670675315057,
+      "cosine": 0.9999162922606112,
+      "sqnr_db": 37.759677996863985,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1152,
+      "nmse": 2.3343763529679115e-05,
+      "cosine": 0.9999883282676234,
+      "sqnr_db": 46.31829124794166,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.013604557237038148,
+      "cosine": 0.9932018204347259,
+      "sqnr_db": 18.663155878526275,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.053737283918839925,
+      "cosine": 0.9730751509583662,
+      "sqnr_db": 12.697242881981586,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0011814430938761166,
+      "cosine": 0.9994113549510945,
+      "sqnr_db": 29.275871920263434,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 0.0001432301360762862,
+      "cosine": 0.9999283872267477,
+      "sqnr_db": 38.43965595473208,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+    "input_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.05256602488390033,
+      "cosine": 0.973604705260301,
+      "sqnr_db": 12.79294863694161,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 1177600,
+      "nmse": 0.01677756581301687,
+      "cosine": 0.9916051527390657,
+      "sqnr_db": 17.7527104891018,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.004130868153734461,
+      "cosine": 0.9979367846462921,
+      "sqnr_db": 23.839586663207676,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1280,
+      "nmse": 9.327894589891708e-05,
+      "cosine": 0.9999533944733043,
+      "sqnr_db": 40.30216370313088,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv",
+    "input_tensor": "/model.16/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.008475632053093032,
+      "cosine": 0.9957751559992722,
+      "sqnr_db": 20.71827905285909,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.001730043318358232,
+      "cosine": 0.9991378131513152,
+      "sqnr_db": 27.619430224848365,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.00015616431458691837,
+      "cosine": 0.9999219707652417,
+      "sqnr_db": 38.064182006033256,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "weight": {
+      "elements": 1152,
+      "nmse": 2.3866459163718157e-05,
+      "cosine": 0.9999880896406067,
+      "sqnr_db": 46.22212008296329,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.1/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.001443545541704261,
+      "cosine": 0.9992805087065776,
+      "sqnr_db": 28.405695102253375,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.007589300743757578,
+      "cosine": 0.9962404637687615,
+      "sqnr_db": 21.197982368999526,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 2.3442039440814313e-05,
+      "cosine": 0.9999882803367209,
+      "sqnr_db": 46.30004607698218,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 0.00012709323536675814,
+      "cosine": 0.9999364607178763,
+      "sqnr_db": 38.958775644819646,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.0/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.0/one2one_cv3.0.0.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.0/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.010165473306420515,
+      "cosine": 0.9950294904800033,
+      "sqnr_db": 19.928723957193732,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.009377367301859273,
+      "cosine": 0.9953190170679831,
+      "sqnr_db": 20.279190727894,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 8.02301304081701e-05,
+      "cosine": 0.9999598899723172,
+      "sqnr_db": 40.956625018832256,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1152,
+      "nmse": 2.7701994555671256e-05,
+      "cosine": 0.9999861599042424,
+      "sqnr_db": 45.57488960417976,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.007082874729603339,
+      "cosine": 0.9964580695867998,
+      "sqnr_db": 21.49790439229864,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 60293120,
+      "nmse": 0.036937831100163736,
+      "cosine": 0.983556292611077,
+      "sqnr_db": 14.325286088655771,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.001272949099244328,
+      "cosine": 0.9993649214105984,
+      "sqnr_db": 28.951889619074414,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 16384,
+      "nmse": 9.378267910339875e-05,
+      "cosine": 0.9999531076218353,
+      "sqnr_db": 40.2787736486649,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+    "input_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.046993110996009856,
+      "cosine": 0.9804448927948536,
+      "sqnr_db": 13.279658032494988,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 4710400,
+      "nmse": 0.014502653371133626,
+      "cosine": 0.9949271354415694,
+      "sqnr_db": 18.385525330050086,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.0006730235290808791,
+      "cosine": 0.9996637883917691,
+      "sqnr_db": 31.719697524604715,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 1280,
+      "nmse": 7.610518892151998e-05,
+      "cosine": 0.9999619505031585,
+      "sqnr_db": 41.18585731624199,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.2/one2one_cv2.2.0/conv/Conv",
+    "input_tensor": "/model.22/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.2/one2one_cv2.2.0/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.02916848774178026,
+      "cosine": 0.9853769020333584,
+      "sqnr_db": 15.350860865596164,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 942080,
+      "nmse": 0.009367470004740997,
+      "cosine": 0.995356434418944,
+      "sqnr_db": 20.283776888716154,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.001937627983067654,
+      "cosine": 0.9990477644306666,
+      "sqnr_db": 27.127296021097177,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 147456,
+      "nmse": 0.00024273313747557977,
+      "cosine": 0.9998786374362613,
+      "sqnr_db": 36.14870930547346,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.2/one2one_cv2.2.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv2.2/one2one_cv2.2.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.2/one2one_cv2.2.1/conv/Conv_output_0",
+    "input": {
+      "elements": 942080,
+      "nmse": 0.008319105417410357,
+      "cosine": 0.9958353211059462,
+      "sqnr_db": 20.799233724076636,
+      "outside_fraction": 2.122961956521739e-06
+    },
+    "output": {
+      "elements": 942080,
+      "nmse": 0.011911588230892143,
+      "cosine": 0.9940264023025085,
+      "sqnr_db": 19.24030328028066,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 942080,
+      "nmse": 9.723347805234034e-05,
+      "cosine": 0.999951382108583,
+      "sqnr_db": 40.12184179208289,
+      "outside_fraction": 3.1844429347826085e-06
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.0002398785280953787,
+      "cosine": 0.999880069456597,
+      "sqnr_db": 36.20008624675079,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv",
+    "input_tensor": "/model.23/one2one_cv2.2/one2one_cv2.2.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv_output_0",
+    "input": {
+      "elements": 942080,
+      "nmse": 0.015738583388642636,
+      "cosine": 0.9921606061759098,
+      "sqnr_db": 18.030343605527218,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 117760,
+      "nmse": 0.003837786308733496,
+      "cosine": 0.9981384114097328,
+      "sqnr_db": 24.159192108203378,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 942080,
+      "nmse": 0.00016505847275852508,
+      "cosine": 0.9999175656876949,
+      "sqnr_db": 37.82362177617644,
+      "outside_fraction": 1.0614809782608696e-06
+    },
+    "weight": {
+      "elements": 128,
+      "nmse": 4.8420604860280745e-05,
+      "cosine": 0.9999760833890697,
+      "sqnr_db": 43.149697897426634,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv",
+    "input_tensor": "/model.19/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv_output_0",
+    "input": {
+      "elements": 30146560,
+      "nmse": 0.04813086802120059,
+      "cosine": 0.9760092725794147,
+      "sqnr_db": 13.175763059225114,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.03459156434721517,
+      "cosine": 0.9827478623916295,
+      "sqnr_db": 14.610297972802034,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 30146560,
+      "nmse": 0.0007519590157065119,
+      "cosine": 0.9996246326107844,
+      "sqnr_db": 31.23805829272131,
+      "outside_fraction": 6.634256114130435e-08
+    },
+    "weight": {
+      "elements": 73728,
+      "nmse": 0.00030183843126544406,
+      "cosine": 0.999849126668637,
+      "sqnr_db": 35.20225464945054,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv2.1/one2one_cv2.1.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.028082965765588937,
+      "cosine": 0.9859951966163648,
+      "sqnr_db": 15.515570294619053,
+      "outside_fraction": 2.653702445652174e-07
+    },
+    "output": {
+      "elements": 3768320,
+      "nmse": 0.037879229313589266,
+      "cosine": 0.981123543384639,
+      "sqnr_db": 14.215988656840855,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.00011623199839055761,
+      "cosine": 0.999941885247845,
+      "sqnr_db": 39.34674295255448,
+      "outside_fraction": 5.307404891304348e-07
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.000331471800958714,
+      "cosine": 0.999834417275322,
+      "sqnr_db": 34.79553412082548,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv",
+    "input_tensor": "/model.23/one2one_cv2.1/one2one_cv2.1.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv_output_0",
+    "input": {
+      "elements": 3768320,
+      "nmse": 0.043771383355825394,
+      "cosine": 0.9781618755091629,
+      "sqnr_db": 13.588097276773187,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 471040,
+      "nmse": 0.011193004128113408,
+      "cosine": 0.9944155031021195,
+      "sqnr_db": 19.510533360664944,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 3768320,
+      "nmse": 0.0004387795730120386,
+      "cosine": 0.9997810330690751,
+      "sqnr_db": 33.577535988153045,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 128,
+      "nmse": 4.317073657630499e-05,
+      "cosine": 0.999978545758875,
+      "sqnr_db": 43.64810541376261,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.0/one2one_cv2.0.0/conv/Conv",
+    "input_tensor": "/model.16/cv2/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.0/one2one_cv2.0.0/conv/Conv_output_0",
+    "input": {
+      "elements": 60293120,
+      "nmse": 0.008475632053093032,
+      "cosine": 0.9957751559992722,
+      "sqnr_db": 20.71827905285909,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.031290790938275886,
+      "cosine": 0.9844962411605528,
+      "sqnr_db": 15.045834590402121,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 60293120,
+      "nmse": 0.00015616431458691837,
+      "cosine": 0.9999219707652417,
+      "sqnr_db": 38.064182006033256,
+      "outside_fraction": 1.6585640285326087e-08
+    },
+    "weight": {
+      "elements": 36864,
+      "nmse": 0.0003008204565120414,
+      "cosine": 0.9998496073773228,
+      "sqnr_db": 35.21692634010515,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.0/one2one_cv2.0.1/conv/Conv",
+    "input_tensor": "/model.23/one2one_cv2.0/one2one_cv2.0.0/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.0/one2one_cv2.0.1/conv/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.02105819247143247,
+      "cosine": 0.9895814904417408,
+      "sqnr_db": 16.765789091890888,
+      "outside_fraction": 0.0
+    },
+    "output": {
+      "elements": 15073280,
+      "nmse": 0.04321607432052116,
+      "cosine": 0.9788856839648714,
+      "sqnr_db": 13.643546862812892,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.00010696899204654597,
+      "cosine": 0.9999465275291233,
+      "sqnr_db": 39.707420964710934,
+      "outside_fraction": 0.0
+    },
+    "weight": {
+      "elements": 9216,
+      "nmse": 0.0003884717113633109,
+      "cosine": 0.9998058176493642,
+      "sqnr_db": 34.106406011774155,
+      "outside_fraction": null
+    }
+  },
+  {
+    "node": "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv",
+    "input_tensor": "/model.23/one2one_cv2.0/one2one_cv2.0.1/act/Mul_output_0",
+    "output_tensor": "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv_output_0",
+    "input": {
+      "elements": 15073280,
+      "nmse": 0.046256399002324686,
+      "cosine": 0.9767722876587254,
+      "sqnr_db": 13.348281794835067,
+      "outside_fraction": 5.307404891304348e-07
+    },
+    "output": {
+      "elements": 1884160,
+      "nmse": 0.012169374456405249,
+      "cosine": 0.9938978157051507,
+      "sqnr_db": 19.147317452796816,
+      "outside_fraction": null
+    },
+    "local_qdq": {
+      "elements": 15073280,
+      "nmse": 0.0003578163877403955,
+      "cosine": 0.9998212824147911,
+      "sqnr_db": 34.463397729295096,
+      "outside_fraction": 4.6439792798913045e-07
+    },
+    "weight": {
+      "elements": 128,
+      "nmse": 4.6144281695589e-05,
+      "cosine": 0.9999777319666019,
+      "sqnr_db": 43.35882110064314,
+      "outside_fraction": null
+    }
+  }
+]

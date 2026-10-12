@@ -1,0 +1,70 @@
+[
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/val/b566fee4-453e3805.jpg",
+    "direct_int8": {
+      "matched": 30,
+      "fp32_unmatched": 1,
+      "quantized_unmatched": 2,
+      "mean_iou": 0.9682571073359724,
+      "mean_score_delta": 0.03199262022972107
+    },
+    "optimized_int8": {
+      "matched": 31,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 1,
+      "mean_iou": 0.9733559834008505,
+      "mean_score_delta": 0.011920292531290361
+    }
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/val/b36a5c73-cf70561a.jpg",
+    "direct_int8": {
+      "matched": 10,
+      "fp32_unmatched": 1,
+      "quantized_unmatched": 0,
+      "mean_iou": 0.9795670029643235,
+      "mean_score_delta": -0.14900626242160797
+    },
+    "optimized_int8": {
+      "matched": 11,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 0,
+      "mean_iou": 0.9866137212751763,
+      "mean_score_delta": -0.0006368133154782382
+    }
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/val/b2cda443-f7cb5ccf.jpg",
+    "direct_int8": {
+      "matched": 5,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 1,
+      "mean_iou": 0.9746753289949579,
+      "mean_score_delta": -0.0014800369739532472
+    },
+    "optimized_int8": {
+      "matched": 5,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 0,
+      "mean_iou": 0.9718628728897665,
+      "mean_score_delta": -0.022999501228332518
+    }
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/val/b3fbc6ad-4ee78a0d.jpg",
+    "direct_int8": {
+      "matched": 1,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 0,
+      "mean_iou": 0.9705863604555393,
+      "mean_score_delta": -0.21283528208732605
+    },
+    "optimized_int8": {
+      "matched": 1,
+      "fp32_unmatched": 0,
+      "quantized_unmatched": 0,
+      "mean_iou": 0.9621263615302125,
+      "mean_score_delta": 0.029278993606567383
+    }
+  }
+]

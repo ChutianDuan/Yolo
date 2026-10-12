@@ -1,6 +1,6 @@
 # 初始化到多 IP 任务提交完整流程
 
-> 首次编写：2026-09-09；源码同步：2026-09-29。本文说明当前接口与调用链，历史性能证据另见实施记录。源码链接按文件和函数定位，避免将旧行号误认为当前实现。
+> 首次编写：2026-09-09；源码核对：2026-10-11。本文说明当前接口与调用链，模型、跟踪与测量细节见[综合报告](系统实现与验证综合报告.md)，历史性能证据见[报告导航](README.md)。源码链接按文件和函数定位，避免将旧行号误认为当前实现。
 
 本文围绕一个问题展开：**服务启动时创建了什么，多个客户端提交的工作如何进入系统，多路摄像头的每一帧又如何共享模型并返回自己的结果？**
 
@@ -25,7 +25,7 @@
 
 建议先读第 1、3 节建立对象关系；重点理解提交过程时读第 4、5 节；重点理解多路推理时连续读第 6～8 节。第 9 节命令供后续手动执行，不代表本文已经执行过。
 
-所有标为“原始代码节选”的代码块直接摘自所链接源码；仅保留相关连续片段，外围代码未展示。带“示意”的图、算例和响应是解释材料，不是运行记录。
+所有标为“原始代码节选”的代码块保留所链接源码的连续业务语句，部分注释和外围代码省略。带“示意”的图、算例和响应是解释材料，不是运行记录。
 
 <a id="architecture"></a>
 ## 1. 整体架构与身份概念
@@ -586,13 +586,13 @@ Handler 先生成请求 ID 和调度身份、记录开始日志，再解析帧�
         log.status_code = 200;
         log.content_size = content_size;
         log.has_content_size = true;
-        log.frame_count = result.frame_count;
-        log.processed_frame_count = result.processed_frame_count;
-        log.detected_frame_count = result.detected_frame_count;
+        log.frame_count = result.frame_counts.frame_count;
+        log.processed_frame_count = result.frame_counts.processed_frame_count;
+        log.detected_frame_count = result.detection_counts.detected_frame_count;
         log.track_observation_count = track_observations;
         log.average_fps = result.metrics.average_fps;
-        log.cpu_utilization_percent = result.metrics.cpu_utilization_percent;
-        log.rss_memory_mb = result.metrics.rss_memory_mb;
+        log.cpu_utilization_percent = result.metrics.resources.cpu_utilization_percent;
+        log.rss_memory_mb = result.metrics.resources.rss_memory_mb;
         logApiEvent(ApiLogEvent::Completed, log);
         respondSuccess(callback, std::move(response), request_id);
 ```
@@ -1298,10 +1298,23 @@ ctest --preset vcpkg-gcc15-openvino
 
 真实摄像头并发新鲜度、CPU 占用和长时间稳定性需要独立验收；不能把 `max_streams=4`、`max_result_age_ms=300` 或检测频率配置当作已经达到的性能结论。
 
-### 10.3 本次文档校验范围
+### 10.3 文档校验范围（2026-10-11）
 
 - 对照当前源码检查初始化顺序、默认值和模板值、路由字段、状态码、数据归属与释放逻辑。
-- 将保留的 C++ 摘录与当前源码连续片段比对（忽略空白），检查本地链接和文内目录锚点。
+- 将保留的 C++ 摘录与当前源码连续片段比对（忽略空白和省略的行注释），检查本地链接和文内目录锚点。
 - 检查命令块的 Bash 语法、JSON 示例及 SSE 示例数据体，未执行上传、创建流、删除或构建命令。
 - 人工检查 Mermaid 图的节点、调用方向和主要状态路径；未通过图形渲染器做视觉验收。
 - 同步主 README、索引、速读、本文与优化计划；未修改现有 API、业务源码、依赖、配置、模型或实验结果。
+
+### 10.4 配套细节的阅读位置
+
+为避免多份文档重复维护，本文集中说明请求和生命周期；以下算法与测量细节统一在综合报告中说明：
+
+| 主题 | 补充说明 |
+| --- | --- |
+| 训练、蒸馏、PTQ/QAT 及产物 | [模型流程](系统实现与验证综合报告.md#model-pipeline) |
+| 同帧更新、源帧跳跃、空光流和年龄 | [跟踪时钟](系统实现与验证综合报告.md#tracking-clock) |
+| 各入口检测节奏、类别阈值和 ROI | [节奏与质量控制](系统实现与验证综合报告.md#cadence) |
+| 队列、请求池、worker 与线程 | [资源与调度](系统实现与验证综合报告.md#scheduling) |
+| 完成、回放、应用与发布的计数差额 | [异步结果](系统实现与验证综合报告.md#replay) |
+| 阶段耗时、CPU/RSS、真值与伪标签 | [测量口径](系统实现与验证综合报告.md#measurement) |

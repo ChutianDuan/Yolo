@@ -2,6 +2,8 @@
 
 测试日期：2026-07-09
 
+> 历史后端基准：以下模型、配置与性能只对应当时的实验。后续同 C++ 链路对比见[2026-09-03 线程基准](../test-results/onnx_thread_benchmark/20260903_020914_utc/combined_report.md)。单实例速度不能直接推导多路容量，当前测量口径见[综合报告](系统实现与验证综合报告.md#measurement)。
+
 ## 结论
 
 在当前 `yolo_onnx_cpp` 服务端实现和同一模型、同一视频、同一推理策略下，OpenVINO CPU 明显快于 ONNX Runtime CPU。

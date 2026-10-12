@@ -1,0 +1,32 @@
+[
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/testA/4eed4d9c-aac9926a.jpg",
+    "variant": "opset13",
+    "max_abs": 0.0
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/testA/4eed4d9c-aac9926a.jpg",
+    "variant": "preprocessed",
+    "max_abs": 0.0
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/trainB/024b92c0-0a350fc3.jpg",
+    "variant": "opset13",
+    "max_abs": 0.0
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/trainB/024b92c0-0a350fc3.jpg",
+    "variant": "preprocessed",
+    "max_abs": 0.0
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/trainA/7f59eb14-8c7148d9.jpg",
+    "variant": "opset13",
+    "max_abs": 0.0
+  },
+  {
+    "image": "/home/ubuntu/YOLO/datasets/bdd100k/bdd100k/bdd100k/images/100k/train/trainA/7f59eb14-8c7148d9.jpg",
+    "variant": "preprocessed",
+    "max_abs": 0.0
+  }
+]

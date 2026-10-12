@@ -1,0 +1,937 @@
+[
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_00.onnx",
+    "excluded": [
+      "/model.19/m.0/cv3/conv/Conv"
+    ],
+    "map50_95": 0.33946660000000006,
+    "map50": 0.620449,
+    "mean_ms": 128.86851312109377,
+    "gain": 0.0003478000000000647,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.19/m.0/cv3/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9584443448880154
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_01.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.1/conv/Conv"
+    ],
+    "map50_95": 0.33702750000000004,
+    "map50": 0.618964,
+    "mean_ms": 138.59528248828124,
+    "gain": -0.0020912999999999626,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.1/one2one_cv3.1.1/one2one_cv3.1.1.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.895198796212105
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_02.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.0/one2one_cv2.0.1/conv/Conv"
+    ],
+    "map50_95": 0.33863689999999996,
+    "map50": 0.618961,
+    "mean_ms": 133.55754543749998,
+    "gain": -0.0004819000000000351,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.0/one2one_cv2.0.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9279552471809586
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_03.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.1/conv/Conv"
+    ],
+    "map50_95": 0.33673530000000007,
+    "map50": 0.618064,
+    "mean_ms": 131.6476939140625,
+    "gain": -0.0023834999999999273,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.2/one2one_cv3.2.1/one2one_cv3.2.1.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9403735129925036
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_04.onnx",
+    "excluded": [
+      "/model.19/m.0/m/m.1/cv2/conv/Conv"
+    ],
+    "map50_95": 0.3371519,
+    "map50": 0.614365,
+    "mean_ms": 141.31590917968748,
+    "gain": -0.0019668999999999937,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.19/m.0/m/m.1/cv2/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.877508695692114
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_05.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv"
+    ],
+    "map50_95": 0.3397053,
+    "map50": 0.623392,
+    "mean_ms": 140.84616462890625,
+    "gain": 0.0005864999999999898,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.8805630759010147
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_06.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv"
+    ],
+    "map50_95": 0.34202330000000003,
+    "map50": 0.622427,
+    "mean_ms": 136.8225148125,
+    "gain": 0.002904500000000032,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9067257133309512
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_07.onnx",
+    "excluded": [
+      "/model.19/m.0/m/m.1/cv1/conv/Conv"
+    ],
+    "map50_95": 0.3387021,
+    "map50": 0.617733,
+    "mean_ms": 141.855453484375,
+    "gain": -0.0004166999999999921,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.19/m.0/m/m.1/cv1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.8740004624548751
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_08.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv"
+    ],
+    "map50_95": 0.33990909999999996,
+    "map50": 0.623404,
+    "mean_ms": 146.88460248046874,
+    "gain": 0.000790299999999966,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.8412998528666759
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_09.onnx",
+    "excluded": [
+      "/model.19/m.0/cv2/conv/Conv"
+    ],
+    "map50_95": 0.3376913,
+    "map50": 0.617812,
+    "mean_ms": 138.25521705468748,
+    "gain": -0.0014274999999999705,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.19/m.0/cv2/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.19/m.0/cv2/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.897409974880112
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_10.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+    ],
+    "map50_95": 0.344259,
+    "map50": 0.621611,
+    "mean_ms": 137.18633435546874,
+    "gain": 0.005140199999999984,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9043600803293403
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_11.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv"
+    ],
+    "map50_95": 0.35129350000000004,
+    "map50": 0.627686,
+    "mean_ms": 147.48448830468752,
+    "gain": 0.012174700000000038,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.8373992660774378
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_12.onnx",
+    "excluded": [
+      "/model.8/m.0/cv1/conv/Conv"
+    ],
+    "map50_95": 0.33740240000000005,
+    "map50": 0.618495,
+    "mean_ms": 131.76582885546875,
+    "gain": -0.0017163999999999513,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.8/m.0/cv1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.8/m.0/cv1/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9396053741680919
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_13.onnx",
+    "excluded": [
+      "/model.8/m.0/cv2/conv/Conv"
+    ],
+    "map50_95": 0.3360017,
+    "map50": 0.623572,
+    "mean_ms": 132.08809846875,
+    "gain": -0.0031170999999999838,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.8/m.0/cv2/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.8/m.0/cv2/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9375099077553379
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_14.onnx",
+    "excluded": [
+      "/model.13/m.0/m/m.1/cv2/conv/Conv"
+    ],
+    "map50_95": 0.3340869,
+    "map50": 0.604244,
+    "mean_ms": 132.0097038828125,
+    "gain": -0.005031899999999978,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.13/m.0/m/m.1/cv2/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9380196462320787
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_15.onnx",
+    "excluded": [
+      "/model.13/m.0/m/m.0/cv2/conv/Conv"
+    ],
+    "map50_95": 0.33513709999999997,
+    "map50": 0.614237,
+    "mean_ms": 127.58217980859375,
+    "gain": -0.0039817000000000324,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.13/m.0/m/m.0/cv2/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9668083610436374
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_16.onnx",
+    "excluded": [
+      "/model.22/m.0/m.0.1/ffn/ffn.1/conv/Conv"
+    ],
+    "map50_95": 0.33935979999999993,
+    "map50": 0.619857,
+    "mean_ms": 131.2404180078125,
+    "gain": 0.0002409999999999357,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.22/m.0/m.0.1/ffn/ffn.1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9430217086246683
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_17.onnx",
+    "excluded": [
+      "/model.2/cv1/conv/Conv"
+    ],
+    "map50_95": 0.33125499999999997,
+    "map50": 0.602466,
+    "mean_ms": 136.9478620546875,
+    "gain": -0.007863800000000032,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.2/cv1/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9059106785739944
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_18.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/conv/Conv"
+    ],
+    "map50_95": 0.339422,
+    "map50": 0.619024,
+    "mean_ms": 131.7560101875,
+    "gain": 0.00030320000000000347,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/conv/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.23/one2one_cv3.2/one2one_cv3.2.0/one2one_cv3.2.0.0/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9396692172612616
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_19.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv"
+    ],
+    "map50_95": 0.3411869,
+    "map50": 0.621565,
+    "mean_ms": 118.0549970390625,
+    "gain": 0.002068100000000017,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 1.0287561546890125
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_20.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv"
+    ],
+    "map50_95": 0.339281,
+    "map50": 0.619269,
+    "mean_ms": 127.33843830078126,
+    "gain": 0.00016220000000000123,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9683932208069107
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_21.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv"
+    ],
+    "map50_95": 0.339462,
+    "map50": 0.61942,
+    "mean_ms": 125.22748803124999,
+    "gain": 0.00034319999999998796,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9821190739637097
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_22.onnx",
+    "excluded": [
+      "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv"
+    ],
+    "map50_95": 0.34004329999999994,
+    "map50": 0.61936,
+    "mean_ms": 127.676206734375,
+    "gain": 0.0009244999999999393,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 101,
+      "fp32_conv_count": 1,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9661969777274662
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_23.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+      "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+    ],
+    "map50_95": 0.363923,
+    "map50": 0.634473,
+    "mean_ms": 123.28752399218749,
+    "gain": 0.0248042,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 100,
+      "fp32_conv_count": 2,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+        "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.9947331378353117
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_24.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+      "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv",
+      "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv",
+      "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv"
+    ],
+    "map50_95": 0.3659312,
+    "map50": 0.638737,
+    "mean_ms": 119.183900953125,
+    "gain": 0.026812400000000014,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 98,
+      "fp32_conv_count": 4,
+      "excluded_nodes": [
+        "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv",
+        "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+        "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+        "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 1.0214157783778273
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_25.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+      "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv",
+      "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv",
+      "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+      "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv",
+      "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv",
+      "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv",
+      "/model.19/m.0/cv3/conv/Conv"
+    ],
+    "map50_95": 0.3669032,
+    "map50": 0.643261,
+    "mean_ms": 128.05342336328124,
+    "gain": 0.027784399999999987,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 94,
+      "fp32_conv_count": 8,
+      "excluded_nodes": [
+        "/model.19/m.0/cv3/conv/Conv",
+        "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv",
+        "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv",
+        "/model.23/one2one_cv2.1/one2one_cv2.1.1/conv/Conv",
+        "/model.23/one2one_cv3.0/one2one_cv3.0.1/one2one_cv3.0.1.1/conv/Conv",
+        "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+        "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+        "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [
+        "/model.23/one2one_cv2.1/one2one_cv2.1.0/conv/Conv"
+      ],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 0.963744233988591
+  },
+  {
+    "model": "/home/ubuntu/YOLO/docs/test-results/high_ptq_analysis_20261012_191035/models/candidate_26.onnx",
+    "excluded": [
+      "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv",
+      "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+      "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+      "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv",
+      "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv",
+      "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv"
+    ],
+    "map50_95": 0.3668351,
+    "map50": 0.635547,
+    "mean_ms": 115.633687375,
+    "gain": 0.027716300000000027,
+    "details": {
+      "conv_count": 102,
+      "int8_conv_count": 96,
+      "fp32_conv_count": 6,
+      "excluded_nodes": [
+        "/model.23/one2one_cv2.0/one2one_cv2.0.2/Conv",
+        "/model.23/one2one_cv2.1/one2one_cv2.1.2/Conv",
+        "/model.23/one2one_cv2.2/one2one_cv2.2.2/Conv",
+        "/model.23/one2one_cv3.0/one2one_cv3.0.2/Conv",
+        "/model.23/one2one_cv3.1/one2one_cv3.1.2/Conv",
+        "/model.23/one2one_cv3.2/one2one_cv3.2.2/Conv"
+      ],
+      "excluded_with_shared_input_qdq": [],
+      "input_shape": [
+        1,
+        3,
+        736,
+        1280
+      ],
+      "output_shapes": [
+        [
+          1,
+          300,
+          6
+        ]
+      ]
+    },
+    "speed_retention": 1.0445000314518886
+  }
+]
